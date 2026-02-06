@@ -1,0 +1,334 @@
+
+# Техническое задание для миграции проекта на новую архитектуру
+
+## Общая информация
+**Текущее состояние:** Имеется существующий проект (возможно монолитный) с сайтом и Telegram ботом
+**Целевое состояние:** Современная раздельная архитектура с общим бэкендом
+
+## Целевая архитектура
+
+```
+┌─────────────────┐     HTTPS/REST     ┌──────────────────────────────────┐
+│   Frontend      │◄──────────────────►│     Backend API (FastAPI)        │
+│   React/Vue     │                    │  - REST API для фронтенда        │
+│   (Static)      │                    │  - Webhook обработчик для бота   │
+│                 │                    │  - Общая бизнес-логика           │
+└─────────────────┘                    │  - Общие модели данных           │
+                                       └────────────┬─────────────────────┘
+                                       ▲            │
+                                       │            ▼
+                                  Webhook     ┌─────────────┐
+                                       │      │ PostgreSQL  │
+                                       │      │  Database   │
+                                       │      └─────────────┘
+                                 ┌──────────┐
+                                 │Telegram  │
+                                 │  Bot     │
+                                 │ (Aiogram)│
+                                 └──────────┘
+```
+
+## Технические требования
+
+### 1. Серверная инфраструктура
+- **Веб-сервер:** Nginx (реверс-прокси + статика)
+- **Application Server:** Gunicorn + Uvicorn для FastAPI
+- **База данных:** PostgreSQL 14+
+- **Операционная система:** Ubuntu 22.04 LTS
+- **Процесс-менеджер:** Systemd для управления сервисами
+
+### 2. Бэкенд (FastAPI)
+- **Фреймворк:** FastAPI 0.100+
+- **Асинхронность:** Использовать async/await везде
+- **ORM:** SQLAlchemy 2.0+ с асинхронной поддержкой (asyncpg)
+- **Миграции:** Alembic
+- **Аутентификация:** JWT токены
+- **Валидация:** Pydantic v2
+- **Структура проекта:**
+  ```
+  backend/
+  ├── app/
+  │   ├── api/              # REST эндпоинты
+  │   │   ├── v1/          # Версия API
+  │   │   │   ├── users.py
+  │   │   │   ├── products.py
+  │   │   │   └── ...
+  │   │   └── dependencies.py
+  │   ├── bot/             # Логика Telegram бота
+  │   │   ├── handlers/
+  │   │   │   ├── commands.py
+  │   │   │   ├── messages.py
+  │   │   │   └── callbacks.py
+  │   │   ├── keyboards.py # Клавиатуры бота
+  │   │   └── webhook.py   # Обработчик вебхука
+  │   ├── core/            # Ядро приложения
+  │   │   ├── config.py    # Конфигурация
+  │   │   ├── database.py  # Подключение к БД
+  │   │   └── security.py  # Безопасность
+  │   ├── models/          # Модели SQLAlchemy
+  │   │   ├── user.py
+  │   │   ├── order.py
+  │   │   └── ...
+  │   ├── schemas/         # Pydantic схемы
+  │   ├── services/        # Бизнес-логика (общая для API и бота)
+  │   │   ├── user_service.py
+  │   │   ├── order_service.py
+  │   │   └── ...
+  │   └── main.py          # Точка входа
+  ├── alembic/             # Миграции БД
+  ├── tests/               # Тесты
+  ├── requirements.txt
+  └── .env.example
+  ```
+
+### 3. Telegram Bot (Aiogram 3.x)
+- **Библиотека:** Aiogram 3.x (последняя стабильная)
+- **Архитектура:** Router-based (FSM при необходимости)
+- **Режим работы:** Webhook (в продакшене), Polling (в разработке)
+- **Интеграция с FastAPI:** Единый процесс приложения
+- **Требования к боту:**
+  - Все обработчики в отдельной директории `app/bot/`
+  - Общий доступ к сервисному слою (`app/services/`)
+  - Использование общих моделей БД
+  - Логирование всех действий
+
+### 4. Фронтенд (React/Vue)
+- **Сборка:** Статическая (Single Page Application)
+- **Взаимодействие:** REST API к бэкенду
+- **Хостинг:** Статические файлы отдаются через Nginx
+- **Маршрутизация:** Client-side routing (React Router/Vue Router)
+- **Структура:**
+  ```
+  frontend/
+  ├── public/
+  │   └── index.html
+  ├── src/
+  │   ├── api/            # Клиент для работы с API
+  │   ├── components/     # UI компоненты
+  │   ├── pages/         # Страницы приложения
+  │   ├── store/         # State management
+  │   └── App.js/App.vue
+  ├── package.json
+  └── build/             # Собранные файлы (деплой)
+  ```
+
+### 5. База данных (PostgreSQL)
+- **Минимальная версия:** PostgreSQL 14
+- **Расширения:** При необходимости (pg_trgm, uuid-ossp)
+- **Миграции:** Автоматические через Alembic
+- **Бэкапы:** Автоматические ежедневные
+- **Индексы:** Оптимизированные под текущие запросы
+
+### 6. Конфигурация Nginx
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com www.your-domain.com;
+
+    # SSL сертификаты (Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+
+    # Frontend (статичные файлы)
+    location / {
+        root /var/www/your-project/frontend;
+        try_files $uri $uri/ /index.html;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Backend API
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Telegram Bot Webhook
+    location /bot-webhook {
+        proxy_pass http://127.0.0.1:8000/bot-webhook;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Статические файлы бэкенда (если есть)
+    location /static/ {
+        alias /var/www/your-project/backend/static/;
+        expires 30d;
+    }
+}
+```
+
+### 7. Systemd сервисы
+**Файл:** `/etc/systemd/system/your-project.service`
+```ini
+[Unit]
+Description=Your Project Backend
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/your-project/backend
+Environment="PATH=/var/www/your-project/backend/venv/bin"
+EnvironmentFile=/var/www/your-project/backend/.env
+ExecStart=/var/www/your-project/backend/venv/bin/gunicorn \
+          app.main:app \
+          --workers 4 \
+          --worker-class uvicorn.workers.UvicornWorker \
+          --bind 127.0.0.1:8000 \
+          --timeout 120 \
+          --access-logfile /var/log/your-project/access.log \
+          --error-logfile /var/log/your-project/error.log
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 8. Переменные окружения (.env)
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=your_project
+DB_USER=your_user
+DB_PASSWORD=strong_password
+
+# FastAPI
+APP_NAME="Your Project"
+APP_ENV=production
+APP_DEBUG=false
+SECRET_KEY=your-secret-key-here
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your:telegram_bot_token_here
+TELEGRAM_WEBHOOK_URL=https://your-domain.com/bot-webhook
+TELEGRAM_ADMIN_IDS=123456789,987654321
+
+# Redis (если нужен для кэша/сессий)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Настройки логирования
+LOG_LEVEL=INFO
+LOG_FILE=/var/log/your-project/app.log
+```
+
+## Задачи для миграции
+
+### Этап 1: Анализ и планирование
+1. Проанализировать текущую структуру БД и экспортировать схему
+2. Определить общие бизнес-процессы (какие используются и в сайте, и в боте)
+3. Составить список всех API эндпоинтов, которые нужны фронтенду
+4. Составить список всех команд и функций Telegram бота
+
+### Этап 2: Настройка инфраструктуры
+1. Установить и настроить PostgreSQL
+2. Настроить Nginx с SSL (Let's Encrypt)
+3. Создать структуру каталогов проекта
+4. Настроить systemd сервисы
+5. Настроить бэкапы БД
+
+### Этап 3: Разработка бэкенда
+1. Инициализировать FastAPI проект с заданной структурой
+2. Создать модели SQLAlchemy на основе текущей БД
+3. Написать миграции Alembic
+4. Реализовать сервисный слой (общую бизнес-логику)
+5. Реализовать REST API эндпоинты
+6. Реализовать аутентификацию (JWT)
+
+### Этап 4: Интеграция Telegram бота
+1. Перенести логику текущего бота в Aiogram 3.x
+2. Настроить webhook интеграцию с FastAPI
+3. Переписать обработчики для работы с общим сервисным слоем
+4. Реализовать FSM (Finite State Machine) при необходимости
+5. Настроить логирование и обработку ошибок
+
+### Этап 5: Разработка фронтенда
+1. Создать React/Vue проект с заданной структурой
+2. Реализовать API клиент для работы с бэкендом
+3. Перенести UI компоненты из текущего проекта
+4. Настроить маршрутизацию
+5. Реализовать аутентификацию/авторизацию на фронтенде
+
+### Этап 6: Миграция данных
+1. Создать скрипты миграции данных из старой БД
+2. Перенести пользователей, настройки, исторические данные
+3. Проверить целостность данных после миграции
+4. Создать откатные скрипты на случай проблем
+
+### Этап 7: Тестирование и деплой
+1. Написать unit-тесты для сервисного слоя
+2. Написать интеграционные тесты для API
+3. Протестировать работу бота во всех сценариях
+4. Настроить CI/CD (GitHub Actions/GitLab CI)
+5. Произвести деплой на staging окружение
+6. Протестировать на staging
+7. Произвести деплой на production
+
+## Требования к коду
+
+### Качество кода
+- Использовать type hints везде
+- Следовать PEP 8 (для Python) и стандартам React/Vue
+- Документация для всех публичных методов и классов
+- Тестовое покрытие минимум 70% для критичной логики
+
+### Безопасность
+- Все секреты в переменных окружения
+- Валидация всех входящих данных (Pydantic)
+- Защита от SQL-инъекций (ORM)
+- Rate limiting для API эндпоинтов
+- HTTPS везде
+
+### Производительность
+- Асинхронные запросы к БД
+- Кэширование часто запрашиваемых данных (при необходимости)
+- Оптимизированные SQL-запросы
+- Сжатие статики (gzip/brotli)
+
+### Мониторинг и логирование
+- Структурированные логи в JSON формате
+- Мониторинг здоровья API (health checks)
+- Метрики Prometheus (при необходимости)
+- Sentry для отслеживания ошибок
+
+## Критерии приемки
+
+1. Все текущие функции сайта работают через новый API
+2. Telegram бот сохранил всю функциональность
+3. Данные корректно мигрированы в новую БД
+4. Производительность не ухудшилась
+5. Приложение работает стабильно под нагрузкой
+6. Реализована система бэкапов
+7. Есть документация по развертыванию
+8. Настроено мониторинг и алертинг
+
+## Дополнительные рекомендации
+
+1. Использовать Poetry для управления зависимостями Python
+2. Настроить pre-commit хуки для проверки кода
+3. Использовать Docker для development окружения
+4. Реализовать API версионирование с первого дня
+5. Создать админ-панель (если нужно) на базе FastAPI Admin
+6. Реализовать фоновые задачи через Celery (если нужно)
+
+---
+
+**Примечание для ИИ:** При переделке проекта необходимо сохранить всю бизнес-логику, но переложить её на новую архитектуру. Важно обеспечить плавный переход без потери данных и функциональности.
