@@ -95,7 +95,14 @@ apt install -y -qq \
     certbot python3-certbot-nginx \
     git curl wget software-properties-common \
     openssl build-essential \
-    ufw fail2ban
+    ufw fail2ban locales
+
+# Настройка локалей
+log "🌐 Настройка локалей..."
+locale-gen en_US.UTF-8
+update-locale LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
 # Установка Node.js 18
 if ! command -v node &> /dev/null; then
@@ -106,8 +113,18 @@ fi
 
 # 4. СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ
 log "👤 Создание системного пользователя finio..."
+# Удаляем старого пользователя если есть
+if id "finio" &>/dev/null; then
+    userdel -r finio 2>/dev/null || true
+fi
+
+# Создаем нового пользователя
 adduser --system --group --home $PROJECT_DIR --shell /bin/bash finio
 usermod -aG www-data finio
+
+# Создаем домашнюю директорию если не существует
+mkdir -p $PROJECT_DIR
+chown finio:finio $PROJECT_DIR
 
 # 5. НАСТРОЙКА POSTGRESQL
 log "🗄️ Настройка PostgreSQL..."
@@ -115,16 +132,31 @@ systemctl start postgresql
 systemctl enable postgresql
 
 # Ждем запуска PostgreSQL
+sleep 5
+
+# Настройка локали для PostgreSQL
+locale-gen en_US.UTF-8
+update-locale LANG=en_US.UTF-8
+
+# Перезапуск PostgreSQL после настройки локали
+systemctl restart postgresql
 sleep 3
 
 # Создание базы данных с правильными правами
+log "🗄️ Создание базы данных..."
 sudo -u postgres psql << EOF
-CREATE DATABASE finio WITH ENCODING 'UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8';
+DROP DATABASE IF EXISTS finio;
+DROP USER IF EXISTS finio_user;
 CREATE USER finio_user WITH PASSWORD '$DB_PASSWORD';
+CREATE DATABASE finio WITH 
+    OWNER finio_user 
+    ENCODING 'UTF8' 
+    LC_COLLATE 'C' 
+    LC_CTYPE 'C' 
+    TEMPLATE template0;
 GRANT ALL PRIVILEGES ON DATABASE finio TO finio_user;
 ALTER USER finio_user CREATEDB;
-ALTER DATABASE finio OWNER TO finio_user;
-\q
+\\q
 EOF
 
 # 6. КЛОНИРОВАНИЕ И НАСТРОЙКА ПРОЕКТА
