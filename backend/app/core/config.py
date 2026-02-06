@@ -27,7 +27,21 @@ class Settings(BaseSettings):
     # Telegram Bot settings
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_WEBHOOK_URL: str = ""
-    TELEGRAM_ADMIN_IDS: List[int] = []
+    TELEGRAM_ADMIN_IDS: str = ""
+    
+    @property
+    def telegram_admin_ids_list(self) -> List[int]:
+        """Преобразует строку TELEGRAM_ADMIN_IDS в список чисел"""
+        if not self.TELEGRAM_ADMIN_IDS:
+            return []
+        try:
+            # Если это одно число
+            if self.TELEGRAM_ADMIN_IDS.isdigit():
+                return [int(self.TELEGRAM_ADMIN_IDS)]
+            # Если это список чисел через запятую
+            return [int(x.strip()) for x in self.TELEGRAM_ADMIN_IDS.split(',') if x.strip().isdigit()]
+        except:
+            return []
     
     # CORS settings
     ALLOWED_HOSTS: List[str] = ["*"]
