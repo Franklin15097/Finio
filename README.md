@@ -15,14 +15,19 @@
 
 ```
 finio/
-├── app/                       # FastAPI backend
-│   ├── api/v1/               # REST API endpoints
-│   ├── bot/                  # Telegram bot handlers
-│   ├── core/                 # Core configuration
-│   ├── models/               # SQLAlchemy models
-│   ├── schemas/              # Pydantic schemas
-│   ├── services/             # Business logic
-│   └── main.py              # Application entry point
+├── backend/                   # FastAPI backend
+│   ├── app/
+│   │   ├── api/v1/           # REST API endpoints
+│   │   ├── bot/              # Telegram bot handlers
+│   │   ├── core/             # Core configuration
+│   │   ├── models/           # SQLAlchemy models
+│   │   ├── schemas/          # Pydantic schemas
+│   │   ├── services/         # Business logic
+│   │   └── main.py           # Application entry point
+│   ├── alembic/              # Database migrations
+│   ├── requirements.txt      # Python dependencies
+│   ├── .env.example          # Environment variables template
+│   └── Dockerfile            # Docker image
 ├── frontend/                 # React frontend
 │   ├── src/
 │   │   ├── api/             # API client
@@ -32,11 +37,7 @@ finio/
 │   │   └── App.js          # Main app component
 │   ├── public/             # Static files
 │   └── package.json        # Node.js dependencies
-├── alembic/                # Database migrations
-├── requirements.txt        # Python dependencies
 ├── docker-compose.yml      # Docker development setup
-├── Dockerfile             # Docker image
-├── migrate_data.py         # Data migration script
 ├── INSTALLATION.md         # Production deployment guide
 └── README.md              # This file
 ```
@@ -47,8 +48,8 @@ finio/
 
 1. **Клонирование репозитория**:
 ```bash
-git clone https://github.com/your-username/finio.git
-cd finio
+git clone https://github.com/Franklin15097/Finio.git
+cd Finio
 ```
 
 2. **Запуск с Docker Compose**:
@@ -72,6 +73,7 @@ docker-compose exec backend alembic upgrade head
 
 1. **Установка зависимостей**:
 ```bash
+cd backend
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # или
@@ -210,41 +212,10 @@ curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
 Если у вас есть данные из старой версии проекта:
 
 ```bash
+cd backend
 pip install asyncpg mysql-connector-python python-dotenv
 python migrate_data.py
 ```
-
-## Тестирование
-
-### Backend тесты
-```bash
-pytest
-```
-
-### Frontend тесты
-```bash
-cd frontend
-npm test
-```
-
-## Мониторинг и логирование
-
-### Логи приложения
-```bash
-# Системные логи
-sudo journalctl -u finio -f
-
-# Логи приложения
-tail -f /var/log/finio/app.log
-
-# Логи Nginx
-tail -f /var/log/nginx/access.log
-tail -f /var/log/nginx/error.log
-```
-
-### Health checks
-- Backend: `GET /health`
-- Database: Встроенные проверки в приложении
 
 ## Безопасность
 
@@ -263,36 +234,11 @@ tail -f /var/log/nginx/error.log
 - 📊 Оптимизированные SQL запросы
 - 🔄 Connection pooling для БД
 
-## Вклад в проект
-
-1. Fork репозитория
-2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit изменения (`git commit -m 'Add amazing feature'`)
-4. Push в branch (`git push origin feature/amazing-feature`)
-5. Создайте Pull Request
-
 ## Лицензия
 
-Этот проект распространяется под лицензией MIT. См. файл `LICENSE` для подробностей.
+Этот проект распространяется под лицензией MIT.
 
 ## Поддержка
 
-- 📧 Email: support@finio.app
-- 💬 Telegram: @finio_support
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/finio/issues)
-- 📖 Документация: [Wiki](https://github.com/your-username/finio/wiki)
-
-## Changelog
-
-### v2.0.0 (2026-02-06)
-- ✨ Полная переработка архитектуры
-- 🚀 Миграция на FastAPI + React
-- 🤖 Интеграция Telegram бота
-- 📊 Улучшенная аналитика
-- 🔐 Обновленная система безопасности
-- 📱 Адаптивный дизайн
-
-### v1.0.0
-- 🎉 Первая версия проекта
-- 💰 Базовый учет транзакций
-- 📁 Система категорий
+- 🐛 Issues: [GitHub Issues](https://github.com/Franklin15097/Finio/issues)
+- 📖 Документация: [Wiki](https://github.com/Franklin15097/Finio/wiki)

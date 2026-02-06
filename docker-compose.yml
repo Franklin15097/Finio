@@ -18,17 +18,9 @@ services:
       timeout: 10s
       retries: 3
 
-  # Redis для кэширования (опционально)
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
   # Backend API
   backend:
-    build: .
+    build: ./backend
     ports:
       - "8000:8000"
     environment:
@@ -38,12 +30,12 @@ services:
       - DB_USER=finio_user
       - DB_PASSWORD=finio_password
       - SECRET_KEY=dev-secret-key-change-in-production
-      - DEBUG=true
+      - APP_DEBUG=true
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
-      - .:/app
+      - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   # Frontend (для разработки)
@@ -61,4 +53,3 @@ services:
 
 volumes:
   postgres_data:
-  redis_data:
