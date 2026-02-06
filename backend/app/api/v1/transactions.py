@@ -64,9 +64,7 @@ async def get_transactions(
     # Добавляем название категории к каждой транзакции
     result = []
     for transaction in transactions:
-        transaction_response = TransactionResponse.from_attributes(transaction)
-        transaction_response.category_name = transaction.category.name if transaction.category else None
-        result.append(transaction_response)
+        result.append(TransactionResponse.from_attributes(transaction))
     
     return result
 

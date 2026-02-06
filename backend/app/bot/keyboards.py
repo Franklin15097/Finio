@@ -32,6 +32,8 @@ def get_main_keyboard() -> ReplyKeyboardMarkup:
 
 def get_auth_keyboard() -> InlineKeyboardMarkup:
     """Клавиатура для неавторизованных пользователей"""
+    from app.core.config import settings
+    
     keyboard = [
         [
             InlineKeyboardButton(
@@ -42,7 +44,7 @@ def get_auth_keyboard() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(
                 text="📱 Открыть веб-версию",
-                url="https://your-domain.com"  # Замените на ваш домен
+                url=settings.TELEGRAM_WEBHOOK_URL or "https://your-domain.com"
             )
         ]
     ]

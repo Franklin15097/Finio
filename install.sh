@@ -123,7 +123,18 @@ sudo -u finio $PROJECT_DIR/backend/venv/bin/alembic upgrade head
 # 8. Сборка frontend
 log "⚛️ Сборка frontend..."
 cd $PROJECT_DIR/frontend
+
+# Проверяем, есть ли package.json
+if [ ! -f "package.json" ]; then
+    error "package.json не найден в frontend/"
+fi
+
+# Устанавливаем зависимости
+log "📦 Установка зависимостей frontend..."
 npm install
+
+# Собираем проект
+log "🔨 Сборка frontend..."
 REACT_APP_API_URL=https://$DOMAIN/api/v1 npm run build
 
 # Копирование собранных файлов

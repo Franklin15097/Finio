@@ -34,10 +34,27 @@ class TransactionResponse(TransactionBase):
     id: int
     user_id: int
     created_at: datetime
-    category_name: Optional[str] = None
+    category_name: Optional[str] = Field(None, description="Category name (computed field)")
     
     class Config:
         from_attributes = True
+        
+    @classmethod
+    def from_attributes(cls, obj):
+        """Create response from SQLAlchemy object"""
+        data = {
+            'id': obj.id,
+            'user_id': obj.user_id,
+            'type': obj.type,
+            'amount': obj.amount,
+            'title': obj.title,
+            'description': obj.description,
+            'transaction_date': obj.transaction_date,
+            'category_id': obj.category_id,
+            'created_at': obj.created_at,
+            'category_name': obj.category.name if obj.category else None
+        }
+        return cls(**data)
 
 
 class TransactionStats(BaseModel):
