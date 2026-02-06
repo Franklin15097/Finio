@@ -1,15 +1,41 @@
 # Finio - Умный контроль финансов
 
-Современное веб-приложение для управления личными финансами с интеграцией Telegram бота.
+Современное веб-приложение для управления личными финансами с интеграцией Telegram бота `FinanceStudio_bot`.
 
-## Архитектура
+## 🎯 Готово к деплою!
 
+Проект полностью соответствует техническому заданию и готов к развертыванию на хостинге.
+
+## 🏗️ Архитектура
+
+```
+┌─────────────────┐     HTTPS/REST     ┌──────────────────────────────────┐
+│   Frontend      │◄──────────────────►│     Backend API (FastAPI)        │
+│   React SPA     │                    │  - REST API для фронтенда        │
+│   (Static)      │                    │  - Webhook обработчик для бота   │
+│                 │                    │  - Общая бизнес-логика           │
+└─────────────────┘                    │  - JWT аутентификация            │
+                                       └────────────┬─────────────────────┘
+                                       ▲            │
+                                       │            ▼
+                                  Webhook     ┌─────────────┐
+                                       │      │ PostgreSQL  │
+                                       │      │  Database   │
+                                       │      └─────────────┘
+                                 ┌──────────┐
+                                 │Telegram  │
+                                 │  Bot     │
+                                 │FinanceStudio_bot│
+                                 └──────────┘
+```
+
+**Технологии:**
 - **Backend**: FastAPI (Python) с асинхронной поддержкой
 - **Frontend**: React с современным UI
-- **База данных**: PostgreSQL
-- **Telegram Bot**: Aiogram 3.x
-- **Веб-сервер**: Nginx
-- **Развертывание**: Docker + systemd
+- **База данных**: PostgreSQL с миграциями Alembic
+- **Telegram Bot**: Aiogram 3.x с webhook интеграцией
+- **Веб-сервер**: Nginx с SSL (Let's Encrypt)
+- **Развертывание**: Автоматические скрипты + systemd
 
 ## Структура проекта
 
@@ -42,9 +68,43 @@ finio/
 └── README.md              # This file
 ```
 
-## Быстрый старт
+## 🚀 Быстрый деплой
 
-### Разработка с Docker
+### Автоматическая установка (рекомендуется)
+
+```bash
+# 1. Клонируйте репозиторий на хостинг
+git clone https://github.com/Franklin15097/Finio.git
+cd Finio
+
+# 2. Запустите автоматическую установку
+chmod +x install.sh
+sudo ./install.sh your-domain.com your-telegram-bot-token
+```
+
+**Готово!** Скрипт автоматически настроит весь проект.
+
+### Что получите после установки
+
+- 🌐 **Веб-сайт**: https://your-domain.com
+- 🔧 **API документация**: https://your-domain.com/api/v1/docs
+- 🤖 **Telegram бот**: @FinanceStudio_bot
+- 🔒 **SSL сертификат**: Автоматически от Let's Encrypt
+- 💾 **Автоматические бэкапы**: Ежедневно в 2:00
+
+### Обновление проекта
+
+```bash
+cd Finio
+sudo ./update.sh
+```
+
+📖 **Подробные инструкции**: [INSTALLATION.md](INSTALLATION.md)  
+⚡ **Быстрый старт**: [QUICK_DEPLOY.md](QUICK_DEPLOY.md)
+
+## 💻 Локальная разработка
+
+### С Docker (рекомендуется)
 
 1. **Клонирование репозитория**:
 ```bash
@@ -67,7 +127,7 @@ docker-compose exec backend alembic upgrade head
    - Backend API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
 
-### Локальная разработка
+### Без Docker
 
 #### Backend
 

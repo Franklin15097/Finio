@@ -1,8 +1,43 @@
-# Руководство по установке Finio
+# 🚀 Полное руководство по установке Finio
 
-Это руководство поможет вам развернуть проект Finio на хостинге с новой архитектурой (FastAPI + React + Telegram Bot).
+**Проект готов к деплою!** Это руководство поможет развернуть Finio на хостинге с архитектурой FastAPI + React + Telegram Bot.
 
-## Требования к хостингу
+## ✅ Что уже готово в проекте
+
+- ✅ **Backend**: FastAPI с полной структурой согласно ТЗ
+- ✅ **Frontend**: React приложение с современным UI  
+- ✅ **Telegram Bot**: Aiogram 3.x с webhook интеграцией
+- ✅ **База данных**: PostgreSQL модели и миграции
+- ✅ **Docker**: Готовая конфигурация для разработки
+- ✅ **Nginx**: Настройки для продакшена
+- ✅ **SSL**: Поддержка Let's Encrypt
+- ✅ **Systemd**: Сервисы для автозапуска
+- ✅ **Бэкапы**: Автоматические скрипты
+
+## 🎯 Архитектура проекта
+
+```
+┌─────────────────┐     HTTPS/REST     ┌──────────────────────────────────┐
+│   Frontend      │◄──────────────────►│     Backend API (FastAPI)        │
+│   React SPA     │                    │  - REST API для фронтенда        │
+│   (Static)      │                    │  - Webhook обработчик для бота   │
+│                 │                    │  - Общая бизнес-логика           │
+└─────────────────┘                    │  - JWT аутентификация            │
+                                       └────────────┬─────────────────────┘
+                                       ▲            │
+                                       │            ▼
+                                  Webhook     ┌─────────────┐
+                                       │      │ PostgreSQL  │
+                                       │      │  Database   │
+                                       │      └─────────────┘
+                                 ┌──────────┐
+                                 │Telegram  │
+                                 │  Bot     │
+                                 │(FinanceStudio_bot)│
+                                 └──────────┘
+```
+
+## 📋 Требования к хостингу
 
 ### Минимальные требования
 - **ОС**: Ubuntu 22.04 LTS или новее
@@ -19,7 +54,37 @@
 4. **Hetzner** - от €4.15/месяц (CX21)
 5. **AWS EC2** - от $15/месяц (t3.small)
 
-## Пошаговая установка
+## 🚀 Быстрая установка (рекомендуется)
+
+### Шаг 1: Клонирование проекта
+
+```bash
+# На вашем хостинге выполните:
+git clone https://github.com/Franklin15097/Finio.git
+cd Finio
+```
+
+### Шаг 2: Автоматическая установка
+
+```bash
+# Сделайте скрипт исполняемым
+chmod +x install.sh
+
+# Запустите автоматическую установку
+sudo ./install.sh your-domain.com your-telegram-bot-token
+```
+
+**Готово!** Скрипт автоматически:
+- Установит все зависимости
+- Настроит PostgreSQL
+- Соберет frontend
+- Настроит Nginx с SSL
+- Запустит все сервисы
+- Настроит Telegram webhook
+
+---
+
+## 📖 Ручная установка (пошагово)
 
 ### 1. Подготовка сервера
 
@@ -54,7 +119,7 @@ ALTER USER finio_user CREATEDB;
 \q
 
 # Настройка подключений (опционально)
-sudo nano /etc/postgresql/14/main/pg_hba.conf
+sudo nano /etc/postgresql/14/main/pg_hba.conf              !
 # Добавьте строку: local   finio   finio_user   md5
 
 sudo systemctl restart postgresql
@@ -80,43 +145,41 @@ cp .env.example .env
 nano .env
 ```
 
-### 4. Настройка переменных окружения (.env)
+### Шаг 4: Настройка переменных окружения (.env)
+
+**Важно!** Отредактируйте файл `.env` в директории `backend/`:
 
 ```bash
-# App settings
-APP_NAME="Finio API"
-APP_ENV=production
-DEBUG=false
-SECRET_KEY=your-very-long-secret-key-here-change-this
-
-# JWT settings
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Database settings
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=finio
-DB_USER=finio_user
-DB_PASSWORD=your_strong_password_here
-
-# Telegram Bot settings
-TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
-TELEGRAM_WEBHOOK_URL=https://your-domain.com
-TELEGRAM_ADMIN_IDS=123456789
-
-# CORS settings
-ALLOWED_HOSTS=https://your-domain.com,https://www.your-domain.com
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FILE=/var/log/finio/app.log
+cd /var/www/finio/backend
+sudo nano .env
 ```
+
+Обязательно измените следующие параметры:
+
+```bash
+# Telegram Bot settings (ОБЯЗАТЕЛЬНО!)
+TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz  # Токен вашего FinanceStudio_bot
+TELEGRAM_WEBHOOK_URL=https://your-domain.com
+TELEGRAM_ADMIN_IDS=123456789  # Ваш Telegram ID (получите у @userinfobot)
+
+# App settings
+SECRET_KEY=your-very-long-secret-key-here-change-this  # Сгенерируйте новый!
+
+# Database settings (автоматически заполнены)
+DB_PASSWORD=your_generated_password  # Уже установлен автоматически
+```
+
+**Как получить токен бота:**
+1. Найдите @BotFather в Telegram
+2. Отправьте `/mybots`
+3. Выберите `FinanceStudio_bot`
+4. Нажмите "API Token"
+5. Скопируйте токен в `.env` файл
 
 ### 5. Инициализация базы данных
 
 ```bash
-# Находясь в корне проекта с активированным venv
+# Находясь в backend/ с активированным venv
 alembic upgrade head
 
 # Или создание таблиц напрямую (если миграции не настроены)
@@ -258,10 +321,10 @@ Requires=postgresql.service
 Type=simple
 User=finio
 Group=finio
-WorkingDirectory=/var/www/finio
-Environment="PATH=/var/www/finio/venv/bin"
-EnvironmentFile=/var/www/finio/.env
-ExecStart=/var/www/finio/venv/bin/gunicorn \
+WorkingDirectory=/var/www/finio/backend
+Environment="PATH=/var/www/finio/backend/venv/bin"
+EnvironmentFile=/var/www/finio/backend/.env
+ExecStart=/var/www/finio/backend/venv/bin/gunicorn \
           app.main:app \
           --workers 4 \
           --worker-class uvicorn.workers.UvicornWorker \
@@ -368,44 +431,64 @@ curl https://your-domain.com/health
    - Отправьте `/start`
    - Бот должен ответить
 
-### 13. Обновление приложения
+## 🔧 Обновление проекта
 
-Создайте скрипт для обновления:
-
-```bash
-sudo nano /usr/local/bin/finio-update.sh
-```
+Для обновления проекта используйте готовый скрипт:
 
 ```bash
-#!/bin/bash
-cd /var/www/finio
-
-# Остановка сервиса
-sudo systemctl stop finio
-
-# Обновление кода
-sudo -u finio git pull origin main
-
-# Обновление backend
-sudo -u finio /var/www/finio/venv/bin/pip install -r requirements.txt
-sudo -u finio /var/www/finio/venv/bin/alembic upgrade head
-
-# Обновление frontend
-cd frontend
-npm install
-npm run build
-sudo cp -r build/* /var/www/finio/static/
-sudo chown -R www-data:www-data /var/www/finio/static
-
-# Запуск сервиса
-sudo systemctl start finio
-
-echo "Update completed"
+cd /path/to/Finio
+sudo ./update.sh
 ```
+
+Скрипт автоматически:
+- Создаст бэкап
+- Обновит код из GitHub
+- Применит миграции БД
+- Пересоберет frontend
+- Перезапустит сервисы
+
+## 🤖 Настройка Telegram бота FinanceStudio_bot
+
+### Получение токена бота
+
+1. **Если бот уже создан:**
+   - Найдите @BotFather в Telegram
+   - Отправьте `/mybots`
+   - Выберите `FinanceStudio_bot`
+   - Нажмите "API Token"
+
+2. **Если нужно создать нового бота:**
+   - Найдите @BotFather в Telegram
+   - Отправьте `/newbot`
+   - Введите имя: `FinanceStudio`
+   - Введите username: `FinanceStudio_bot`
+   - Сохраните полученный токен
+
+### Настройка команд бота
+
+После установки настройте команды бота:
 
 ```bash
-sudo chmod +x /usr/local/bin/finio-update.sh
+# Замените YOUR_BOT_TOKEN на реальный токен
+curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setMyCommands" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "commands": [
+         {"command": "start", "description": "Начать работу с ботом"},
+         {"command": "help", "description": "Справка по командам"},
+         {"command": "balance", "description": "Показать текущий баланс"},
+         {"command": "stats", "description": "Показать статистику"},
+         {"command": "link", "description": "Привязать аккаунт к сайту"}
+       ]
+     }'
 ```
+
+### Проверка работы бота
+
+1. Найдите вашего бота в Telegram: `@FinanceStudio_bot`
+2. Отправьте `/start`
+3. Бот должен ответить приветственным сообщением
+4. Проверьте webhook: `curl "https://api.telegram.org/botYOUR_TOKEN/getWebhookInfo"`
 
 ## Миграция данных
 
