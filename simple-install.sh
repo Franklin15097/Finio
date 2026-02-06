@@ -71,12 +71,16 @@ systemctl start postgresql
 systemctl enable postgresql
 sleep 3
 
-DB_PASSWORD="maks15097%"
+DB_PASSWORD="maks15097pass"
 
-sudo -u postgres psql << EOF
-CREATE USER finio_user WITH PASSWORD '$DB_PASSWORD';
+# Экранируем пароль для PostgreSQL
+sudo -u postgres psql << 'EOF'
+DROP USER IF EXISTS finio_user;
+DROP DATABASE IF EXISTS finio;
+CREATE USER finio_user WITH PASSWORD 'maks15097pass';
 CREATE DATABASE finio OWNER finio_user;
 GRANT ALL PRIVILEGES ON DATABASE finio TO finio_user;
+ALTER USER finio_user CREATEDB;
 EOF
 
 # 7. КЛОНИРОВАНИЕ ПРОЕКТА
@@ -106,7 +110,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=finio
 DB_USER=finio_user
-DB_PASSWORD=maks15097%
+DB_PASSWORD=maks15097pass
 
 TELEGRAM_BOT_TOKEN=$BOT_TOKEN
 TELEGRAM_WEBHOOK_URL=https://$DOMAIN
@@ -121,6 +125,26 @@ chown finio:finio .env
 
 # 9. МИГРАЦИИ
 log "Применение миграций..."
+# Проверим подключение к базе
+if sudo -u finio ./venv/bin/python -c "
+import os
+os.environ['DB_PASSWORD'] = 'maks15097pass'
+from app.core.database import engine
+import asyncio
+async def test():
+    try:
+        async with engine.begin() as conn:
+            print('DB connection OK')
+    except Exception as e:
+        print(f'DB error: {e}')
+        exit(1)
+asyncio.run(test())
+"; then
+    log "✅ Подключение к базе данных работает"
+else
+    error "❌ Не удается подключиться к базе данных"
+fi
+
 sudo -u finio ./venv/bin/alembic upgrade head
 
 # 10. СБОРКА FRONTEND
