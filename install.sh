@@ -19,14 +19,16 @@ echo "💀 Убиваем все старые процессы..."
 pm2 delete all 2>/dev/null || true
 pm2 kill 2>/dev/null || true
 pkill -9 node 2>/dev/null || true
-sleep 2
+killall -9 node 2>/dev/null || true
+sleep 3
 
 # Освобождаем порты принудительно
 echo "🔓 Освобождаем порты..."
-fuser -k 3000/tcp 2>/dev/null || true
-fuser -k 3001/tcp 2>/dev/null || true
-fuser -k 3002/tcp 2>/dev/null || true
-sleep 1
+for port in 3000 3001 3002 3003 3004 3005; do
+    fuser -k $port/tcp 2>/dev/null || true
+    lsof -ti:$port | xargs kill -9 2>/dev/null || true
+done
+sleep 2
 
 # Находим свободный порт
 FREE_PORT=$(find_free_port 3000)
@@ -34,27 +36,27 @@ echo "✅ Используем порт: $FREE_PORT"
 
 # Очистка
 echo "🗑️  Очистка..."
-rm -rf server/node_modules server/package-lock.json
+rm -rf server/node_modules server/package-lock.json server/db/*.db
 rm -rf website-frontend/node_modules website-frontend/package-lock.json website-frontend/dist
 rm -rf mini-app-frontend/node_modules mini-app-frontend/package-lock.json mini-app-frontend/dist
 
 # Сборка фронтендов
 echo "📦 Сборка website..."
 cd website-frontend
-npm install --legacy-peer-deps
-npm run build
+npm install --legacy-peer-deps --no-audit
+VITE_API_URL=http://studiofinance.ru/api npm run build
 cd ..
 
 echo "📦 Сборка mini-app..."
 cd mini-app-frontend
-npm install --legacy-peer-deps
-npm run build
+npm install --legacy-peer-deps --no-audit
+VITE_API_URL=http://studiofinance.ru/api npm run build
 cd ..
 
 # Backend
 echo "📦 Установка backend..."
 cd server
-npm install --production --legacy-peer-deps
+npm install --production --legacy-peer-deps --no-audit
 cd ..
 
 # Создание .env с правильным портом
@@ -74,7 +76,7 @@ server {
     server_name studiofinance.ru www.studiofinance.ru;
 
     location / {
-        proxy_pass http://localhost:$FREE_PORT;
+        proxy_pass http://127.0.0.1:$FREE_PORT;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -82,39 +84,72 @@ server {
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_cache_bypass \$http_upgrade;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 }
 EOF
 
 ln -sf /etc/nginx/sites-available/finio /etc/nginx/sites-enabled/finio
 rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl restart nginx
+
+# Проверка nginx
+if nginx -t 2>&1; then
+    systemctl restart nginx
+    echo "✅ Nginx перезапущен"
+else
+    echo "❌ Ошибка конфигурации nginx"
+    exit 1
+fi
 
 # PM2
 if ! command -v pm2 &> /dev/null; then
     npm install -g pm2
 fi
 
-# Запуск
+# Запуск с ожиданием
 echo "🚀 Запуск на порту $FREE_PORT..."
 cd server
-pm2 start index.js --name finio --time
+
+# Запускаем и ждем
+pm2 start index.js --name finio --time --wait-ready --listen-timeout 10000
 pm2 save
+
+# Настройка автозапуска
 pm2 startup systemd -u root --hp /root 2>/dev/null || true
 
-sleep 3
+# Ждем запуска
+echo "⏳ Ожидание запуска..."
+sleep 5
 
 # Проверка
 if pm2 list | grep -q "finio.*online"; then
-    echo ""
-    echo "✅ ВСЁ РАБОТАЕТ!"
-    echo "🌐 Сайт: http://studiofinance.ru"
-    echo "🔌 Порт: $FREE_PORT"
-    echo "📊 Статус: pm2 status"
-    echo ""
+    # Проверяем что порт слушается
+    if netstat -tlnp | grep -q ":$FREE_PORT.*node"; then
+        # Проверяем HTTP ответ
+        if curl -s http://localhost:$FREE_PORT/health | grep -q "ok"; then
+            echo ""
+            echo "✅✅✅ ВСЁ РАБОТАЕТ! ✅✅✅"
+            echo "🌐 Сайт: http://studiofinance.ru"
+            echo "🔌 Порт: $FREE_PORT"
+            echo "📊 Статус: pm2 status"
+            echo "📝 Логи: pm2 logs finio"
+            echo ""
+        else
+            echo "⚠️  Backend запущен но не отвечает на /health"
+            pm2 logs finio --lines 20 --nostream
+        fi
+    else
+        echo "⚠️  Процесс запущен но порт не слушается"
+        pm2 logs finio --lines 20 --nostream
+    fi
 else
     echo ""
-    echo "❌ Что-то пошло не так. Логи:"
-    pm2 logs finio --lines 20 --nostream
+    echo "❌ Backend не запустился. Логи:"
+    pm2 logs finio --lines 30 --nostream
+    echo ""
+    echo "Попробуйте запустить вручную:"
+    echo "cd /var/www/Finio/server && node index.js"
     exit 1
 fi
