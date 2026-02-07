@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Dashboard } from './components/Dashboard';
+import { ModernDashboard } from './components/ModernDashboard';
 import { LandingPage } from './components/LandingPage';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
-import './styles/main.css';
 
 function App() {
   const [currentView, setCurrentView] = useState('landing');
@@ -37,7 +36,7 @@ function App() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard user={user} onLogout={handleLogout} />;
+        return <ModernDashboard user={user} onLogout={handleLogout} />;
       case 'login':
         return <LoginForm onLogin={handleLogin} onBack={() => setCurrentView('landing')} />;
       case 'register':
