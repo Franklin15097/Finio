@@ -8,48 +8,48 @@
 }
 
 :root {
-  /* Pure Black Crypto Theme */
-  --bg-primary: #000000;
-  --bg-secondary: #0A0A0A;
-  --bg-tertiary: #111111;
-  --bg-card: #0F0F0F;
-  --bg-elevated: #1A1A1A;
+  /* Modern Dark Theme - Based on Reference */
+  --bg-primary: #0B0B0F;
+  --bg-secondary: #13131A;
+  --bg-tertiary: #1A1A24;
+  --bg-card: #1E1E2E;
+  --bg-elevated: #252538;
   
-  /* Neon Accent Colors */
-  --primary: #00FF88;
-  --primary-light: #00FFAA;
-  --primary-dark: #00CC6F;
+  /* Accent Colors - Purple/Blue Theme */
+  --primary: #8B5CF6;
+  --primary-light: #A78BFA;
+  --primary-dark: #7C3AED;
   
-  --success: #00FF88;
-  --success-light: #00FFAA;
-  --danger: #FF0055;
-  --danger-light: #FF3377;
-  --warning: #FFB800;
-  --info: #00AAFF;
+  --success: #10B981;
+  --success-light: #34D399;
+  --danger: #EF4444;
+  --danger-light: #F87171;
+  --warning: #F59E0B;
+  --info: #3B82F6;
   
   /* Text Colors */
-  --text-primary: #FFFFFF;
-  --text-secondary: #A0A0A0;
-  --text-tertiary: #707070;
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
   
   /* Border & Divider */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-light: rgba(255, 255, 255, 0.04);
+  --border: rgba(139, 92, 246, 0.1);
+  --border-light: rgba(255, 255, 255, 0.05);
   
-  /* Neon Glows */
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
-  --glow-primary: 0 0 30px rgba(0, 255, 136, 0.5), 0 0 60px rgba(0, 255, 136, 0.2);
-  --glow-success: 0 0 30px rgba(0, 255, 136, 0.5);
-  --glow-danger: 0 0 30px rgba(255, 0, 85, 0.5);
+  /* Shadows - Soft and Modern */
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  --glow-primary: 0 0 20px rgba(139, 92, 246, 0.3);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+  --glow-danger: 0 0 20px rgba(239, 68, 68, 0.3);
   
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #00FF88 0%, #00CC6F 100%);
-  --gradient-success: linear-gradient(135deg, #00FF88 0%, #00FFAA 100%);
-  --gradient-danger: linear-gradient(135deg, #FF0055 0%, #FF3377 100%);
-  --gradient-mesh: radial-gradient(at 20% 30%, rgba(0, 255, 136, 0.08) 0px, transparent 50%),
-                   radial-gradient(at 80% 70%, rgba(0, 170, 255, 0.08) 0px, transparent 50%);
+  --gradient-primary: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  --gradient-mesh: radial-gradient(at 20% 30%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+                   radial-gradient(at 80% 70%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
   
   /* Spacing */
   --space-1: 0.25rem;
@@ -62,10 +62,10 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   
-  /* Border Radius */
-  --radius-sm: 0.5rem;
-  --radius: 0.75rem;
-  --radius-lg: 1rem;
+  /* Border Radius - More Rounded */
+  --radius-sm: 0.75rem;
+  --radius: 1rem;
+  --radius-lg: 1.25rem;
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
   --radius-full: 9999px;
@@ -557,11 +557,9 @@ body {
 
 .btn-primary {
   background: var(--gradient-primary);
-  color: #000000;
-  box-shadow: var(--glow-primary);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: white;
+  box-shadow: var(--shadow), var(--glow-primary);
+  font-weight: 700;
 }
 
 .btn-primary:hover {
@@ -578,7 +576,6 @@ body {
 .btn-secondary:hover {
   background: var(--bg-tertiary);
   border-color: var(--primary);
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
 }
 
 /* === TABLE === */
