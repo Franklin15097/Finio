@@ -174,8 +174,9 @@ body {
 
 /* Gradient Overlays for Each Card */
 .stat-card:nth-child(1) {
-    background: linear-gradient(135deg, rgba(0, 217, 163, 0.08) 0%, transparent 100%), var(--surface-base);
-    border-color: rgba(0, 217, 163, 0.2);
+    background: linear-gradient(135deg, rgba(0, 229, 160, 0.12) 0%, rgba(0, 255, 159, 0.06) 100%), var(--surface-base);
+    border-color: rgba(0, 229, 160, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 229, 160, 0.15);
 }
 
 .stat-card:nth-child(1)::before {
@@ -185,14 +186,15 @@ body {
     right: 0;
     width: 120px;
     height: 120px;
-    background: radial-gradient(circle, rgba(0, 217, 163, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0, 229, 160, 0.2) 0%, transparent 70%);
     border-radius: 50%;
     transform: translate(30%, -30%);
 }
 
 .stat-card:nth-child(2) {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, transparent 100%), var(--surface-base);
-    border-color: rgba(99, 102, 241, 0.2);
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(124, 58, 237, 0.06) 100%), var(--surface-base);
+    border-color: rgba(79, 70, 229, 0.3);
+    box-shadow: 0 8px 32px rgba(79, 70, 229, 0.15);
 }
 
 .stat-card:nth-child(2)::before {
@@ -202,14 +204,15 @@ body {
     right: 0;
     width: 120px;
     height: 120px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(79, 70, 229, 0.2) 0%, transparent 70%);
     border-radius: 50%;
     transform: translate(30%, -30%);
 }
 
 .stat-card:nth-child(3) {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, transparent 100%), var(--surface-base);
-    border-color: rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(248, 113, 113, 0.06) 100%), var(--surface-base);
+    border-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
 }
 
 .stat-card:nth-child(3)::before {
@@ -219,7 +222,7 @@ body {
     right: 0;
     width: 120px;
     height: 120px;
-    background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, transparent 70%);
     border-radius: 50%;
     transform: translate(30%, -30%);
 }
@@ -230,18 +233,18 @@ body {
 }
 
 .stat-card:nth-child(1):hover {
-    border-color: rgba(0, 217, 163, 0.4);
-    box-shadow: 0 24px 48px rgba(0, 217, 163, 0.2);
+    border-color: rgba(0, 229, 160, 0.5);
+    box-shadow: 0 24px 48px rgba(0, 229, 160, 0.25), var(--shadow-glow-primary);
 }
 
 .stat-card:nth-child(2):hover {
-    border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 24px 48px rgba(99, 102, 241, 0.2);
+    border-color: rgba(79, 70, 229, 0.5);
+    box-shadow: 0 24px 48px rgba(79, 70, 229, 0.25), var(--shadow-glow-secondary);
 }
 
 .stat-card:nth-child(3):hover {
-    border-color: rgba(239, 68, 68, 0.4);
-    box-shadow: 0 24px 48px rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 24px 48px rgba(239, 68, 68, 0.25), var(--shadow-glow-danger);
 }
 
 .stat-title {
