@@ -12,20 +12,44 @@
 - 📈 **Визуализация данных** с Chart.js
 - 🔐 **Авторизация** и безопасность
 
-## 🚀 Установка на Ubuntu 24.04
+## 🚀 Установка (Docker - Рекомендуется)
 
-**Одна команда для полной установки на чистой Ubuntu:**
+**Одна команда для установки с Docker:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Franklin15097/Finio/main/ubuntu-install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Franklin15097/Finio/main/install-docker.sh | sudo bash
 ```
 
-## 🔄 Быстрое обновление
+### Преимущества Docker установки:
+- ✅ Изолированная среда
+- ✅ Автоматические обновления без даунтайма
+- ✅ Легкий откат к предыдущей версии
+- ✅ Не конфликтует с другими приложениями
+- ✅ PostgreSQL в контейнере
 
-**Для обновления уже установленного проекта:**
+## 🔄 Обновление
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Franklin15097/Finio/main/update.sh | sudo bash
+cd /opt/Finio && ./deploy.sh
+```
+
+## 📊 Управление
+
+```bash
+# Статус
+docker-compose ps
+
+# Логи
+docker-compose logs -f app
+
+# Перезапуск
+docker-compose restart app
+
+# Остановка
+docker-compose down
+
+# Запуск
+docker-compose up -d
 ```
 
 ## 🚀 Установка на хостинге (старый способ)
