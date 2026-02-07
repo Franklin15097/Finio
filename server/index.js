@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { bot } from './bot/bot.js';
 import { websiteRouter } from './website/routes.js';
 import { miniAppRouter } from './mini-app/routes.js';
@@ -12,6 +14,9 @@ import { assetsRouter } from './api/assets.js';
 import { statisticsRouter } from './api/statistics.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,8 +37,22 @@ app.use('/api/categories', authenticateToken, categoriesRouter);
 app.use('/api/assets', authenticateToken, assetsRouter);
 app.use('/api/statistics', authenticateToken, statisticsRouter);
 
+// Serve static files from website-frontend
+const websitePath = path.join(__dirname, '../website-frontend/dist');
+app.use(express.static(websitePath));
+
+// Serve mini-app static files
+const miniAppPath = path.join(__dirname, '../mini-app-frontend/dist');
+app.use('/mini-app', express.static(miniAppPath));
+
+// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Catch-all route for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(websitePath, 'index.html'));
 });
 
 // Start server

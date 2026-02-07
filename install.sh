@@ -11,8 +11,15 @@ pkill -f "node.*index.js" 2>/dev/null || true
 # Удаление старых зависимостей
 echo "🗑️  Очистка старых зависимостей..."
 rm -rf server/node_modules server/package-lock.json
+rm -rf website-frontend/node_modules website-frontend/package-lock.json
+rm -rf mini-app-frontend/node_modules mini-app-frontend/package-lock.json
 
-# Установка зависимостей только для backend
+# Установка и сборка фронтендов
+echo "📦 Сборка фронтендов..."
+cd website-frontend && npm install && npm run build && cd ..
+cd mini-app-frontend && npm install && npm run build && cd ..
+
+# Установка зависимостей backend
 echo "📦 Установка зависимостей backend..."
 cd server && npm install --production && cd ..
 
