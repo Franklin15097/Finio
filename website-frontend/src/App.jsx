@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PremiumDashboard } from './components/PremiumDashboard';
+import { UltimateDashboard } from './components/UltimateDashboard';
 import { LandingPage } from './components/LandingPage';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
@@ -35,7 +35,7 @@ function App() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <PremiumDashboard user={user} onLogout={handleLogout} />;
+        return <UltimateDashboard user={user} onLogout={handleLogout} />;
       case 'login':
         return <LoginForm onLogin={handleLogin} onBack={() => setCurrentView('landing')} />;
       case 'register':
