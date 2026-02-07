@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finio - Настройки</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+    <aside class="dashboard-sidebar">
+        <div class="logo">Finio.</div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                </svg>
+                Дашборд
+            </a>
+            <a href="transactions.html?type=income" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
+                </svg>
+                Доходы
+            </a>
+            <a href="transactions.html?type=expense" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
+                </svg>
+                Расходы
+            </a>
+            <a href="assets.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 10h12v2H4zm-2 4h12v2H2zm2 4h12v2H4zm-2-8V8h12v2H2zm14 8v4h6v-4h-6zM18 5v8h4V5h-4z" />
+                </svg> Счета
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.96l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.26-1.13.59-1.62.96l-2.39-.96c-.21-.08-.47.01-.59.22L5.16 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.04.64.09.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.23.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.96l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.26 1.13-.59 1.62-.96l2.39.96c.21.08.47-.01.59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                </svg> Настройки
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar" id="avatar-placeholder">U</div>
+                <div style="flex-grow:1;">
+                    <div id="user-name" style="font-weight:600; font-size:0.9rem;">User</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); cursor:pointer;" onclick="logout()">
+                        Выйти</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="dashboard-grid animate-fade-in">
+        <header class="flex justify-between items-center mb-4">
+            <h1>Настройки</h1>
+        </header>
+
+        <div class="card" style="max-width:600px;">
+            <h3>Профиль</h3>
+            <div class="form-group mt-4">
+                <label class="form-label">Имя пользователя</label>
+                <input type="text" id="setting-name" class="form-input" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Валюта</label>
+                <select class="form-input">
+                    <option value="RUB">PLruble (₽)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                </select>
+            </div>
+            <button class="btn btn-primary">Сохранить</button>
+        </div>
+
+        <div class="card" style="max-width:600px;">
+            <h3>Безопасность</h3>
+            <p style="color:var(--text-secondary); margin-bottom:15px;">Смените пароль, если считаете, что аккаунт был
+                скомпрометирован.</p>
+            <button class="btn btn-outline" onclick="alert('Функция в разработке')">Сменить пароль</button>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+        if (!localStorage.getItem('auth_token')) window.location.href = 'auth/login.html';
+        document.getElementById('user-name').textContent = localStorage.getItem('user_name');
+        document.getElementById('setting-name').value = localStorage.getItem('user_name');
+        document.getElementById('avatar-placeholder').textContent = (localStorage.getItem('user_name') || 'U')[0].toUpperCase();
+    </script>
+</body>
+
+</html>

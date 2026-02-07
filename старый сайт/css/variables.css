@@ -9,7 +9,7 @@
 
     /* Surface Colors */
     --surface-base: #1A1A24;
-    --surface-raised: #242433;
+    --surface-raised: #24243;
     --surface-overlay: rgba(255, 255, 255, 0.06);
 
     /* Brand Colors - Vibrant */
@@ -114,4 +114,24 @@
     --sidebar-width: 280px;
     --header-height: 72px;
     --max-width: 1400px;
+
+    /* === LEGACY COMPATIBILITY === */
+    --primary-bg: var(--bg-primary);
+    --secondary-bg: var(--bg-secondary);
+    --card-bg: var(--surface-base);
+    --border-color: var(--border-default);
+    --primary-accent: var(--brand-primary);
+    --border-radius: var(--radius-xl);
+}
+
+/* Base resets handled in main.css */
+.card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.card:hover {
+    transform: var(--hover-transform);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
 }

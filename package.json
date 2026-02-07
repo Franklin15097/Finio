@@ -1,7 +1,8 @@
 {
-  "name": "studiofinance-project",
-  "version": "1.0.0",
-  "description": "Studio Finance website with Telegram Mini App",
+  "name": "finio",
+  "version": "2.0.0",
+  "description": "💎 Современный финансовый трекер с веб-интерфейсом и Telegram Mini App",
+  "main": "server/index.js",
   "private": true,
   "workspaces": [
     "server",
@@ -12,6 +13,36 @@
     "install-all": "npm install && cd server && npm install && cd ../mini-app-frontend && npm install && cd ../website-frontend && npm install",
     "dev:server": "cd server && npm run dev",
     "dev:mini-app": "cd mini-app-frontend && npm run dev",
-    "dev:website": "cd website-frontend && npm run dev"
+    "dev:website": "cd website-frontend && npm run dev",
+    "build": "cd website-frontend && npm run build && cd ../mini-app-frontend && npm run build",
+    "start": "cd server && npm start",
+    "deploy": "./deploy.sh",
+    "stop": "./stop.sh",
+    "restart": "./restart.sh"
+  },
+  "keywords": [
+    "finance",
+    "tracker",
+    "telegram",
+    "mini-app",
+    "react",
+    "nodejs",
+    "expense-tracker",
+    "budget",
+    "money-management"
+  ],
+  "author": "Franklin15097",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Franklin15097/Finio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Franklin15097/Finio/issues"
+  },
+  "homepage": "https://github.com/Franklin15097/Finio#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }

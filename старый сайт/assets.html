@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finio - Счета и Накопления</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/toast.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="dashboard-sidebar">
+        <div class="logo">Finio.</div>
+        <nav class="nav-menu">
+            <a href="dashboard.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+                </svg>
+                Дашборд
+            </a>
+            <a href="transactions.html?type=income" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z" />
+                </svg>
+                Доходы
+            </a>
+            <a href="transactions.html?type=expense" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z" />
+                </svg>
+                Расходы
+            </a>
+            <a href="assets.html" class="nav-item active">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 10h12v2H4zm-2 4h12v2H2zm2 4h12v2H4zm-2-8V8h12v2H2zm14 8v4h6v-4h-6zM18 5v8h4V5h-4z" />
+                </svg>
+                Счета
+            </a>
+            <a href="settings.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.96l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.26-1.13.59-1.62.96l-2.39-.96c-.21-.08-.47.01-.59.22L5.16 8.87a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.04.64.09.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.23.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.96l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.26 1.13-.59 1.62-.96l2.39.96c.21.08.47-.01.59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                </svg>
+                Настройки
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar" id="avatar-placeholder">U</div>
+                <div style="flex-grow:1;">
+                    <div id="user-name" style="font-weight:600; font-size:0.9rem;">User</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); cursor:pointer;" onclick="logout()">
+                        Выйти</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="dashboard-grid">
+        <header class="flex justify-between items-center mb-4">
+            <h1>Мои Счета</h1>
+            <div style="color:var(--text-secondary)" id="current-date"></div>
+        </header>
+        <!-- Section: Actual Assets -->
+        <section>
+            <div class="flex justify-between items-center mb-4">
+                <h2>Мои Счета (Фактические накопления)</h2>
+                <button class="btn btn-primary" onclick="openAssetModal()">+ Добавить счет</button>
+            </div>
+
+            <div class="grid-2-1" id="assets-grid"
+                style="gap: 20px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+                <!-- Assets cards loaded here -->
+            </div>
+
+            <div class="card mt-4">
+                <div class="flex justify-between items-center">
+                    <h3>Общий капитал</h3>
+                    <h2 id="total-capital">₽ 0.00</h2>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Savings Rules & Analysis -->
+        <section class="mt-4">
+            <h2 class="mb-4">Правила накоплений</h2>
+            <div class="grid-2-1">
+                <!-- Rules List -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3>Распределение доходов</h3>
+                        <button class="btn btn-outline btn-sm" onclick="openRuleModal()">+ Создать правило</button>
+                    </div>
+                    <ul id="rules-list" style="padding-left:0;">
+                        <!-- Rules loaded here -->
+                    </ul>
+                </div>
+
+                <!-- Analysis Chart -->
+                <div class="card">
+                    <h3>План vs Факт</h3>
+                    <canvas id="savingsChart"></canvas>
+                    <div id="savings-feedback" class="mt-4" style="font-size: 0.9rem;"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Asset Modal -->
+    <div id="assetModal" class="modal">
+        <div class="modal-content card">
+            <span class="close" onclick="closeAssetModal()">&times;</span>
+            <h2 id="assetModalTitle">Счет</h2>
+            <form id="assetForm">
+                <input type="hidden" id="asset_id" name="id">
+                <div class="form-group">
+                    <label class="form-label">Название</label>
+                    <input type="text" name="name" id="asset_name" class="form-input" required
+                        placeholder="Например: Вклад в Сбере">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Текущий баланс (₽)</label>
+                    <input type="number" name="balance" id="asset_balance" class="form-input" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тип</label>
+                    <select name="type" id="asset_type" class="form-input">
+                        <option value="card">Карта</option>
+                        <option value="cash">Наличные</option>
+                        <option value="deposit">Вклад/Депозит</option>
+                        <option value="investment">Инвестиции</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rule Modal -->
+    <div id="ruleModal" class="modal">
+        <div class="modal-content card">
+            <span class="close" onclick="closeRuleModal()">&times;</span>
+            <h2>Правило накопления</h2>
+            <form id="ruleForm">
+                <input type="hidden" id="rule_id" name="id">
+                <div class="form-group">
+                    <label class="form-label">Откладывать процент (%) от дохода</label>
+                    <input type="number" name="percentage" id="rule_percent" class="form-input" step="0.1" min="0"
+                        max="100" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Куда (Целевой счет)</label>
+                    <select name="asset_id" id="rule_asset_id" class="form-input" required>
+                        <!-- Loaded via JS -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/assets.js"></script> <!-- New script -->
+    <script>
+        if (!localStorage.getItem('auth_token')) window.location.href = 'auth/login.html';
+        document.getElementById('user-name').textContent = localStorage.getItem('user_name');
+        document.getElementById('avatar-placeholder').textContent = (localStorage.getItem('user_name') || 'U')[0].toUpperCase();
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        function comingSoon() { alert('Скоро будет доступно!'); }
+    </script>
+</body>
+
+</html>

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import './styles/main.css';
 import { Dashboard } from './components/Dashboard';
 import { TransactionForm } from './components/TransactionForm';
+import { TransactionsList } from './components/TransactionsList';
+import { AssetsPage } from './components/AssetsPage';
 import { api } from './utils/api';
 
 function App() {
@@ -32,6 +34,19 @@ function App() {
     setRefreshKey(prev => prev + 1);
   }
 
+  const renderCurrentView = () => {
+    switch (view) {
+      case 'transactions':
+        return <TransactionsList onBack={() => setView('dashboard')} />;
+      case 'add':
+        return <TransactionForm onSuccess={handleTransactionSuccess} onBack={() => setView('dashboard')} />;
+      case 'assets':
+        return <AssetsPage onBack={() => setView('dashboard')} />;
+      default:
+        return <Dashboard key={refreshKey} onNavigate={setView} />;
+    }
+  };
+
   return (
     <div className="app">
       <div className="header">
@@ -55,15 +70,26 @@ function App() {
           📊 Дашборд
         </button>
         <button 
+          className={view === 'transactions' ? 'active' : ''} 
+          onClick={() => setView('transactions')}
+        >
+          📋 Операции
+        </button>
+        <button 
           className={view === 'add' ? 'active' : ''} 
           onClick={() => setView('add')}
         >
           ➕ Добавить
         </button>
+        <button 
+          className={view === 'assets' ? 'active' : ''} 
+          onClick={() => setView('assets')}
+        >
+          💳 Счета
+        </button>
       </div>
 
-      {view === 'dashboard' && <Dashboard key={refreshKey} />}
-      {view === 'add' && <TransactionForm onSuccess={handleTransactionSuccess} />}
+      {renderCurrentView()}
     </div>
   );
 }
