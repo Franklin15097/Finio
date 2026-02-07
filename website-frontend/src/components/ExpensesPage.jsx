@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
+import { api } from '../utils/api';
 import '../styles/dark-premium.css';
 
 export function ExpensesPage() {
@@ -19,10 +20,28 @@ export function ExpensesPage() {
   });
 
   useEffect(() => {
-    // Пустые данные - будут заполняться через API
-    setExpenses([]);
-    setRecurringExpenses([]);
+    loadExpenses();
+    loadRecurringExpenses();
   }, []);
+
+  const loadExpenses = async () => {
+    try {
+      const transactions = await api.getTransactions();
+      const expenseTransactions = transactions.filter(t => t.type === 'expense');
+      setExpenses(expenseTransactions);
+    } catch (error) {
+      console.error('Error loading expenses:', error);
+    }
+  };
+
+  const loadRecurringExpenses = async () => {
+    try {
+      const recurring = await api.getRecurringExpenses();
+      setRecurringExpenses(recurring);
+    } catch (error) {
+      console.error('Error loading recurring expenses:', error);
+    }
+  };
 
   const chartData = {
     labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
@@ -86,43 +105,64 @@ export function ExpensesPage() {
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalRecurring = recurringExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Создаем новый расход
-    const newExpense = {
-      id: Date.now(),
-      title: formData.title,
-      amount: parseFloat(formData.amount),
-      category_name: 'Без категории',
-      transaction_date: formData.transaction_date
-    };
-    
-    // Добавляем в список
-    setExpenses([newExpense, ...expenses]);
-    
-    // Закрываем модалку и очищаем форму
-    setShowModal(false);
-    setFormData({ title: '', amount: '', category_id: '', transaction_date: new Date().toISOString().split('T')[0] });
+    try {
+      // Создаем новый расход через API
+      await api.createTransaction({
+        title: formData.title,
+        amount: parseFloat(formData.amount),
+        type: 'expense',
+        category_id: formData.category_id || null,
+        transaction_date: formData.transaction_date
+      });
+      
+      // Обновляем список
+      await loadExpenses();
+      
+      // Закрываем модалку и очищаем форму
+      setShowModal(false);
+      setFormData({ title: '', amount: '', category_id: '', transaction_date: new Date().toISOString().split('T')[0] });
+    } catch (error) {
+      console.error('Error creating expense:', error);
+      alert('Ошибка при создании расхода');
+    }
   };
 
-  const handleRecurringSubmit = (e) => {
+  const handleRecurringSubmit = async (e) => {
     e.preventDefault();
     
-    // Создаем новый обязательный платеж
-    const newRecurring = {
-      id: Date.now(),
-      title: recurringFormData.title,
-      amount: parseFloat(recurringFormData.amount),
-      yearly_amount: parseFloat(recurringFormData.amount) * 12
-    };
-    
-    // Добавляем в список
-    setRecurringExpenses([...recurringExpenses, newRecurring]);
-    
-    // Закрываем модалку и очищаем форму
-    setShowRecurringModal(false);
-    setRecurringFormData({ title: '', amount: '' });
+    try {
+      // Создаем новый обязательный платеж через API
+      await api.createRecurringExpense({
+        title: recurringFormData.title,
+        amount: parseFloat(recurringFormData.amount),
+        category_id: null
+      });
+      
+      // Обновляем список
+      await loadRecurringExpenses();
+      
+      // Закрываем модалку и очищаем форму
+      setShowRecurringModal(false);
+      setRecurringFormData({ title: '', amount: '' });
+    } catch (error) {
+      console.error('Error creating recurring expense:', error);
+      alert('Ошибка при создании обязательного платежа');
+    }
+  };
+
+  const handleDeleteRecurring = async (id) => {
+    if (confirm('Удалить обязательный платеж?')) {
+      try {
+        await api.deleteRecurringExpense(id);
+        await loadRecurringExpenses();
+      } catch (error) {
+        console.error('Error deleting recurring expense:', error);
+        alert('Ошибка при удалении');
+      }
+    }
   };
 
   return (
@@ -250,7 +290,7 @@ export function ExpensesPage() {
                     <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 700 }}>{expense.title}</h4>
                     <button 
                       style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}
-                      onClick={() => setRecurringExpenses(recurringExpenses.filter(e => e.id !== expense.id))}
+                      onClick={() => handleDeleteRecurring(expense.id)}
                     >
                       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

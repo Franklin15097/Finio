@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { api } from '../utils/api';
 import '../styles/dark-premium.css';
 
 export function AssetsPage() {
@@ -19,10 +20,27 @@ export function AssetsPage() {
   });
 
   useEffect(() => {
-    // Пустые данные - будут заполняться через API
-    setAssets([]);
-    setCategories([]);
+    loadAssets();
+    loadCategories();
   }, []);
+
+  const loadAssets = async () => {
+    try {
+      const data = await api.getAssets();
+      setAssets(data.assets || []);
+    } catch (error) {
+      console.error('Error loading assets:', error);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await api.getAssetCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const formatCurrency = (amount, currency) => {
     if (currency === 'USDT') {
@@ -38,18 +56,52 @@ export function AssetsPage() {
   const totalRUB = assets.filter(a => a.currency === 'RUB').reduce((sum, a) => sum + a.balance, 0);
   const totalUSDT = assets.filter(a => a.currency === 'USDT').reduce((sum, a) => sum + a.balance, 0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Saving asset:', formData);
-    setShowModal(false);
-    setFormData({ name: '', balance: '', actual_balance: '', currency: 'RUB', savings_percentage: '', category_id: '' });
+    
+    try {
+      await api.createAsset({
+        name: formData.name,
+        balance: parseFloat(formData.balance),
+        actual_balance: parseFloat(formData.actual_balance),
+        currency: formData.currency,
+        savings_percentage: parseFloat(formData.savings_percentage),
+        category_id: formData.category_id || null
+      });
+      
+      await loadAssets();
+      setShowModal(false);
+      setFormData({ name: '', balance: '', actual_balance: '', currency: 'RUB', savings_percentage: '', category_id: '' });
+    } catch (error) {
+      console.error('Error creating asset:', error);
+      alert('Ошибка при создании счета');
+    }
   };
 
-  const handleCategorySubmit = (e) => {
+  const handleCategorySubmit = async (e) => {
     e.preventDefault();
-    console.log('Saving category:', categoryFormData);
-    setShowCategoryModal(false);
-    setCategoryFormData({ name: '' });
+    
+    try {
+      await api.createAssetCategory({ name: categoryFormData.name });
+      await loadCategories();
+      setShowCategoryModal(false);
+      setCategoryFormData({ name: '' });
+    } catch (error) {
+      console.error('Error creating category:', error);
+      alert('Ошибка при создании категории');
+    }
+  };
+
+  const handleDeleteAsset = async (id) => {
+    if (confirm('Удалить счет?')) {
+      try {
+        await api.deleteAsset(id);
+        await loadAssets();
+      } catch (error) {
+        console.error('Error deleting asset:', error);
+        alert('Ошибка при удалении');
+      }
+    }
   };
 
   return (
@@ -191,7 +243,11 @@ export function AssetsPage() {
               <button className="btn btn-secondary" style={{ flex: 1 }}>
                 Редактировать
               </button>
-              <button className="btn btn-secondary" style={{ color: 'var(--danger)' }}>
+              <button 
+                className="btn btn-secondary" 
+                style={{ color: 'var(--danger)' }}
+                onClick={() => handleDeleteAsset(asset.id)}
+              >
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>

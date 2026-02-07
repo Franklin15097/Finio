@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
+import { api } from '../utils/api';
 import '../styles/dark-premium.css';
 
 export function IncomePage() {
@@ -18,8 +19,13 @@ export function IncomePage() {
   }, []);
 
   const loadIncomes = async () => {
-    // Пустые данные - будут заполняться через API
-    setIncomes([]);
+    try {
+      const transactions = await api.getTransactions();
+      const incomeTransactions = transactions.filter(t => t.type === 'income');
+      setIncomes(incomeTransactions);
+    } catch (error) {
+      console.error('Error loading incomes:', error);
+    }
   };
 
   const chartData = {
@@ -92,25 +98,30 @@ export function IncomePage() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Создаем новый доход
-    const newIncome = {
-      id: Date.now(),
-      title: formData.title,
-      amount: parseFloat(formData.amount),
-      category_name: 'Без категории',
-      transaction_date: formData.transaction_date
-    };
-    
-    // Добавляем в список
-    setIncomes([newIncome, ...incomes]);
-    
-    // Закрываем модалку и очищаем форму
-    setShowModal(false);
-    setEditingIncome(null);
-    setFormData({ title: '', amount: '', category_id: '', transaction_date: new Date().toISOString().split('T')[0] });
+    try {
+      // Создаем новый доход через API
+      const newIncome = await api.createTransaction({
+        title: formData.title,
+        amount: parseFloat(formData.amount),
+        type: 'income',
+        category_id: formData.category_id || null,
+        transaction_date: formData.transaction_date
+      });
+      
+      // Обновляем список
+      await loadIncomes();
+      
+      // Закрываем модалку и очищаем форму
+      setShowModal(false);
+      setEditingIncome(null);
+      setFormData({ title: '', amount: '', category_id: '', transaction_date: new Date().toISOString().split('T')[0] });
+    } catch (error) {
+      console.error('Error creating income:', error);
+      alert('Ошибка при создании дохода');
+    }
   };
 
   const handleEdit = (income) => {
@@ -124,10 +135,15 @@ export function IncomePage() {
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm('Удалить доход?')) {
-      // API запрос на удаление
-      setIncomes(incomes.filter(i => i.id !== id));
+      try {
+        await api.deleteTransaction(id);
+        await loadIncomes();
+      } catch (error) {
+        console.error('Error deleting income:', error);
+        alert('Ошибка при удалении дохода');
+      }
     }
   };
 
