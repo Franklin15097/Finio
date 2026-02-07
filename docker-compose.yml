@@ -33,12 +33,14 @@ services:
       - DB_PASSWORD=finio_password
       - SECRET_KEY=dev-secret-key-change-in-production
       - APP_DEBUG=true
+      - TELEGRAM_BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
+      - TELEGRAM_WEBHOOK_URL=https://studiofinance.ru
     depends_on:
       mysql:
         condition: service_healthy
     volumes:
       - ./backend:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   # Frontend (для разработки)
   frontend:
