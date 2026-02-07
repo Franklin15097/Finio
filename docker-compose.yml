@@ -34,7 +34,7 @@ services:
     environment:
       - DATABASE_URL=mysql+aiomysql://finio_user:maks15097@mysql:3306/finio
       - TELEGRAM_BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
-      - TELEGRAM_WEBHOOK_URL=https://studiofinance.ru
+      - TELEGRAM_WEBHOOK_URL=http://studiofinance.ru
       - SECRET_KEY=dev-secret-key-change-in-production-2024
       - APP_DEBUG=false
     depends_on:
@@ -59,7 +59,7 @@ services:
       - /app/node_modules
     command: sh -c "npm install && npm run build && npx serve -s build -l 3000"
     environment:
-      - REACT_APP_API_URL=https://studiofinance.ru
+      - REACT_APP_API_URL=http://studiofinance.ru
       - GENERATE_SOURCEMAP=false
       - WATCHPACK_POLLING=true
     restart: unless-stopped

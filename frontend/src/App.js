@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'https://studiofinance.ru';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://studiofinance.ru';
 
 function App() {
   const [stats, setStats] = useState(null);
