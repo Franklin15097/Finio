@@ -1,14 +1,18 @@
 """
-Finio API - Простое приложение с Telegram Mini App
+Finio API - Система управления финансами с MySQL и Telegram Mini App
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Optional
-import json
 import os
 from datetime import datetime, date
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+import enum
 
 # Telegram Bot
 from aiogram import Bot, Dispatcher, types
@@ -17,8 +21,8 @@ from aiogram.filters import Command
 
 app = FastAPI(
     title="Finio API",
-    version="1.0.0",
-    description="Система управления финансами с Telegram Mini App"
+    version="2.0.0",
+    description="Система управления финансами с MySQL и Telegram Mini App"
 )
 
 # CORS
@@ -30,14 +34,102 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Простое хранилище данных в файлах
-DATA_DIR = "/var/lib/finio"
-USERS_FILE = f"{DATA_DIR}/users.json"
-TRANSACTIONS_FILE = f"{DATA_DIR}/transactions.json"
-CATEGORIES_FILE = f"{DATA_DIR}/categories.json"
+# Database
+DATABASE_URL = os.getenv("DATABASE_URL", "mysql+aiomysql://finio_user:maks15097@localhost:3306/finio")
+engine = create_async_engine(DATABASE_URL)
+AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-# Создаем директорию для данных
-os.makedirs(DATA_DIR, exist_ok=True)
+Base = declarative_base()
+
+# Database Models
+class TransactionType(enum.Enum):
+    INCOME = "income"
+    EXPENSE = "expense"
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(255), unique=True, index=True)
+    full_name = Column(String(255))
+    telegram_id = Column(String(50), unique=True, index=True, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    name = Column(String(255))
+    type = Column(Enum(TransactionType))
+    color = Column(String(7), default="#3B82F6")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    category_id = Column(Integer, nullable=True)
+    type = Column(Enum(TransactionType))
+    amount = Column(Float)
+    title = Column(String(255))
+    description = Column(Text, nullable=True)
+    transaction_date = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+# Pydantic Models
+class UserCreate(BaseModel):
+    email: str
+    full_name: str
+    telegram_id: Optional[str] = None
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    telegram_id: Optional[str] = None
+    created_at: datetime
+
+class TransactionCreate(BaseModel):
+    category_id: Optional[int] = None
+    type: str
+    amount: float
+    title: str
+    description: Optional[str] = None
+    transaction_date: Optional[date] = None
+
+class TransactionResponse(BaseModel):
+    id: int
+    user_id: int
+    category_id: Optional[int] = None
+    type: str
+    amount: float
+    title: str
+    description: Optional[str] = None
+    transaction_date: datetime
+    created_at: datetime
+
+class StatsResponse(BaseModel):
+    total_income: float
+    total_expense: float
+    balance: float
+    transactions_count: int
+
+class TelegramAuthRequest(BaseModel):
+    telegram_id: str
+    first_name: str
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    init_data: str = ""
+
+# Database dependency
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
 
 # Telegram Bot настройки
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -63,77 +155,6 @@ except Exception as e:
     bot = None
     dp = None
 
-# Модели данных
-class User(BaseModel):
-    id: int
-    email: str
-    name: str
-    telegram_id: Optional[str] = None
-    created_at: str
-
-class TelegramAuthRequest(BaseModel):
-    telegram_id: str
-    first_name: str
-    last_name: Optional[str] = None
-    username: Optional[str] = None
-    init_data: str = ""
-
-class Category(BaseModel):
-    id: int
-    user_id: int
-    name: str
-    type: str  # income или expense
-    color: str = "#3B82F6"
-
-class Transaction(BaseModel):
-    id: int
-    user_id: int
-    category_id: Optional[int] = None
-    type: str  # income или expense
-    amount: float
-    title: str
-    description: Optional[str] = None
-    date: str
-    created_at: str
-
-class TransactionCreate(BaseModel):
-    category_id: Optional[int] = None
-    type: str
-    amount: float
-    title: str
-    description: Optional[str] = None
-    date: str
-
-class CategoryCreate(BaseModel):
-    name: str
-    type: str
-    color: str = "#3B82F6"
-
-# Утилиты для работы с файлами
-def load_json(filename: str, default: list = None):
-    if default is None:
-        default = []
-    try:
-        if os.path.exists(filename):
-            with open(filename, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return default
-    except:
-        return default
-
-def save_json(filename: str, data):
-    try:
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        return True
-    except:
-        return False
-
-def get_next_id(items: list) -> int:
-    if not items:
-        return 1
-    return max(item.get('id', 0) for item in items) + 1
-
 # Telegram Bot обработчики
 try:
     if bot and dp:
@@ -144,13 +165,13 @@ try:
             
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(
-                    text="💰 Открыть Finio",
+                    text="💰 Открыть приложение",
                     url="https://t.me/FinanceStudio_bot/Finio"
                 )]
             ])
             
             await message.answer(
-                "Добро пожаловать в Finio! 💰",
+                "Добро пожаловать! 💰",
                 reply_markup=keyboard
             )
             print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
@@ -162,13 +183,13 @@ try:
             
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(
-                    text="💰 Открыть Finio",
+                    text="💰 Открыть приложение",
                     url="https://t.me/FinanceStudio_bot/Finio"
                 )]
             ])
             
             await message.answer(
-                "💰 Открыть Finio",
+                "💰 Открыть приложение",
                 reply_markup=keyboard
             )
             print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
@@ -622,6 +643,11 @@ async def setup_webhook():
     if bot and TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_URL:
         webhook_url = f"{TELEGRAM_WEBHOOK_URL}/bot-webhook/"
         try:
+            # Удаляем все команды бота
+            await bot.delete_my_commands()
+            print("✅ Все команды бота удалены")
+            
+            # Устанавливаем webhook
             await bot.set_webhook(
                 url=webhook_url,
                 drop_pending_updates=True
