@@ -6,8 +6,8 @@ import { TransactionsList } from './TransactionsList';
 import { ChartsSection } from './ChartsSection';
 import '../styles/dashboard.css';
 
-export function Dashboard() {
-  const [user, setUser] = useState(null);
+export function Dashboard({ user, onLogout }) {
+  const [currentView, setCurrentView] = useState('dashboard');
   const [stats, setStats] = useState({ balance: 0, income: 0, expense: 0 });
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -16,8 +16,6 @@ export function Dashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    // Mock user data - в реальном приложении получаем из localStorage или API
-    setUser({ name: 'Пользователь', avatar: 'П' });
     loadStats();
     loadTransactions();
     loadCategories();
@@ -123,43 +121,103 @@ export function Dashboard() {
     setEditingTransaction(null);
   };
 
+  const renderContent = () => {
+    switch (currentView) {
+      case 'income':
+        return (
+          <div>
+            <header className="flex justify-between items-center mb-4">
+              <h1>Доходы</h1>
+            </header>
+            <div className="card">
+              <p>Раздел доходов в разработке...</p>
+            </div>
+          </div>
+        );
+      case 'expenses':
+        return (
+          <div>
+            <header className="flex justify-between items-center mb-4">
+              <h1>Расходы</h1>
+            </header>
+            <div className="card">
+              <p>Раздел расходов в разработке...</p>
+            </div>
+          </div>
+        );
+      case 'assets':
+        return (
+          <div>
+            <header className="flex justify-between items-center mb-4">
+              <h1>Счета</h1>
+            </header>
+            <div className="card">
+              <p>Раздел счетов в разработке...</p>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div>
+            <header className="flex justify-between items-center mb-4">
+              <h1>Настройки</h1>
+            </header>
+            <div className="card">
+              <p>Настройки в разработке...</p>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <>
+            <header className="flex justify-between items-center mb-4">
+              <h1>Обзор</h1>
+              <div style={{ color: 'var(--text-secondary)' }}>
+                {new Date().toLocaleDateString('ru-RU', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+            </header>
+
+            <StatsOverview stats={stats} />
+            
+            <ChartsSection transactions={transactions} />
+
+            <section className="transactions-section">
+              <div className="card">
+                <div className="flex justify-between items-center mb-4">
+                  <h3>Последние операции</h3>
+                  <button className="btn btn-primary" onClick={openTransactionModal}>
+                    + Добавить
+                  </button>
+                </div>
+
+                <TransactionsList 
+                  transactions={transactions}
+                  onEdit={handleTransactionEdit}
+                  onDelete={handleTransactionDelete}
+                />
+              </div>
+            </section>
+          </>
+        );
+    }
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar user={user} />
+      <Sidebar 
+        user={user} 
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        onLogout={onLogout}
+      />
       
       <main className="dashboard-grid">
-        <header className="flex justify-between items-center mb-4">
-          <h1>Обзор</h1>
-          <div style={{ color: 'var(--text-secondary)' }}>
-            {new Date().toLocaleDateString('ru-RU', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </div>
-        </header>
-
-        <StatsOverview stats={stats} />
-        
-        <ChartsSection transactions={transactions} />
-
-        <section className="transactions-section">
-          <div className="card">
-            <div className="flex justify-between items-center mb-4">
-              <h3>Последние операции</h3>
-              <button className="btn btn-primary" onClick={openTransactionModal}>
-                + Добавить
-              </button>
-            </div>
-
-            <TransactionsList 
-              transactions={transactions}
-              onEdit={handleTransactionEdit}
-              onDelete={handleTransactionDelete}
-            />
-          </div>
-        </section>
+        {renderContent()}
       </main>
 
       {showModal && (

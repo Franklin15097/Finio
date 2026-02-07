@@ -62,6 +62,11 @@ body {
     font-size: var(--text-sm);
     position: relative;
     letter-spacing: 0.01em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
 }
 
 .nav-item::before {
