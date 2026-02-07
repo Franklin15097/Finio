@@ -1,9 +1,38 @@
 const API_URL = window.location.origin + '/api';
 
+// Получаем токен из localStorage
+function getAuthHeaders() {
+  const token = localStorage.getItem('auth_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 export const api = {
+  // Auth
+  async register(data) {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to register');
+    return response.json();
+  },
+
+  async login(data) {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to login');
+    return response.json();
+  },
+
   // Transactions
   async getTransactions() {
-    const response = await fetch(`${API_URL}/transactions`);
+    const response = await fetch(`${API_URL}/transactions`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch transactions');
     return response.json();
   },
@@ -11,7 +40,10 @@ export const api = {
   async createTransaction(data) {
     const response = await fetch(`${API_URL}/transactions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to create transaction');
@@ -21,7 +53,10 @@ export const api = {
   async updateTransaction(id, data) {
     const response = await fetch(`${API_URL}/transactions/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to update transaction');
@@ -30,7 +65,8 @@ export const api = {
 
   async deleteTransaction(id) {
     const response = await fetch(`${API_URL}/transactions/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error('Failed to delete transaction');
     return response.json();
@@ -38,7 +74,9 @@ export const api = {
 
   // Recurring Expenses
   async getRecurringExpenses() {
-    const response = await fetch(`${API_URL}/recurring-expenses`);
+    const response = await fetch(`${API_URL}/recurring-expenses`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch recurring expenses');
     return response.json();
   },
@@ -46,7 +84,10 @@ export const api = {
   async createRecurringExpense(data) {
     const response = await fetch(`${API_URL}/recurring-expenses`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to create recurring expense');
@@ -55,7 +96,8 @@ export const api = {
 
   async deleteRecurringExpense(id) {
     const response = await fetch(`${API_URL}/recurring-expenses/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error('Failed to delete recurring expense');
     return response.json();
@@ -63,7 +105,9 @@ export const api = {
 
   // Assets
   async getAssets() {
-    const response = await fetch(`${API_URL}/assets`);
+    const response = await fetch(`${API_URL}/assets`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch assets');
     return response.json();
   },
@@ -71,7 +115,10 @@ export const api = {
   async createAsset(data) {
     const response = await fetch(`${API_URL}/assets`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to create asset');
@@ -81,7 +128,10 @@ export const api = {
   async updateAsset(id, data) {
     const response = await fetch(`${API_URL}/assets/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to update asset');
@@ -90,7 +140,8 @@ export const api = {
 
   async deleteAsset(id) {
     const response = await fetch(`${API_URL}/assets/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error('Failed to delete asset');
     return response.json();
@@ -98,7 +149,9 @@ export const api = {
 
   // Asset Categories
   async getAssetCategories() {
-    const response = await fetch(`${API_URL}/asset-categories`);
+    const response = await fetch(`${API_URL}/asset-categories`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch asset categories');
     return response.json();
   },
@@ -106,7 +159,10 @@ export const api = {
   async createAssetCategory(data) {
     const response = await fetch(`${API_URL}/asset-categories`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
       body: JSON.stringify(data)
     });
     if (!response.ok) throw new Error('Failed to create asset category');
@@ -115,7 +171,9 @@ export const api = {
 
   // Stats
   async getStats() {
-    const response = await fetch(`${API_URL}/stats`);
+    const response = await fetch(`${API_URL}/stats`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch stats');
     return response.json();
   }

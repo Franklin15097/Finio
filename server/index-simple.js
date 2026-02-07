@@ -122,8 +122,97 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Auth endpoints
+app.post('/api/auth/register', async (req, res) => {
+  const { username, email, password, first_name } = req.body;
+  
+  try {
+    // Проверяем существует ли пользователь
+    const existing = await pool.query(
+      'SELECT id FROM users WHERE email = $1 OR username = $2',
+      [email, username]
+    );
+    
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    
+    // Создаем пользователя (пароль пока без хеширования для простоты)
+    const result = await pool.query(
+      'INSERT INTO users (username, email, password_hash, first_name) VALUES ($1, $2, $3, $4) RETURNING id, username, email, first_name',
+      [username, email, password, first_name]
+    );
+    
+    const user = result.rows[0];
+    
+    // Генерируем простой токен (user_id)
+    const token = `user_${user.id}_${Date.now()}`;
+    
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.first_name || user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  
+  try {
+    const result = await pool.query(
+      'SELECT id, username, email, first_name, password_hash FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const user = result.rows[0];
+    
+    // Проверяем пароль (пока без хеширования)
+    if (user.password_hash !== password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Генерируем токен
+    const token = `user_${user.id}_${Date.now()}`;
+    
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.first_name || user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Middleware для извлечения user_id из токена
+function getUserIdFromToken(req) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return 1; // Дефолтный пользователь если нет токена
+  
+  // Извлекаем user_id из токена формата "user_123_timestamp"
+  const match = token.match(/^user_(\d+)_/);
+  return match ? parseInt(match[1]) : 1;
+}
+
 // API Routes
 app.get('/api/stats', async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
   try {
     const result = await pool.query(`
       SELECT 
@@ -131,7 +220,8 @@ app.get('/api/stats', async (req, res) => {
         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as expense,
         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END), 0) as balance
       FROM transactions
-    `);
+      WHERE user_id = $1
+    `, [userId]);
     
     res.json(result.rows[0]);
   } catch (error) {
@@ -141,6 +231,8 @@ app.get('/api/stats', async (req, res) => {
 });
 
 app.get('/api/transactions', async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
   try {
     const result = await pool.query(`
       SELECT 
@@ -152,9 +244,10 @@ app.get('/api/transactions', async (req, res) => {
         c.name as category_name
       FROM transactions t
       LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = $1
       ORDER BY t.transaction_date DESC
       LIMIT 50
-    `);
+    `, [userId]);
     
     res.json(result.rows);
   } catch (error) {
@@ -165,13 +258,14 @@ app.get('/api/transactions', async (req, res) => {
 
 app.post('/api/transactions', async (req, res) => {
   const { title, amount, type, category_id, transaction_date } = req.body;
+  const userId = getUserIdFromToken(req);
   
   try {
     const result = await pool.query(`
       INSERT INTO transactions (user_id, title, amount, type, category_id, transaction_date)
-      VALUES (1, $1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [title, amount, type, category_id, transaction_date]);
+    `, [userId, title, amount, type, category_id, transaction_date]);
     
     res.json(result.rows[0]);
   } catch (error) {
@@ -213,6 +307,8 @@ app.delete('/api/transactions/:id', async (req, res) => {
 
 // Recurring expenses
 app.get('/api/recurring-expenses', async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
   try {
     const result = await pool.query(`
       SELECT 
@@ -223,8 +319,9 @@ app.get('/api/recurring-expenses', async (req, res) => {
         c.name as category_name
       FROM recurring_expenses r
       LEFT JOIN categories c ON r.category_id = c.id
+      WHERE r.user_id = $1
       ORDER BY r.amount DESC
-    `);
+    `, [userId]);
     
     res.json(result.rows);
   } catch (error) {
@@ -235,13 +332,14 @@ app.get('/api/recurring-expenses', async (req, res) => {
 
 app.post('/api/recurring-expenses', async (req, res) => {
   const { title, amount, category_id } = req.body;
+  const userId = getUserIdFromToken(req);
   
   try {
     const result = await pool.query(`
       INSERT INTO recurring_expenses (user_id, title, amount, category_id)
-      VALUES (1, $1, $2, $3)
+      VALUES ($1, $2, $3, $4)
       RETURNING *
-    `, [title, amount, category_id]);
+    `, [userId, title, amount, category_id]);
     
     res.json(result.rows[0]);
   } catch (error) {
@@ -264,6 +362,8 @@ app.delete('/api/recurring-expenses/:id', async (req, res) => {
 
 // Assets
 app.get('/api/assets', async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
   try {
     const result = await pool.query(`
       SELECT 
@@ -276,8 +376,9 @@ app.get('/api/assets', async (req, res) => {
         ac.name as category_name
       FROM assets a
       LEFT JOIN asset_categories ac ON a.category_id = ac.id
+      WHERE a.user_id = $1
       ORDER BY a.balance DESC
-    `);
+    `, [userId]);
     
     // Calculate total balance
     const totalResult = await pool.query(`
@@ -285,7 +386,8 @@ app.get('/api/assets', async (req, res) => {
         SUM(CASE WHEN currency = 'RUB' THEN balance ELSE 0 END) as total_rub,
         SUM(CASE WHEN currency = 'USDT' THEN balance ELSE 0 END) as total_usdt
       FROM assets
-    `);
+      WHERE user_id = $1
+    `, [userId]);
     
     res.json({
       assets: result.rows,
@@ -299,13 +401,14 @@ app.get('/api/assets', async (req, res) => {
 
 app.post('/api/assets', async (req, res) => {
   const { name, balance, actual_balance, currency, savings_percentage, category_id } = req.body;
+  const userId = getUserIdFromToken(req);
   
   try {
     const result = await pool.query(`
       INSERT INTO assets (user_id, name, balance, actual_balance, currency, savings_percentage, category_id)
-      VALUES (1, $1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [name, balance, actual_balance, currency, savings_percentage, category_id]);
+    `, [userId, name, balance, actual_balance, currency, savings_percentage, category_id]);
     
     res.json(result.rows[0]);
   } catch (error) {
