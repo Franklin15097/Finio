@@ -60,8 +60,17 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// Start bot
-bot.launch();
+// Start bot only if token is valid
+if (process.env.BOT_TOKEN && process.env.BOT_TOKEN.length > 20) {
+  try {
+    bot.launch();
+    console.log('Bot launched');
+  } catch (error) {
+    console.error('Bot launch error:', error.message);
+  }
+} else {
+  console.log('Bot token not configured, skipping bot launch');
+}
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
