@@ -76,7 +76,7 @@ chown -R finio:finio $PROJECT_DIR
 # 5. Тест приложения
 echo "5. Тест приложения..."
 cd $PROJECT_DIR/backend
-if sudo -u finio timeout 5s $PROJECT_DIR/backend/venv/bin/python -c "from app.main import app; print('OK')" 2>/dev/null; then
+if sudo -u finio timeout 5s $PROJECT_DIR/backend/venv/bin/python -c "import standalone; print('OK')" 2>/dev/null; then
     echo "✅ Приложение загружается"
 else
     echo "❌ Ошибка загрузки приложения"
@@ -97,7 +97,7 @@ Group=finio
 WorkingDirectory=$PROJECT_DIR/backend
 Environment=PATH=$PROJECT_DIR/backend/venv/bin
 Environment=PYTHONPATH=$PROJECT_DIR/backend
-ExecStart=$PROJECT_DIR/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+ExecStart=$PROJECT_DIR/backend/venv/bin/uvicorn standalone:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=3
 StandardOutput=append:/var/log/finio/app.log
