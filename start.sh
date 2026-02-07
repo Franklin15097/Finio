@@ -112,40 +112,18 @@ else
 fi
 
 # 6. Настройка Nginx с SSL
-echo "🔒 6/6 Настройка Nginx с SSL..."
+echo "🔒 6/6 Настройка Nginx..."
 
-# Получение SSL сертификата
-certbot --nginx -d $DOMAIN -d www.$DOMAIN \
-    --non-interactive \
-    --agree-tos \
-    --email $EMAIL \
-    --redirect
-
-# Настройка Nginx конфигурации
+# СНАЧАЛА создаем базовую конфигурацию Nginx
 cat > /etc/nginx/sites-available/finio << 'EOF'
 server {
     listen 80;
     server_name studiofinance.ru www.studiofinance.ru;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name studiofinance.ru www.studiofinance.ru;
     
-    ssl_certificate /etc/letsencrypt/live/studiofinance.ru/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/studiofinance.ru/privkey.pem;
-    
-    # Gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 1024;
-    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
-    
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
+    # Для получения SSL сертификата
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
     
     # API routes
     location /api/ {
@@ -153,8 +131,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
     
     # Health check
@@ -177,10 +154,10 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
     
-    # Static frontend (placeholder)
+    # Static frontend
     location / {
         root /var/www/html;
         index index.html;
@@ -193,6 +170,18 @@ EOF
 ln -sf /etc/nginx/sites-available/finio /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
+
+echo "✅ Базовая конфигурация Nginx создана"
+
+# ТЕПЕРЬ получаем SSL сертификат
+echo "🔐 Получение SSL сертификата..."
+certbot --nginx -d $DOMAIN -d www.$DOMAIN \
+    --non-interactive \
+    --agree-tos \
+    --email $EMAIL \
+    --redirect
+
+echo "✅ SSL сертификат получен"
 
 # Создание простой главной страницы
 cat > /var/www/html/index.html << 'EOF'
