@@ -28,28 +28,42 @@ check_status() {
     echo "🔍 Проверка доступности:"
     
     # Проверка MySQL
-    if docker-compose exec mysql mysqladmin ping -h localhost -u finio_user -pmaks15097 >/dev/null 2>&1; then
+    if docker-compose exec -T mysql mysqladmin ping -h localhost -u finio_user -pmaks15097 >/dev/null 2>&1; then
         echo "✅ MySQL: Работает"
     else
         echo "❌ MySQL: Не отвечает"
     fi
     
     # Проверка Backend API
-    if curl -f http://localhost:8000/health >/dev/null 2>&1; then
+    if curl -f -s http://localhost:8000/health >/dev/null 2>&1; then
         echo "✅ Backend API: Работает"
     else
         echo "❌ Backend API: Не отвечает"
     fi
     
     # Проверка Frontend
-    if curl -f http://localhost:3000 >/dev/null 2>&1; then
+    if curl -f -s http://localhost:3000 >/dev/null 2>&1; then
         echo "✅ Frontend: Работает"
     else
         echo "❌ Frontend: Не отвечает"
     fi
     
+    # Проверка Nginx
+    if curl -f -s http://localhost/health >/dev/null 2>&1; then
+        echo "✅ Nginx Proxy: Работает"
+    else
+        echo "❌ Nginx Proxy: Не отвечает"
+    fi
+    
+    # Проверка внешней доступности
+    if curl -f -s https://studiofinance.ru/health >/dev/null 2>&1; then
+        echo "✅ Внешний доступ: Работает"
+    else
+        echo "❌ Внешний доступ: Недоступен"
+    fi
+    
     # Проверка Bot Status
-    BOT_STATUS=$(curl -s http://localhost:8000/bot-status 2>/dev/null | jq -r .bot_initialized 2>/dev/null)
+    BOT_STATUS=$(curl -s https://studiofinance.ru/bot-status 2>/dev/null | jq -r .bot_initialized 2>/dev/null)
     if [ "$BOT_STATUS" = "true" ]; then
         echo "✅ Telegram Bot: Инициализирован"
     else
@@ -142,6 +156,17 @@ start_services() {
     echo "• Веб-сайт: https://studiofinance.ru"
     echo "• API: https://studiofinance.ru/api"
     echo "• Mini App: https://t.me/FinanceStudio_bot/Finio"
+    echo "• Health Check: https://studiofinance.ru/health"
+    echo ""
+    echo "🔧 Локальная разработка:"
+    echo "• Backend: http://localhost:8000"
+    echo "• Frontend: http://localhost:3000"
+    echo "• Nginx: http://localhost"
+    echo ""
+    echo "📋 Диагностика:"
+    echo "• Логи: docker-compose logs -f"
+    echo "• Статус: docker-compose ps"
+    echo "• Диагностика: ./diagnose.sh"
     echo ""
 }
 

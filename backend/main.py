@@ -1,18 +1,26 @@
 """
 Finio API - Система управления финансами с MySQL и Telegram Mini App
 """
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import logging
 from datetime import datetime, date
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text, Enum
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text, Enum, Numeric
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 import enum
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Telegram Bot
 from aiogram import Bot, Dispatcher, types
@@ -24,6 +32,15 @@ app = FastAPI(
     version="2.0.0",
     description="Система управления финансами с MySQL и Telegram Mini App"
 )
+
+# Обработчик глобальных ошибок
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"❌ Глобальная ошибка: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "message": "Internal server error", "detail": str(exc)}
+    )
 
 # CORS
 app.add_middleware(
@@ -72,7 +89,7 @@ class Transaction(Base):
     user_id = Column(Integer, index=True)
     category_id = Column(Integer, nullable=True)
     type = Column(Enum(TransactionType))
-    amount = Column(Float)
+    amount = Column(Numeric(precision=10, scale=2))
     title = Column(String(255))
     description = Column(Text, nullable=True)
     transaction_date = Column(DateTime, default=datetime.utcnow)
@@ -220,6 +237,171 @@ async def bot_status():
         "webhook_url": TELEGRAM_WEBHOOK_URL
     }
 
+# API Routes
+@app.post("/api/auth/telegram")
+async def telegram_auth(auth_data: TelegramAuthRequest, db: AsyncSession = Depends(get_db)):
+    """Аутентификация через Telegram"""
+    try:
+        # Проверяем существующего пользователя
+        from sqlalchemy import select
+        result = await db.execute(select(User).where(User.telegram_id == auth_data.telegram_id))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            # Создаем нового пользователя
+            full_name = f"{auth_data.first_name} {auth_data.last_name or ''}".strip()
+            user = User(
+                email=f"user_{auth_data.telegram_id}@telegram.local",
+                full_name=full_name,
+                telegram_id=auth_data.telegram_id
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+        
+        return {"user_id": user.id, "status": "authenticated"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/init-demo-data")
+async def init_demo_data(db: AsyncSession = Depends(get_db)):
+    """Инициализация демо данных"""
+    try:
+        from sqlalchemy import select
+        
+        # Проверяем есть ли уже демо пользователь
+        result = await db.execute(select(User).where(User.email == "demo@finio.local"))
+        demo_user = result.scalar_one_or_none()
+        
+        if not demo_user:
+            # Создаем демо пользователя
+            demo_user = User(
+                email="demo@finio.local",
+                full_name="Демо пользователь",
+                telegram_id=None
+            )
+            db.add(demo_user)
+            await db.commit()
+            await db.refresh(demo_user)
+            
+            # Создаем демо категории
+            categories = [
+                Category(user_id=demo_user.id, name="Зарплата", type=TransactionType.INCOME, color="#10B981"),
+                Category(user_id=demo_user.id, name="Продукты", type=TransactionType.EXPENSE, color="#EF4444"),
+                Category(user_id=demo_user.id, name="Транспорт", type=TransactionType.EXPENSE, color="#F59E0B"),
+            ]
+            
+            for category in categories:
+                db.add(category)
+            
+            await db.commit()
+            
+            # Создаем демо транзакции
+            transactions = [
+                Transaction(
+                    user_id=demo_user.id,
+                    category_id=categories[0].id,
+                    type=TransactionType.INCOME,
+                    amount=50000.0,
+                    title="Зарплата за январь",
+                    description="Основная работа"
+                ),
+                Transaction(
+                    user_id=demo_user.id,
+                    category_id=categories[1].id,
+                    type=TransactionType.EXPENSE,
+                    amount=5000.0,
+                    title="Продукты на неделю",
+                    description="Покупки в супермаркете"
+                ),
+                Transaction(
+                    user_id=demo_user.id,
+                    category_id=categories[2].id,
+                    type=TransactionType.EXPENSE,
+                    amount=2000.0,
+                    title="Проезд",
+                    description="Транспортная карта"
+                ),
+            ]
+            
+            for transaction in transactions:
+                db.add(transaction)
+            
+            await db.commit()
+        
+        return {"status": "demo_data_initialized", "user_id": demo_user.id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/users/{user_id}/stats")
+async def get_user_stats(user_id: int, db: AsyncSession = Depends(get_db)):
+    """Получение статистики пользователя"""
+    try:
+        from sqlalchemy import select, func
+        
+        # Получаем статистику доходов
+        income_result = await db.execute(
+            select(func.sum(Transaction.amount))
+            .where(Transaction.user_id == user_id)
+            .where(Transaction.type == TransactionType.INCOME)
+        )
+        total_income = income_result.scalar() or 0.0
+        
+        # Получаем статистику расходов
+        expense_result = await db.execute(
+            select(func.sum(Transaction.amount))
+            .where(Transaction.user_id == user_id)
+            .where(Transaction.type == TransactionType.EXPENSE)
+        )
+        total_expense = expense_result.scalar() or 0.0
+        
+        # Получаем количество транзакций
+        count_result = await db.execute(
+            select(func.count(Transaction.id))
+            .where(Transaction.user_id == user_id)
+        )
+        transactions_count = count_result.scalar() or 0
+        
+        return StatsResponse(
+            total_income=float(total_income),
+            total_expense=float(total_expense),
+            balance=float(total_income - total_expense),
+            transactions_count=transactions_count
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/users/{user_id}/transactions")
+async def get_user_transactions(user_id: int, db: AsyncSession = Depends(get_db)):
+    """Получение транзакций пользователя"""
+    try:
+        from sqlalchemy import select
+        
+        result = await db.execute(
+            select(Transaction)
+            .where(Transaction.user_id == user_id)
+            .order_by(Transaction.transaction_date.desc())
+            .limit(50)
+        )
+        transactions = result.scalars().all()
+        
+        return [
+            {
+                "id": t.id,
+                "user_id": t.user_id,
+                "category_id": t.category_id,
+                "type": t.type.value,
+                "amount": float(t.amount),
+                "title": t.title,
+                "description": t.description,
+                "date": t.transaction_date.isoformat() if t.transaction_date else None,
+                "created_at": t.created_at.isoformat() if t.created_at else None
+            }
+            for t in transactions
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # Mini App endpoint
 @app.get("/miniapp")
 async def miniapp():
@@ -291,23 +473,25 @@ async def miniapp():
     return HTMLResponse(content=html_content)
 
 # Telegram webhook
-@app.post("/bot-webhook/")
-async def bot_webhook(update: dict):
+@app.post("/bot-webhook")
+async def bot_webhook(request: Request):
     """Обработка webhook от Telegram"""
-    print(f"📨 Получен webhook: {update}")
-    
-    if not bot or not dp:
-        print("❌ Бот не инициализирован")
-        return {"status": "error", "message": "Bot not initialized"}
-    
     try:
-        telegram_update = types.Update(**update)
+        update_data = await request.json()
+        logger.info(f"📨 Получен webhook: {update_data.get('update_id', 'unknown')}")
+        
+        if not bot or not dp:
+            logger.error("❌ Бот не инициализирован")
+            return JSONResponse({"status": "error", "message": "Bot not initialized"}, status_code=500)
+        
+        telegram_update = types.Update(**update_data)
         await dp.feed_update(bot, telegram_update)
-        print(f"✅ Обработан update: {update.get('update_id', 'unknown')}")
+        logger.info(f"✅ Обработан update: {update_data.get('update_id', 'unknown')}")
         return {"status": "ok"}
+        
     except Exception as e:
-        print(f"❌ Ошибка обработки webhook: {e}")
-        return {"status": "error", "message": str(e)}
+        logger.error(f"❌ Ошибка обработки webhook: {e}")
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 # Создание таблиц при запуске
 @app.on_event("startup")
@@ -333,20 +517,36 @@ async def startup_event():
 async def setup_webhook():
     """Настройка webhook для Telegram бота"""
     if bot and TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_URL:
-        webhook_url = f"{TELEGRAM_WEBHOOK_URL}/bot-webhook/"
+        webhook_url = f"{TELEGRAM_WEBHOOK_URL}/bot-webhook"
         try:
-            # Удаляем все команды бота
-            await bot.delete_my_commands()
-            print("✅ Все команды бота удалены")
+            # Удаляем старый webhook
+            await bot.delete_webhook(drop_pending_updates=True)
+            print("✅ Старый webhook удален")
             
-            # Устанавливаем webhook
+            # Устанавливаем новый webhook
             await bot.set_webhook(
                 url=webhook_url,
-                drop_pending_updates=True
+                drop_pending_updates=True,
+                allowed_updates=["message", "callback_query"]
             )
             print(f"✅ Webhook установлен: {webhook_url}")
+            
+            # Проверяем webhook
+            webhook_info = await bot.get_webhook_info()
+            print(f"✅ Webhook info: {webhook_info.url}")
+            
         except Exception as e:
             print(f"❌ Ошибка установки webhook: {e}")
+            # Пробуем установить без SSL проверки для разработки
+            try:
+                await bot.set_webhook(
+                    url=webhook_url,
+                    drop_pending_updates=True,
+                    allowed_updates=["message", "callback_query"]
+                )
+                print(f"✅ Webhook установлен (без SSL): {webhook_url}")
+            except Exception as e2:
+                print(f"❌ Критическая ошибка webhook: {e2}")
 
 @app.on_event("shutdown") 
 async def shutdown_event():
