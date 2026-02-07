@@ -1,5 +1,8 @@
 FROM nginx:alpine
 
+# Установка curl для healthcheck
+RUN apk add --no-cache curl
+
 # Создание директории для статических файлов
 RUN mkdir -p /usr/share/nginx/html
 

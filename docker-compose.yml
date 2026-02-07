@@ -16,9 +16,11 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
     restart: unless-stopped
-    networks:
-      - finio_network
     command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   # Backend API
   backend:
@@ -31,10 +33,13 @@ services:
       - TELEGRAM_BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
       - TELEGRAM_WEBHOOK_URL=https://studiofinance.ru
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - finio_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      timeout: 10s
+      retries: 5
 
   # Frontend
   frontend:
@@ -43,8 +48,10 @@ services:
     ports:
       - "3000:80"
     restart: unless-stopped
-    networks:
-      - finio_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      timeout: 10s
+      retries: 3
 
   # Nginx Proxy
   nginx:
@@ -55,15 +62,11 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - finio_network
 
 volumes:
   mysql_data:
-
-networks:
-  finio_network:
-    driver: bridge

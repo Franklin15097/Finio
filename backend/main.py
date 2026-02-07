@@ -8,22 +8,17 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 import logging
+import asyncio
 from datetime import datetime, date
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Enum, Numeric
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 import enum
-import asyncio
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Telegram Bot
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.filters import Command
 
 app = FastAPI(title="Finio API", version="1.0.0")
 
@@ -38,8 +33,28 @@ app.add_middleware(
 
 # Database
 DATABASE_URL = os.getenv("DATABASE_URL", "mysql+aiomysql://finio_user:maks15097@mysql:3306/finio")
-engine = create_async_engine(DATABASE_URL, echo=True)
-AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+logger.info(f"Database URL: {DATABASE_URL}")
+
+# Попытка подключения к базе данных с повторами
+async def create_db_engine():
+    for attempt in range(10):
+        try:
+            engine = create_async_engine(DATABASE_URL, echo=False)
+            # Тестовое подключение
+            async with engine.begin() as conn:
+                await conn.execute("SELECT 1")
+            logger.info("✅ Database connected successfully")
+            return engine
+        except Exception as e:
+            logger.error(f"❌ Database connection attempt {attempt + 1} failed: {e}")
+            if attempt < 9:
+                await asyncio.sleep(5)
+            else:
+                logger.error("❌ Failed to connect to database after 10 attempts")
+                raise
+
+engine = None
+AsyncSessionLocal = None
 
 Base = declarative_base()
 
@@ -95,64 +110,37 @@ class StatsResponse(BaseModel):
 
 # Database dependency
 async def get_db():
+    if not AsyncSessionLocal:
+        raise HTTPException(status_code=500, detail="Database not initialized")
+    
     async with AsyncSessionLocal() as session:
         try:
             yield session
         finally:
             await session.close()
 
-# Telegram Bot
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://studiofinance.ru")
-
-bot = None
-dp = None
-
-if TELEGRAM_BOT_TOKEN:
-    try:
-        bot = Bot(token=TELEGRAM_BOT_TOKEN)
-        dp = Dispatcher()
-        
-        @dp.message(Command("start"))
-        async def start_command(message: types.Message):
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(
-                    text="💰 Открыть приложение",
-                    url="https://t.me/FinanceStudio_bot/Finio"
-                )]
-            ])
-            
-            await message.answer(
-                "💰 Добро пожаловать в Finio!\n\nУправляйте своими финансами легко и удобно.",
-                reply_markup=keyboard
-            )
-
-        @dp.message()
-        async def any_message(message: types.Message):
-            keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(
-                    text="💰 Открыть приложение",
-                    url="https://t.me/FinanceStudio_bot/Finio"
-                )]
-            ])
-            
-            await message.answer(
-                "💰 Открыть приложение",
-                reply_markup=keyboard
-            )
-            
-        logger.info("✅ Telegram bot initialized")
-    except Exception as e:
-        logger.error(f"❌ Bot initialization error: {e}")
-
 # API Routes
 @app.get("/")
 async def root():
-    return {"message": "Finio API работает!", "status": "ok"}
+    return {"message": "Finio API работает!", "status": "ok", "version": "1.0.0"}
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+    try:
+        if AsyncSessionLocal:
+            async with AsyncSessionLocal() as session:
+                await session.execute("SELECT 1")
+            db_status = "connected"
+        else:
+            db_status = "not_initialized"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "database": db_status
+    }
 
 @app.post("/api/auth/telegram")
 async def telegram_auth(auth_data: TelegramAuthRequest, db: AsyncSession = Depends(get_db)):
@@ -174,6 +162,7 @@ async def telegram_auth(auth_data: TelegramAuthRequest, db: AsyncSession = Depen
         
         return {"user_id": user.id, "status": "authenticated"}
     except Exception as e:
+        logger.error(f"Auth error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/init-demo-data")
@@ -238,6 +227,7 @@ async def init_demo_data(db: AsyncSession = Depends(get_db)):
         
         return {"status": "demo_data_initialized", "user_id": demo_user.id}
     except Exception as e:
+        logger.error(f"Demo data error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/users/{user_id}/stats")
@@ -272,6 +262,7 @@ async def get_user_stats(user_id: int, db: AsyncSession = Depends(get_db)):
             transactions_count=transactions_count
         )
     except Exception as e:
+        logger.error(f"Stats error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/users/{user_id}/transactions")
@@ -302,6 +293,7 @@ async def get_user_transactions(user_id: int, db: AsyncSession = Depends(get_db)
             for t in transactions
         ]
     except Exception as e:
+        logger.error(f"Transactions error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/miniapp")
@@ -435,41 +427,31 @@ async def miniapp():
     """
     return HTMLResponse(content=html_content)
 
-@app.post("/bot-webhook")
-async def bot_webhook(request: Request):
-    try:
-        if not bot or not dp:
-            return JSONResponse({"status": "error", "message": "Bot not initialized"}, status_code=500)
-        
-        update_data = await request.json()
-        telegram_update = types.Update(**update_data)
-        await dp.feed_update(bot, telegram_update)
-        return {"status": "ok"}
-        
-    except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
-
 @app.on_event("startup")
 async def startup_event():
-    # Создание таблиц
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    global engine, AsyncSessionLocal
     
-    # Настройка webhook
-    if bot and TELEGRAM_BOT_TOKEN:
-        try:
-            webhook_url = f"{TELEGRAM_WEBHOOK_URL}/bot-webhook"
-            await bot.delete_webhook(drop_pending_updates=True)
-            await bot.set_webhook(url=webhook_url)
-            logger.info(f"Webhook set: {webhook_url}")
-        except Exception as e:
-            logger.error(f"Webhook setup error: {e}")
+    logger.info("🚀 Starting Finio API...")
+    
+    try:
+        # Инициализация базы данных
+        engine = await create_db_engine()
+        AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        
+        # Создание таблиц
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        
+        logger.info("✅ Database tables created")
+        
+    except Exception as e:
+        logger.error(f"❌ Startup error: {e}")
+        raise
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    if bot:
-        await bot.session.close()
+    if engine:
+        await engine.dispose()
 
 if __name__ == "__main__":
     import uvicorn
