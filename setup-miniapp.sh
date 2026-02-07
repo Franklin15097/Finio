@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Установка Telegram Mini App..."
+echo "🚀 ПОЛНАЯ ПЕРЕУСТАНОВКА TELEGRAM MINI APP..."
 
 # Проверка прав root
 if [ "$EUID" -ne 0 ]; then
@@ -28,43 +28,41 @@ echo "🔍 Проверка Docker..."
 docker --version
 docker-compose --version
 
-# Переход в директорию проекта или клонирование
+# ПОЛНОЕ УДАЛЕНИЕ старой установки
+echo "🗑️ Удаление старой установки..."
 if [ -d "/var/www/crypto-bot" ]; then
-    echo "📁 Переход в существующую директорию проекта..."
     cd /var/www/crypto-bot
-    
-    echo "🔄 Обновление кода из GitHub..."
-    git pull origin main
-else
-    echo "📥 Клонирование репозитория..."
+    docker-compose down --remove-orphans --volumes || true
     cd /var/www
-    git clone https://github.com/Franklin15097/Finio.git crypto-bot
-    cd crypto-bot
+    rm -rf crypto-bot
 fi
 
-# Остановка контейнеров
-echo "⏹️ Остановка контейнеров..."
-docker-compose down || true
+# Очистка Docker
+echo "🧹 Очистка Docker..."
+docker system prune -af --volumes || true
 
-# Очистка старых образов
-echo "🧹 Очистка старых образов..."
-docker system prune -f
+# Клонирование репозитория заново
+echo "📥 Клонирование репозитория..."
+cd /var/www
+git clone https://github.com/Franklin15097/Finio.git crypto-bot
+cd crypto-bot
 
-# Пересборка фронтенда с новыми изменениями
-echo "🔨 Пересборка фронтенда с поддержкой Telegram WebApp..."
-docker-compose build --no-cache frontend
+# Установка правильных прав
+echo "🔐 Установка прав доступа..."
+chown -R root:root /var/www/crypto-bot
+chmod -R 755 /var/www/crypto-bot
 
-# Пересборка бэкенда
-echo "🔨 Пересборка бэкенда с Telegram аутентификацией..."
-docker-compose build --no-cache backend
+# Пересборка всех контейнеров с нуля
+echo "🔨 Сборка контейнеров с нуля..."
+docker-compose build --no-cache --pull
 
 # Запуск всех сервисов
 echo "🚀 Запуск сервисов..."
 docker-compose up -d
 
 # Ожидание запуска
-echo "⏳ Ожидание запуска сервисов..."
-sleep 20
+echo "⏳ Ожидание запуска сервисов (30 секунд)..."
+sleep 30
 
 # Проверка статуса
 echo "📊 Проверка статуса сервисов..."
@@ -80,6 +78,15 @@ else
     docker-compose logs backend | tail -20
 fi
 
+# Проверка статуса бота
+echo "🔍 Проверка статуса бота..."
+if curl -f http://localhost:8000/bot-status > /dev/null 2>&1; then
+    echo "✅ Bot status endpoint работает"
+    curl -s http://localhost:8000/bot-status | jq . || echo "Ответ получен"
+else
+    echo "❌ Bot status не отвечает"
+fi
+
 # Проверка фронтенда
 if curl -f http://localhost:3000 > /dev/null 2>&1; then
     echo "✅ Frontend работает"
@@ -88,30 +95,30 @@ else
     docker-compose logs frontend | tail -20
 fi
 
+# Тест webhook
+echo "🔍 Тест webhook..."
+curl -s -X POST http://localhost:8000/bot-webhook/ \
+  -H "Content-Type: application/json" \
+  -d '{"update_id": 999, "message": {"message_id": 1, "date": 1234567890, "chat": {"id": 123, "type": "private"}, "from": {"id": 123, "is_bot": false, "first_name": "Test"}, "text": "/start"}}' \
+  | jq . || echo "Webhook тест выполнен"
+
 echo ""
-echo "🎉 Telegram Mini App установлен!"
+echo "🎉 ПОЛНАЯ ПЕРЕУСТАНОВКА ЗАВЕРШЕНА!"
 echo ""
-echo "📱 Настройте Mini App в @BotFather:"
-echo "1. Отправьте /newapp в @BotFather"
-echo "2. Выберите вашего бота"
-echo "3. URL: https://studiofinance.ru"
-echo "4. Название: Crypto Bot"
-echo "5. Описание: Управление финансами"
-echo ""
-echo "🤖 Использование:"
-echo "1. Найдите бота в Telegram"
-echo "2. Отправьте /start"
-echo "3. Нажмите 'Открыть Crypto Bot'"
-echo "4. Mini App откроется внутри Telegram"
+echo "📱 Telegram Mini App настроен:"
+echo "• Бот: @FinanceStudio_bot"
+echo "• Mini App: https://t.me/FinanceStudio_bot/Finio"
 echo ""
 echo "🌐 Веб-сайт: https://studiofinance.ru"
 echo "📊 API: https://studiofinance.ru/api"
 echo ""
 echo "📋 Управление:"
-echo "docker-compose logs -f    # Просмотр логов"
-echo "docker-compose restart   # Перезапуск"
-echo "docker-compose ps        # Статус сервисов"
+echo "docker-compose logs -f backend   # Логи бэкенда"
+echo "docker-compose logs -f frontend  # Логи фронтенда"
+echo "docker-compose restart          # Перезапуск всех сервисов"
+echo "docker-compose ps               # Статус сервисов"
 echo ""
 echo "🔧 Если что-то не работает:"
-echo "docker-compose logs backend  # Логи бэкенда"
-echo "docker-compose logs frontend # Логи фронтенда"
+echo "1. Проверьте логи: docker-compose logs backend"
+echo "2. Проверьте переменные: docker-compose exec backend env | grep TELEGRAM"
+echo "3. Перезапустите: docker-compose restart backend"
