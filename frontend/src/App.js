@@ -1,143 +1,142 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// Pages
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import TransactionsPage from './pages/TransactionsPage';
-import CategoriesPage from './pages/CategoriesPage';
-import SettingsPage from './pages/SettingsPage';
-
-// Components
-import Layout from './components/Layout';
-
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-  
-  return user ? children : <Navigate to="/login" />;
-};
-
-// Public Route component (redirect to dashboard if authenticated)
-const PublicRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-  
-  return user ? <Navigate to="/dashboard" /> : children;
-};
+const API_BASE = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : 'http://localhost:8000/api';
 
 function App() {
+  const [stats, setStats] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const userId = 1; // Демо пользователь
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Инициализируем демо данные
+      await axios.post(`${API_BASE}/init-demo-data`);
+
+      // Загружаем статистику и транзакции
+      const [statsResponse, transactionsResponse] = await Promise.all([
+        axios.get(`${API_BASE}/users/${userId}/stats`),
+        axios.get(`${API_BASE}/users/${userId}/transactions`)
+      ]);
+
+      setStats(statsResponse.data);
+      setTransactions(transactionsResponse.data);
+    } catch (err) {
+      setError('Ошибка загрузки данных: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatAmount = (amount) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('ru-RU');
+  };
+
+  if (loading) {
+    return (
+      <div className="container">
+        <div className="loading">Загрузка...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <div className="error">{error}</div>
+        <button className="btn" onClick={loadData}>
+          Попробовать снова
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Public routes */}
-            <Route 
-              path="/" 
-              element={
-                <PublicRoute>
-                  <LandingPage />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <PublicRoute>
-                  <RegisterPage />
-                </PublicRoute>
-              } 
-            />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <DashboardPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/transactions" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <TransactionsPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/categories" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <CategoriesPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <SettingsPage />
-                  </Layout>
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-          
-          {/* Toast notifications */}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-              },
-            }}
-          />
+    <div className="container">
+      <div className="header">
+        <h1>💰 Finio</h1>
+        <p>Система управления финансами</p>
+      </div>
+
+      {stats && (
+        <div className="stats">
+          <div className="stat-card">
+            <h3>Доходы</h3>
+            <div className="value income">
+              {formatAmount(stats.total_income)}
+            </div>
+          </div>
+          <div className="stat-card">
+            <h3>Расходы</h3>
+            <div className="value expense">
+              {formatAmount(stats.total_expense)}
+            </div>
+          </div>
+          <div className="stat-card">
+            <h3>Баланс</h3>
+            <div className={`value ${stats.balance >= 0 ? 'income' : 'expense'}`}>
+              {formatAmount(stats.balance)}
+            </div>
+          </div>
+          <div className="stat-card">
+            <h3>Транзакций</h3>
+            <div className="value balance">
+              {stats.transactions_count}
+            </div>
+          </div>
         </div>
-      </Router>
-    </AuthProvider>
+      )}
+
+      <div className="transactions">
+        <div className="transactions-header">
+          <h2>Последние транзакции</h2>
+        </div>
+        {transactions.length === 0 ? (
+          <div className="loading">Нет транзакций</div>
+        ) : (
+          transactions.map(transaction => (
+            <div key={transaction.id} className="transaction-item">
+              <div className="transaction-info">
+                <h4>{transaction.title}</h4>
+                <p>{formatDate(transaction.date)}</p>
+                {transaction.description && (
+                  <p>{transaction.description}</p>
+                )}
+              </div>
+              <div className={`transaction-amount ${transaction.type}`}>
+                {transaction.type === 'income' ? '+' : '-'}
+                {formatAmount(transaction.amount)}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div style={{ marginTop: '30px', textAlign: 'center' }}>
+        <button className="btn btn-success" onClick={loadData}>
+          Обновить данные
+        </button>
+      </div>
+    </div>
   );
 }
 
