@@ -3,6 +3,7 @@ Finio API - Простое и рабочее приложение с Telegram Mi
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import json
@@ -124,10 +125,11 @@ def get_next_id(items: list) -> int:
 if bot and dp:
     def get_webapp_keyboard():
         """Клавиатура с Mini App"""
+        miniapp_url = f"{TELEGRAM_WEBHOOK_URL}/miniapp"
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
                 text="💰 Открыть Crypto Bot",
-                web_app=WebAppInfo(url=TELEGRAM_WEBHOOK_URL)
+                web_app=WebAppInfo(url=miniapp_url)
             )]
         ])
         return keyboard
@@ -163,6 +165,222 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+# Mini App endpoint - отдельная страница для Telegram Mini App
+@app.get("/miniapp")
+async def miniapp():
+    """Страница Mini App для Telegram"""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <meta name="theme-color" content="#2481cc" />
+        <title>Crypto Bot</title>
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background-color: var(--tg-theme-bg-color, #f8fafc);
+                color: var(--tg-theme-text-color, #1e293b);
+                padding: 16px;
+                min-height: 100vh;
+            }
+            .container { max-width: 100%; }
+            .header {
+                background: var(--tg-theme-secondary-bg-color, white);
+                padding: 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            .stat-card {
+                background: var(--tg-theme-secondary-bg-color, white);
+                padding: 16px;
+                border-radius: 12px;
+                text-align: center;
+            }
+            .stat-card h3 {
+                font-size: 0.8rem;
+                color: var(--tg-theme-hint-color, #64748b);
+                margin-bottom: 8px;
+            }
+            .stat-card .value {
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: var(--tg-theme-text-color, #1e293b);
+            }
+            .loading {
+                text-align: center;
+                padding: 40px;
+                color: var(--tg-theme-hint-color, #64748b);
+            }
+            .transactions {
+                background: var(--tg-theme-secondary-bg-color, white);
+                border-radius: 12px;
+                overflow: hidden;
+            }
+            .transactions-header {
+                padding: 16px;
+                border-bottom: 1px solid var(--tg-theme-section-separator-color, #e2e8f0);
+                font-weight: bold;
+            }
+            .transaction-item {
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--tg-theme-section-separator-color, #f1f5f9);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .transaction-info h4 {
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+            }
+            .transaction-info p {
+                font-size: 0.75rem;
+                color: var(--tg-theme-hint-color, #64748b);
+            }
+            .transaction-amount {
+                font-weight: bold;
+            }
+            .income { color: #10b981; }
+            .expense { color: #ef4444; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>💰 Crypto Bot</h1>
+                <p id="user-info">Загрузка...</p>
+            </div>
+            
+            <div class="stats" id="stats">
+                <div class="stat-card">
+                    <h3>💰 Доходы</h3>
+                    <div class="value income" id="income">0 ₽</div>
+                </div>
+                <div class="stat-card">
+                    <h3>💸 Расходы</h3>
+                    <div class="value expense" id="expenses">0 ₽</div>
+                </div>
+                <div class="stat-card">
+                    <h3>💳 Баланс</h3>
+                    <div class="value" id="balance">0 ₽</div>
+                </div>
+                <div class="stat-card">
+                    <h3>📊 Операций</h3>
+                    <div class="value" id="count">0</div>
+                </div>
+            </div>
+            
+            <div class="transactions">
+                <div class="transactions-header">📈 Последние операции</div>
+                <div id="transactions-list">
+                    <div class="loading">Загрузка операций...</div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Инициализация Telegram WebApp
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#2481cc');
+            
+            // Получение данных пользователя
+            const user = tg.initDataUnsafe.user;
+            if (user) {
+                document.getElementById('user-info').textContent = `Привет, ${user.first_name}! 👋`;
+            }
+            
+            // Настройка главной кнопки
+            tg.MainButton.setText('Обновить данные');
+            tg.MainButton.show();
+            tg.MainButton.onClick(loadData);
+            
+            // Загрузка данных
+            async function loadData() {
+                try {
+                    let userId = 1; // Fallback
+                    
+                    // Аутентификация через Telegram
+                    if (user) {
+                        const authResponse = await fetch('/api/auth/telegram', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                telegram_id: user.id.toString(),
+                                first_name: user.first_name,
+                                last_name: user.last_name || '',
+                                username: user.username || '',
+                                init_data: tg.initData || ''
+                            })
+                        });
+                        const authData = await authResponse.json();
+                        userId = authData.user_id;
+                    } else {
+                        // Инициализация демо данных
+                        await fetch('/api/init-demo-data', { method: 'POST' });
+                    }
+                    
+                    // Загрузка статистики
+                    const statsResponse = await fetch(`/api/users/${userId}/stats`);
+                    const stats = await statsResponse.json();
+                    
+                    document.getElementById('income').textContent = `${stats.total_income.toLocaleString()} ₽`;
+                    document.getElementById('expenses').textContent = `${stats.total_expense.toLocaleString()} ₽`;
+                    document.getElementById('balance').textContent = `${stats.balance.toLocaleString()} ₽`;
+                    document.getElementById('count').textContent = stats.transactions_count;
+                    
+                    // Загрузка транзакций
+                    const transactionsResponse = await fetch(`/api/users/${userId}/transactions`);
+                    const transactions = await transactionsResponse.json();
+                    
+                    const transactionsList = document.getElementById('transactions-list');
+                    if (transactions.length === 0) {
+                        transactionsList.innerHTML = '<div class="loading">Нет операций</div>';
+                    } else {
+                        transactionsList.innerHTML = transactions.slice(0, 10).map(t => `
+                            <div class="transaction-item">
+                                <div class="transaction-info">
+                                    <h4>${t.title}</h4>
+                                    <p>${new Date(t.date).toLocaleDateString('ru-RU')}</p>
+                                </div>
+                                <div class="transaction-amount ${t.type}">
+                                    ${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()} ₽
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    // Обновление кнопки
+                    tg.MainButton.setText('✅ Обновлено');
+                    setTimeout(() => {
+                        tg.MainButton.setText('Обновить данные');
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    tg.showAlert('Ошибка загрузки данных');
+                }
+            }
+            
+            // Загрузка при открытии
+            loadData();
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 # Пользователи
 @app.get("/api/users", response_model=List[User])
