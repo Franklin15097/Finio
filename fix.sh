@@ -3,109 +3,98 @@
 echo "🔧 ДИАГНОСТИКА И АВТОФИКС"
 echo "=========================="
 
-# Проверка backend
-echo "1️⃣ Проверка backend..."
-if curl -s http://localhost:3000/health | grep -q "ok"; then
-    echo "✅ Backend работает на порту 3000"
-    BACKEND_PORT=3000
-elif curl -s http://localhost:3001/health | grep -q "ok"; then
-    echo "✅ Backend работает на порту 3001"
-    BACKEND_PORT=3001
-elif curl -s http://localhost:3002/health | grep -q "ok"; then
-    echo "✅ Backend работает на порту 3002"
-    BACKEND_PORT=3002
-else
-    echo "❌ Backend не отвечает ни на одном порту"
-    echo "Перезапускаем..."
-    pm2 restart finio
-    sleep 3
-    
-    if curl -s http://localhost:3000/health | grep -q "ok"; then
-        BACKEND_PORT=3000
-    else
-        echo "❌ Backend не запустился. Логи:"
-        pm2 logs finio --lines 20 --nostream
-        exit 1
-    fi
-fi
+# УБИВАЕМ ВСЁ
+echo "💀 Убиваем все процессы..."
+pm2 delete all 2>/dev/null || true
+pm2 kill 2>/dev/null || true
+pkill -9 node 2>/dev/null || true
+killall -9 node 2>/dev/null || true
 
-# Проверка nginx
-echo ""
-echo "2️⃣ Проверка nginx..."
-NGINX_PORT=$(grep -oP 'proxy_pass http://[^:]+:\K\d+' /etc/nginx/sites-enabled/finio 2>/dev/null || echo "не найден")
+# Освобождаем порты
+for port in 3000 3001 3002 3737; do
+    fuser -k $port/tcp 2>/dev/null || true
+    lsof -ti:$port | xargs kill -9 2>/dev/null || true
+done
 
-if [ "$NGINX_PORT" = "$BACKEND_PORT" ]; then
-    echo "✅ Nginx настроен правильно (порт $NGINX_PORT)"
-else
-    echo "❌ Nginx настроен на порт $NGINX_PORT, а backend на $BACKEND_PORT"
-    echo "Исправляем nginx..."
-    
-    cat > /etc/nginx/sites-available/finio << EOF
+sleep 3
+
+# Удаляем ВСЕ конфиги nginx
+echo "🗑️  Удаляем старые конфиги nginx..."
+rm -f /etc/nginx/sites-enabled/*
+rm -f /etc/nginx/sites-available/finio
+rm -f /etc/nginx/sites-available/default
+
+# Создаем НОВЫЙ конфиг
+echo "📝 Создаем новый конфиг nginx..."
+cat > /etc/nginx/sites-available/finio << 'EOF'
 server {
     listen 80;
     server_name studiofinance.ru www.studiofinance.ru;
 
     location / {
-        proxy_pass http://127.0.0.1:$BACKEND_PORT;
+        proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
     }
 }
 EOF
-    
-    ln -sf /etc/nginx/sites-available/finio /etc/nginx/sites-enabled/finio
-    nginx -t && systemctl restart nginx
-    echo "✅ Nginx исправлен и перезапущен"
+
+ln -sf /etc/nginx/sites-available/finio /etc/nginx/sites-enabled/finio
+
+# Проверяем и перезапускаем nginx
+if nginx -t; then
+    systemctl restart nginx
+    echo "✅ Nginx перезапущен"
+else
+    echo "❌ Ошибка конфигурации nginx"
+    nginx -t
+    exit 1
 fi
 
-# Проверка dist папок
+# Создаем .env
+cat > /var/www/Finio/server/.env << 'EOF'
+PORT=3000
+BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
+JWT_SECRET=maks15097_finio_secret_key_production_2026
+NODE_ENV=production
+EOF
+
+# Запускаем backend
+echo "🚀 Запускаем backend..."
+cd /var/www/Finio/server
+pm2 start index.js --name finio
+pm2 save
+
+sleep 5
+
+# Проверка
 echo ""
-echo "3️⃣ Проверка фронтенда..."
-if [ ! -d "/var/www/Finio/website-frontend/dist" ]; then
-    echo "❌ website-frontend/dist не найден"
-    echo "Собираем..."
-    cd /var/www/Finio/website-frontend
-    npm run build
+echo "🔍 ПРОВЕРКА:"
+if curl -s http://localhost:3000/health | grep -q "ok"; then
+    echo "✅ Backend работает"
 else
-    echo "✅ website-frontend/dist существует"
-fi
-
-if [ ! -d "/var/www/Finio/mini-app-frontend/dist" ]; then
-    echo "❌ mini-app-frontend/dist не найден"
-    echo "Собираем..."
-    cd /var/www/Finio/mini-app-frontend
-    npm run build
-else
-    echo "✅ mini-app-frontend/dist существует"
-fi
-
-# Финальная проверка
-echo ""
-echo "4️⃣ Финальная проверка..."
-sleep 2
-
-if curl -s http://localhost:$BACKEND_PORT/health | grep -q "ok"; then
-    echo "✅ Backend: OK"
-else
-    echo "❌ Backend: FAIL"
+    echo "❌ Backend не работает"
+    pm2 logs finio --lines 20 --nostream
+    exit 1
 fi
 
 if systemctl is-active --quiet nginx; then
-    echo "✅ Nginx: OK"
+    echo "✅ Nginx работает"
 else
-    echo "❌ Nginx: FAIL"
+    echo "❌ Nginx не работает"
+    exit 1
 fi
 
 echo ""
-echo "🌐 Проверьте сайт: http://studiofinance.ru"
-echo "📊 PM2 статус: pm2 status"
-echo "📝 Логи nginx: tail -f /var/log/nginx/error.log"
+echo "✅✅✅ ВСЁ ИСПРАВЛЕНО! ✅✅✅"
+echo "🌐 Сайт: http://studiofinance.ru"
 echo ""
+
