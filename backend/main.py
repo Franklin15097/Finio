@@ -125,10 +125,12 @@ def get_next_id(items: list) -> int:
 if bot and dp:
     def get_webapp_keyboard():
         """Клавиатура с Mini App"""
+        # URL для Mini App - это ваш сайт, а не t.me ссылка
+        miniapp_url = f"{TELEGRAM_WEBHOOK_URL}/miniapp"
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
                 text="💰 Открыть Finio",
-                url="https://t.me/FinanceStudio_bot/Finio"
+                web_app=WebAppInfo(url=miniapp_url)
             )]
         ])
         return keyboard
