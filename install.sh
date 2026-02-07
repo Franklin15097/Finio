@@ -1,64 +1,53 @@
 #!/bin/bash
 
-echo "🚀 Установка Studio Finance Mini App..."
-echo ""
+echo "==================================="
+echo "Studio Finance - Установка проекта"
+echo "==================================="
 
 # Проверка Node.js
 if ! command -v node &> /dev/null; then
-    echo "❌ Node.js не установлен!"
-    echo "Установите Node.js: https://nodejs.org/"
+    echo "❌ Node.js не установлен. Установите Node.js 18+ и попробуйте снова."
     exit 1
 fi
 
-echo "✅ Node.js версия: $(node -v)"
-echo "✅ npm версия: $(npm -v)"
-echo ""
+echo "✓ Node.js версия: $(node -v)"
 
-# Установка зависимостей
-echo "📦 Установка зависимостей..."
+# Установка зависимостей для сервера
+echo ""
+echo "📦 Установка зависимостей сервера..."
+cd server
 npm install
-
-if [ $? -eq 0 ]; then
-    echo ""
-    echo "✅ Зависимости установлены успешно!"
-else
-    echo ""
-    echo "❌ Ошибка установки зависимостей"
+if [ $? -ne 0 ]; then
+    echo "❌ Ошибка установки зависимостей сервера"
     exit 1
 fi
+cd ..
 
-# Проверка .env файла
-if [ ! -f .env ]; then
-    echo ""
-    echo "⚠️  Файл .env не найден!"
-    echo "Создайте .env файл с настройками:"
-    echo ""
-    cat << EOF
-BOT_TOKEN=ваш_токен_бота
-WEBAPP_URL=http://studiofinance.ru
-SERVER_IP=85.235.205.99
-PORT=3000
-
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=finio
-DB_USER=finio_user
-DB_PASSWORD=maks15097
-EOF
-    echo ""
-else
-    echo ""
-    echo "✅ Файл .env найден"
+# Установка зависимостей для mini-app
+echo ""
+echo "📦 Установка зависимостей Mini App..."
+cd mini-app-frontend
+npm install
+if [ $? -ne 0 ]; then
+    echo "❌ Ошибка установки зависимостей Mini App"
+    exit 1
 fi
+cd ..
+
+# Установка зависимостей для website
+echo ""
+echo "📦 Установка зависимостей Website..."
+cd website-frontend
+npm install
+if [ $? -ne 0 ]; then
+    echo "❌ Ошибка установки зависимостей Website"
+    exit 1
+fi
+cd ..
 
 echo ""
-echo "🎉 Установка завершена!"
+echo "✅ Установка завершена успешно!"
 echo ""
-echo "Для запуска:"
-echo "  npm start        - запуск сервера"
-echo "  npm run bot      - запуск бота"
-echo ""
-echo "Development режим:"
-echo "  npm run dev      - сервер с автоперезагрузкой"
-echo "  npm run dev:bot  - бот с автоперезагрузкой"
-echo ""
+echo "Для запуска проекта используйте:"
+echo "  ./start.sh          - Запуск всех сервисов"
+echo "  ./deploy.sh         - Деплой на продакшн"

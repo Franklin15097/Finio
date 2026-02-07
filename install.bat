@@ -1,56 +1,50 @@
 @echo off
-chcp 65001 >nul
-echo 🚀 Установка Studio Finance Mini App...
-echo.
+echo ===================================
+echo Studio Finance - Установка проекта
+echo ===================================
 
-REM Проверка Node.js
 where node >nul 2>nul
 if %ERRORLEVEL% NEQ 0 (
-    echo ❌ Node.js не установлен!
-    echo Установите Node.js: https://nodejs.org/
-    pause
+    echo Ошибка: Node.js не установлен
+    echo Установите Node.js 18+ с https://nodejs.org
     exit /b 1
 )
 
-echo ✅ Node.js установлен
+echo Node.js версия:
 node -v
-npm -v
+
 echo.
-
-REM Установка зависимостей
-echo 📦 Установка зависимостей...
+echo Установка зависимостей сервера...
+cd server
 call npm install
-
-if %ERRORLEVEL% EQU 0 (
-    echo.
-    echo ✅ Зависимости установлены успешно!
-) else (
-    echo.
-    echo ❌ Ошибка установки зависимостей
-    pause
+if %ERRORLEVEL% NEQ 0 (
+    echo Ошибка установки зависимостей сервера
     exit /b 1
 )
+cd ..
 
-REM Проверка .env файла
-if not exist .env (
-    echo.
-    echo ⚠️  Файл .env не найден!
-    echo Создайте .env файл с настройками
-    echo.
-) else (
-    echo.
-    echo ✅ Файл .env найден
+echo.
+echo Установка зависимостей Mini App...
+cd mini-app-frontend
+call npm install
+if %ERRORLEVEL% NEQ 0 (
+    echo Ошибка установки зависимостей Mini App
+    exit /b 1
 )
+cd ..
 
 echo.
-echo 🎉 Установка завершена!
+echo Установка зависимостей Website...
+cd website-frontend
+call npm install
+if %ERRORLEVEL% NEQ 0 (
+    echo Ошибка установки зависимостей Website
+    exit /b 1
+)
+cd ..
+
 echo.
-echo Для запуска:
-echo   npm start        - запуск сервера
-echo   npm run bot      - запуск бота
+echo Установка завершена успешно!
 echo.
-echo Development режим:
-echo   npm run dev      - сервер с автоперезагрузкой
-echo   npm run dev:bot  - бот с автоперезагрузкой
-echo.
+echo Для запуска используйте: start.bat
 pause

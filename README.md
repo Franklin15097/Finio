@@ -1,58 +1,54 @@
-# Studio Finance Mini App
+# Studio Finance Project
 
-Минимальный сайт с frontend и backend + Telegram бот с Mini App.
+Проект включает:
+- Backend сервер (Node.js + Express)
+- Telegram бот с Mini App
+- Frontend для сайта (React)
+- Frontend для Mini App (React)
 
-## Стек
+## Структура проекта
 
-- **Backend:** Node.js + Express
-- **Bot:** Telegraf (библиотека для Telegram ботов)
-- **Mini App:** Node.js + Telegram Mini Apps SDK
-- **Frontend:** Vanilla JS (для мини-аппа и сайта)
-- **Database:** PostgreSQL
+```
+├── server/                 # Backend
+│   ├── bot/               # Telegram бот
+│   ├── mini-app/          # API для mini app
+│   ├── website/           # API для сайта
+│   └── shared/            # Общая логика (БД)
+├── mini-app-frontend/     # React для mini app
+├── website-frontend/      # React для сайта
+```
 
 ## Установка
 
 ```bash
-npm install
+# Установка зависимостей для всех проектов
+cd server && npm install
+cd ../mini-app-frontend && npm install
+cd ../website-frontend && npm install
 ```
 
 ## Запуск
 
-### Backend сервер:
 ```bash
-npm start
-```
+# Backend + Bot
+cd server && npm run dev
 
-### Telegram бот:
-```bash
-npm run bot
-```
+# Mini App Frontend
+cd mini-app-frontend && npm run dev
 
-### Development режим:
-```bash
-npm run dev        # сервер с автоперезагрузкой
-npm run dev:bot    # бот с автоперезагрузкой
+# Website Frontend
+cd website-frontend && npm run dev
 ```
 
 ## Конфигурация
 
-Все настройки в файле `.env`:
-- `BOT_TOKEN` - токен Telegram бота
-- `WEBAPP_URL` - URL веб-приложения
-- `DB_*` - настройки базы данных PostgreSQL
+Настройки в `server/.env`:
+- BOT_TOKEN - токен Telegram бота
+- MINI_APP_URL - URL mini app
+- DB_* - настройки PostgreSQL
 
-## Структура
+## Telegram Bot
 
-- `server.js` - Express сервер (backend)
-- `bot.js` - Telegram бот на Telegraf
-- `public/` - Frontend файлы
-  - `index.html` - главная страница
-  - `style.css` - стили
-  - `app.js` - JavaScript для Mini App
-
-## База данных
-
-PostgreSQL:
-- База: finio
-- Пользователь: finio_user
-- Пароль: maks15097
+Команды:
+- /start - Приветствие и кнопка для открытия Mini App
+- /app - Открыть Mini App
