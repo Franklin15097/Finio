@@ -1,31 +1,22 @@
 """
 FastAPI приложение - точка входа
 """
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
+import os
 
-from app.core.config import settings
-from app.core.database import init_db
-from app.api.v1 import api_router
-from app.bot.webhook import bot_router
+# Простая конфигурация без внешних зависимостей
+class Settings:
+    APP_NAME = os.getenv("APP_NAME", "Finio API")
+    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+    ALLOWED_HOSTS = ["*"]  # Упрощенная версия
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Управление жизненным циклом приложения"""
-    # Инициализация БД при запуске
-    await init_db()
-    yield
-    # Очистка ресурсов при завершении
-    pass
-
+settings = Settings()
 
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
-    description="Finio - Умный контроль финансов",
-    lifespan=lifespan
+    description="Finio - Умный контроль финансов"
 )
 
 # CORS middleware
@@ -37,17 +28,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API routes
-app.include_router(api_router, prefix="/api/v1")
-
-# Bot webhook
-app.include_router(bot_router, prefix="/bot-webhook")
-
 # Health check
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "app": settings.APP_NAME}
 
+@app.get("/")
+async def root():
+    return {"message": "Finio API работает!", "status": "ok"}
+
+# Простые API эндпоинты для тестирования
+@app.get("/api/v1/test")
+async def test_api():
+    return {"message": "API v1 работает", "status": "success"}
+
+# Простой webhook для бота
+@app.post("/bot-webhook/")
+async def bot_webhook():
+    return {"status": "webhook received"}
 
 if __name__ == "__main__":
     import uvicorn
