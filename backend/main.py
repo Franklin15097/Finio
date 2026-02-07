@@ -1,5 +1,5 @@
 """
-Finio API - Простое и рабочее приложение
+Finio API - Простое и рабочее приложение с Telegram Mini App
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,12 +7,20 @@ from pydantic import BaseModel
 from typing import List, Optional
 import json
 import os
+import asyncio
 from datetime import datetime, date
+
+# Telegram Bot
+from aiogram import Bot, Dispatcher, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.filters import Command
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
 
 app = FastAPI(
     title="Finio API",
     version="1.0.0",
-    description="Система управления финансами"
+    description="Система управления финансами с Telegram Mini App"
 )
 
 # CORS
@@ -32,6 +40,14 @@ CATEGORIES_FILE = f"{DATA_DIR}/categories.json"
 
 # Создаем директорию для данных
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Telegram Bot настройки
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://your-domain.com")
+
+# Инициализация бота
+bot = Bot(token=TELEGRAM_BOT_TOKEN) if TELEGRAM_BOT_TOKEN else None
+dp = Dispatcher() if TELEGRAM_BOT_TOKEN else None
 
 # Модели данных
 class User(BaseModel):
@@ -103,6 +119,41 @@ def get_next_id(items: list) -> int:
     if not items:
         return 1
     return max(item.get('id', 0) for item in items) + 1
+
+# Telegram Bot обработчики
+if bot and dp:
+    def get_webapp_keyboard():
+        """Клавиатура с Mini App"""
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(
+                text="💰 Открыть Crypto Bot",
+                web_app=WebAppInfo(url=TELEGRAM_WEBHOOK_URL)
+            )]
+        ])
+        return keyboard
+
+    @dp.message(Command("start"))
+    async def start_command(message: types.Message):
+        """Обработчик команды /start"""
+        await message.answer(
+            "Добро пожаловать в Crypto Bot! 💰\n\n"
+            "Управляйте своими финансами прямо в Telegram.\n"
+            "Нажмите кнопку ниже, чтобы открыть приложение:",
+            reply_markup=get_webapp_keyboard()
+        )
+
+    @dp.message(Command("help"))
+    async def help_command(message: types.Message):
+        """Обработчик команды /help"""
+        await message.answer(
+            "🤖 <b>Crypto Bot - Управление финансами</b>\n\n"
+            "💰 Отслеживайте доходы и расходы\n"
+            "📊 Просматривайте статистику\n"
+            "📈 Анализируйте финансы\n\n"
+            "Нажмите кнопку ниже, чтобы открыть приложение:",
+            parse_mode="HTML",
+            reply_markup=get_webapp_keyboard()
+        )
 
 # API эндпоинты
 @app.get("/")
@@ -214,10 +265,14 @@ async def get_stats(user_id: int):
         "transactions_count": len(user_transactions)
     }
 
-# Telegram webhook (заглушка)
+# Telegram webhook
 @app.post("/bot-webhook/")
-async def bot_webhook():
-    return {"status": "webhook received"}
+async def bot_webhook(update: dict):
+    """Обработка webhook от Telegram"""
+    if bot and dp:
+        telegram_update = types.Update(**update)
+        await dp.feed_update(bot, telegram_update)
+    return {"status": "ok"}
 
 # Telegram аутентификация
 @app.post("/api/auth/telegram")
@@ -298,6 +353,32 @@ async def init_demo_data():
         save_json(TRANSACTIONS_FILE, demo_transactions)
     
     return {"message": "Демо данные созданы"}
+
+# Настройка webhook при запуске
+async def setup_webhook():
+    """Настройка webhook для Telegram бота"""
+    if bot and TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_URL:
+        webhook_url = f"{TELEGRAM_WEBHOOK_URL}/bot-webhook/"
+        try:
+            await bot.set_webhook(
+                url=webhook_url,
+                drop_pending_updates=True
+            )
+            print(f"✅ Webhook установлен: {webhook_url}")
+        except Exception as e:
+            print(f"❌ Ошибка установки webhook: {e}")
+
+@app.on_event("startup")
+async def startup_event():
+    """Событие запуска приложения"""
+    if TELEGRAM_BOT_TOKEN:
+        await setup_webhook()
+
+@app.on_event("shutdown") 
+async def shutdown_event():
+    """Событие остановки приложения"""
+    if bot:
+        await bot.session.close()
 
 if __name__ == "__main__":
     import uvicorn
