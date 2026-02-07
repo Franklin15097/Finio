@@ -1,13 +1,61 @@
+# Dependencies
 node_modules/
+*/node_modules/
+
+# Production builds
+build/
+dist/
+
+# Environment variables
 .env
+.env.local
+.env.production
+
+# Logs
 *.log
-.DS_Store
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Data directories
+data/
+/var/lib/finio/
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary files
+tmp/
+temp/
 *~
