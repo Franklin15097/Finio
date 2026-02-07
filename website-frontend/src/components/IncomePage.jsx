@@ -18,14 +18,8 @@ export function IncomePage() {
   }, []);
 
   const loadIncomes = async () => {
-    // Mock data - замени на реальный API
-    setIncomes([
-      { id: 1, title: 'Зарплата', amount: 85000, category_name: 'Работа', transaction_date: '2026-02-07' },
-      { id: 2, title: 'Фриланс', amount: 15000, category_name: 'Работа', transaction_date: '2026-02-03' },
-      { id: 3, title: 'Дивиденды', amount: 5000, category_name: 'Инвестиции', transaction_date: '2026-02-01' },
-      { id: 4, title: 'Бонус', amount: 10000, category_name: 'Работа', transaction_date: '2026-01-28' },
-      { id: 5, title: 'Продажа', amount: 8000, category_name: 'Другое', transaction_date: '2026-01-25' }
-    ]);
+    // Пустые данные - будут заполняться через API
+    setIncomes([]);
   };
 
   const chartData = {
@@ -33,7 +27,7 @@ export function IncomePage() {
     datasets: [
       {
         label: 'Доходы',
-        data: [95000, 115000, 105000, 125000, 110000, 130000, 120000],
+        data: [0, 0, 0, 0, 0, 0, 0],
         borderColor: '#10B981',
         backgroundColor: 'rgba(16, 185, 129, 0.1)',
         borderWidth: 3,
@@ -204,53 +198,81 @@ export function IncomePage() {
           <h3 className="card-title">История доходов</h3>
         </div>
         
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Название</th>
-                <th>Категория</th>
-                <th style={{ textAlign: 'right' }}>Сумма</th>
-                <th style={{ textAlign: 'right' }}>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {incomes.map((income) => (
-                <tr key={income.id}>
-                  <td style={{ color: 'var(--text-secondary)' }}>
-                    {formatDate(income.transaction_date)}
-                  </td>
-                  <td className="font-semibold">{income.title}</td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{income.category_name}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>
-                    +{formatCurrency(income.amount)}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button 
-                      className="btn btn-secondary" 
-                      style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', marginRight: 'var(--space-2)' }}
-                      onClick={() => handleEdit(income)}
-                    >
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button 
-                      className="btn btn-secondary" 
-                      style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', color: 'var(--danger)' }}
-                      onClick={() => handleDelete(income.id)}
-                    >
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </td>
+        {incomes.length === 0 ? (
+          <div style={{ 
+            padding: 'var(--space-12)', 
+            textAlign: 'center',
+            color: 'var(--text-secondary)'
+          }}>
+            <svg 
+              width="64" 
+              height="64" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+              style={{ 
+                margin: '0 auto var(--space-4)',
+                opacity: 0.3
+              }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <p style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+              Нет доходов
+            </p>
+            <p style={{ fontSize: 'var(--text-sm)' }}>
+              Добавьте первый доход, нажав кнопку "Добавить доход"
+            </p>
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Название</th>
+                  <th>Категория</th>
+                  <th style={{ textAlign: 'right' }}>Сумма</th>
+                  <th style={{ textAlign: 'right' }}>Действия</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {incomes.map((income) => (
+                  <tr key={income.id}>
+                    <td style={{ color: 'var(--text-secondary)' }}>
+                      {formatDate(income.transaction_date)}
+                    </td>
+                    <td className="font-semibold">{income.title}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{income.category_name}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>
+                      +{formatCurrency(income.amount)}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button 
+                        className="btn btn-secondary" 
+                        style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', marginRight: 'var(--space-2)' }}
+                        onClick={() => handleEdit(income)}
+                      >
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button 
+                        className="btn btn-secondary" 
+                        style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', color: 'var(--danger)' }}
+                        onClick={() => handleDelete(income.id)}
+                      >
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal */}

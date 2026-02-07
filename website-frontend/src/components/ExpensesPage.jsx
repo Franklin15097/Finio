@@ -19,25 +19,16 @@ export function ExpensesPage() {
   });
 
   useEffect(() => {
-    // Mock data
-    setExpenses([
-      { id: 1, title: 'Продукты', amount: 3500, category_name: 'Еда', transaction_date: '2026-02-07' },
-      { id: 2, title: 'Бензин', amount: 2800, category_name: 'Транспорт', transaction_date: '2026-02-06' },
-      { id: 3, title: 'Кафе', amount: 1200, category_name: 'Развлечения', transaction_date: '2026-02-05' },
-    ]);
-
-    setRecurringExpenses([
-      { id: 1, title: 'Аренда', amount: 30000, yearly_amount: 360000 },
-      { id: 2, title: 'Интернет', amount: 800, yearly_amount: 9600 },
-      { id: 3, title: 'Телефон', amount: 500, yearly_amount: 6000 },
-    ]);
+    // Пустые данные - будут заполняться через API
+    setExpenses([]);
+    setRecurringExpenses([]);
   }, []);
 
   const chartData = {
     labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
     datasets: [{
       label: 'Расходы',
-      data: [42000, 38000, 45000, 41000, 39000, 43000, 40000],
+      data: [0, 0, 0, 0, 0, 0, 0],
       borderColor: '#EF4444',
       backgroundColor: 'rgba(239, 68, 68, 0.1)',
       borderWidth: 3,
@@ -193,32 +184,60 @@ export function ExpensesPage() {
           </button>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-          {recurringExpenses.map((expense) => (
-            <div key={expense.id} style={{
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: 'var(--space-5)',
-              transition: 'var(--transition)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-3)' }}>
-                <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>{expense.title}</h4>
-                <button style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+        {recurringExpenses.length === 0 ? (
+          <div style={{ 
+            padding: 'var(--space-12)', 
+            textAlign: 'center',
+            color: 'var(--text-secondary)'
+          }}>
+            <svg 
+              width="64" 
+              height="64" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+              style={{ 
+                margin: '0 auto var(--space-4)',
+                opacity: 0.3
+              }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+              Нет обязательных платежей
+            </p>
+            <p style={{ fontSize: 'var(--text-sm)' }}>
+              Добавьте регулярные платежи (аренда, интернет, подписки)
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+            {recurringExpenses.map((expense) => (
+              <div key={expense.id} style={{
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: 'var(--space-5)',
+                transition: 'var(--transition)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-3)' }}>
+                  <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>{expense.title}</h4>
+                  <button style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+                <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 800, color: 'var(--warning)', marginBottom: 'var(--space-2)' }}>
+                  {formatCurrency(expense.amount)}
+                </div>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                  {formatCurrency(expense.yearly_amount)} в год
+                </div>
               </div>
-              <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 800, color: 'var(--warning)', marginBottom: 'var(--space-2)' }}>
-                {formatCurrency(expense.amount)}
-              </div>
-              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                {formatCurrency(expense.yearly_amount)} в год
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Expenses Table */}
@@ -227,45 +246,73 @@ export function ExpensesPage() {
           <h3 className="card-title">История расходов</h3>
         </div>
         
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Дата</th>
-                <th>Название</th>
-                <th>Категория</th>
-                <th style={{ textAlign: 'right' }}>Сумма</th>
-                <th style={{ textAlign: 'right' }}>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.map((expense) => (
-                <tr key={expense.id}>
-                  <td style={{ color: 'var(--text-secondary)' }}>
-                    {new Date(expense.transaction_date).toLocaleDateString('ru-RU')}
-                  </td>
-                  <td className="font-semibold">{expense.title}</td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{expense.category_name}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--danger)' }}>
-                    -{formatCurrency(expense.amount)}
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button className="btn btn-secondary" style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', marginRight: 'var(--space-2)' }}>
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-                    <button className="btn btn-secondary" style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', color: 'var(--danger)' }}>
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </td>
+        {expenses.length === 0 ? (
+          <div style={{ 
+            padding: 'var(--space-12)', 
+            textAlign: 'center',
+            color: 'var(--text-secondary)'
+          }}>
+            <svg 
+              width="64" 
+              height="64" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+              style={{ 
+                margin: '0 auto var(--space-4)',
+                opacity: 0.3
+              }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <p style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+              Нет расходов
+            </p>
+            <p style={{ fontSize: 'var(--text-sm)' }}>
+              Добавьте первый расход, нажав кнопку "Добавить расход"
+            </p>
+          </div>
+        ) : (
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Название</th>
+                  <th>Категория</th>
+                  <th style={{ textAlign: 'right' }}>Сумма</th>
+                  <th style={{ textAlign: 'right' }}>Действия</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {expenses.map((expense) => (
+                  <tr key={expense.id}>
+                    <td style={{ color: 'var(--text-secondary)' }}>
+                      {new Date(expense.transaction_date).toLocaleDateString('ru-RU')}
+                    </td>
+                    <td className="font-semibold">{expense.title}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{expense.category_name}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--danger)' }}>
+                      -{formatCurrency(expense.amount)}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button className="btn btn-secondary" style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', marginRight: 'var(--space-2)' }}>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button className="btn btn-secondary" style={{ padding: 'var(--space-2) var(--space-3)', fontSize: '0.8125rem', color: 'var(--danger)' }}>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Expense Modal */}

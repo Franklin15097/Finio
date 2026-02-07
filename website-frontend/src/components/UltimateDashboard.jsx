@@ -43,20 +43,14 @@ export function UltimateDashboard({ user, onLogout }) {
   }, [periodFilter, typeFilter]);
 
   const loadData = () => {
-    // Mock data
+    // Пустые данные - будут заполняться через API
     setStats({
-      balance: 125000,
-      income: 85000,
-      expense: 42000
+      balance: 0,
+      income: 0,
+      expense: 0
     });
 
-    setTransactions([
-      { id: 1, title: 'Зарплата', amount: 85000, type: 'income', category: 'Работа', date: '2026-02-07' },
-      { id: 2, title: 'Продукты', amount: -3500, type: 'expense', category: 'Еда', date: '2026-02-06' },
-      { id: 3, title: 'Бензин', amount: -2800, type: 'expense', category: 'Транспорт', date: '2026-02-05' },
-      { id: 4, title: 'Кафе', amount: -1200, type: 'expense', category: 'Развлечения', date: '2026-02-04' },
-      { id: 5, title: 'Фриланс', amount: 15000, type: 'income', category: 'Работа', date: '2026-02-03' }
-    ]);
+    setTransactions([]);
 
     // Line chart data
     setChartData({
@@ -64,9 +58,7 @@ export function UltimateDashboard({ user, onLogout }) {
       datasets: [
         {
           label: typeFilter === 'expense' ? 'Расходы' : 'Доходы',
-          data: typeFilter === 'expense' 
-            ? [3500, 2800, 4200, 1200, 3800, 2500, 3500]
-            : [0, 0, 15000, 0, 0, 0, 85000],
+          data: [0, 0, 0, 0, 0, 0, 0],
           borderColor: typeFilter === 'expense' ? '#EF4444' : '#10B981',
           backgroundColor: typeFilter === 'expense' 
             ? 'rgba(239, 68, 68, 0.1)' 
@@ -85,17 +77,11 @@ export function UltimateDashboard({ user, onLogout }) {
 
     // Doughnut chart data
     setCategoryData({
-      labels: ['Еда', 'Транспорт', 'Развлечения', 'Здоровье', 'Другое'],
+      labels: ['Нет данных'],
       datasets: [
         {
-          data: [3500, 2800, 1200, 1500, 2000],
-          backgroundColor: [
-            '#6366F1',
-            '#10B981',
-            '#F59E0B',
-            '#EF4444',
-            '#8B5CF6'
-          ],
+          data: [1],
+          backgroundColor: ['#374151'],
           borderColor: '#1A2142',
           borderWidth: 3,
           hoverOffset: 20

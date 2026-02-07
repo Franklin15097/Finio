@@ -19,18 +19,9 @@ export function AssetsPage() {
   });
 
   useEffect(() => {
-    // Mock data
-    setAssets([
-      { id: 1, name: 'Основной счет', balance: 125000, actual_balance: 125000, currency: 'RUB', savings_percentage: 10, category_name: 'Накопления' },
-      { id: 2, name: 'Крипто кошелек', balance: 5000, actual_balance: 5200, currency: 'USDT', savings_percentage: 20, category_name: 'Инвестиции' },
-      { id: 3, name: 'Резервный фонд', balance: 50000, actual_balance: 48000, currency: 'RUB', savings_percentage: 5, category_name: 'Накопления' },
-    ]);
-
-    setCategories([
-      { id: 1, name: 'Накопления' },
-      { id: 2, name: 'Инвестиции' },
-      { id: 3, name: 'Резерв' },
-    ]);
+    // Пустые данные - будут заполняться через API
+    setAssets([]);
+    setCategories([]);
   }, []);
 
   const formatCurrency = (amount, currency) => {
@@ -111,8 +102,37 @@ export function AssetsPage() {
       </div>
 
       {/* Assets Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 'var(--space-6)' }}>
-        {assets.map((asset) => (
+      {assets.length === 0 ? (
+        <div className="card">
+          <div style={{ 
+            padding: 'var(--space-12)', 
+            textAlign: 'center',
+            color: 'var(--text-secondary)'
+          }}>
+            <svg 
+              width="64" 
+              height="64" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+              style={{ 
+                margin: '0 auto var(--space-4)',
+                opacity: 0.3
+              }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <p style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+              Нет счетов
+            </p>
+            <p style={{ fontSize: 'var(--text-sm)' }}>
+              Добавьте первый счет, нажав кнопку "Добавить счет"
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 'var(--space-6)' }}>
+          {assets.map((asset) => (
           <div key={asset.id} className="card" style={{ position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-4)' }}>
               <div>
@@ -180,6 +200,7 @@ export function AssetsPage() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Asset Modal */}
       {showModal && (
