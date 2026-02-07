@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { bot } from './bot/bot.js';
 import { websiteRouter } from './website/routes.js';
 import { miniAppRouter } from './mini-app/routes.js';
-import { initDatabase } from './db/database.js';
+import { initDatabase } from './db/postgres.js';
 import { authenticateToken } from './middleware/auth.js';
 import { transactionsRouter } from './api/transactions.js';
 import { categoriesRouter } from './api/categories.js';
@@ -47,7 +47,7 @@ app.use('/mini-app', express.static(miniAppPath));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', database: 'postgresql' });
 });
 
 // Catch-all route for SPA
@@ -58,6 +58,7 @@ app.get('*', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Database: PostgreSQL`);
 });
 
 // Start bot only if token is valid

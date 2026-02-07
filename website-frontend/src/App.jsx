@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ModernDashboard } from './components/ModernDashboard';
+import { PremiumDashboard } from './components/PremiumDashboard';
 import { LandingPage } from './components/LandingPage';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
@@ -9,7 +9,6 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Проверяем авторизацию при загрузке
     const token = localStorage.getItem('auth_token');
     const userName = localStorage.getItem('user_name');
     
@@ -36,7 +35,7 @@ function App() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <ModernDashboard user={user} onLogout={handleLogout} />;
+        return <PremiumDashboard user={user} onLogout={handleLogout} />;
       case 'login':
         return <LoginForm onLogin={handleLogin} onBack={() => setCurrentView('landing')} />;
       case 'register':

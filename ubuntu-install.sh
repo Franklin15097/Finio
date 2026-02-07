@@ -16,7 +16,7 @@ apt-get update && apt-get upgrade -y
 
 # Установка необходимых пакетов
 echo "📦 Установка системных зависимостей..."
-apt-get install -y curl wget git build-essential python3 python3-pip nginx ufw certbot python3-certbot-nginx sqlite3
+apt-get install -y curl wget git build-essential python3 python3-pip nginx ufw certbot python3-certbot-nginx postgresql postgresql-contrib
 
 # Установка Node.js 20.x (LTS)
 echo "📦 Установка Node.js..."
@@ -59,6 +59,13 @@ echo "🔨 Сборка фронтенда..."
 cd website-frontend && npm run build && cd ..
 cd mini-app-frontend && npm run build && cd ..
 
+# Настройка PostgreSQL
+echo "🗄️ Настройка PostgreSQL..."
+sudo -u postgres psql -c "CREATE DATABASE finio;" 2>/dev/null || true
+sudo -u postgres psql -c "CREATE USER finio_user WITH PASSWORD 'maks15097';" 2>/dev/null || true
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE finio TO finio_user;" 2>/dev/null || true
+sudo -u postgres psql -c "ALTER DATABASE finio OWNER TO finio_user;" 2>/dev/null || true
+
 # Перезапуск сервиса для применения изменений
 echo "🔄 Перезапуск сервиса..."
 systemctl restart finio
@@ -70,6 +77,8 @@ PORT=3000
 BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
 JWT_SECRET=$(openssl rand -base64 32)
 NODE_ENV=production
+DB_HOST=localhost
+DB_PORT=5432
 DB_NAME=finio
 DB_USER=finio_user
 DB_PASSWORD=maks15097
