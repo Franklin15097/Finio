@@ -1,38 +1,16 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Finio - УМНЫЙ автоматический деплой"
-echo "========================================"
+echo "🚀 Finio - ЧИСТАЯ установка"
+echo "============================"
 
-# Функция поиска свободного порта
-find_free_port() {
-    local port=$1
-    while lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; do
-        echo "⚠️  Порт $port занят, пробуем следующий..."
-        port=$((port + 1))
-    done
-    echo $port
-}
-
-# УБИВАЕМ ВСЁ НАХРЕН
-echo "💀 Убиваем все старые процессы..."
+# УБИВАЕМ ВСЁ
+echo "💀 Убиваем процессы..."
 pm2 delete all 2>/dev/null || true
 pm2 kill 2>/dev/null || true
 pkill -9 node 2>/dev/null || true
 killall -9 node 2>/dev/null || true
 sleep 3
-
-# Освобождаем порты принудительно
-echo "🔓 Освобождаем порты..."
-for port in 3000 3001 3002 3003 3004 3005; do
-    fuser -k $port/tcp 2>/dev/null || true
-    lsof -ti:$port | xargs kill -9 2>/dev/null || true
-done
-sleep 2
-
-# Находим свободный порт
-FREE_PORT=$(find_free_port 3000)
-echo "✅ Используем порт: $FREE_PORT"
 
 # Очистка
 echo "🗑️  Очистка..."
@@ -40,66 +18,84 @@ rm -rf server/node_modules server/package-lock.json server/db/*.db
 rm -rf website-frontend/node_modules website-frontend/package-lock.json website-frontend/dist
 rm -rf mini-app-frontend/node_modules mini-app-frontend/package-lock.json mini-app-frontend/dist
 
-# Сборка фронтендов
-echo "📦 Сборка website..."
-cd website-frontend
-npm install --legacy-peer-deps --no-audit
-VITE_API_URL=http://studiofinance.ru/api npm run build
-cd ..
-
-echo "📦 Сборка mini-app..."
-cd mini-app-frontend
-npm install --legacy-peer-deps --no-audit
-VITE_API_URL=http://studiofinance.ru/api npm run build
-cd ..
-
 # Backend
 echo "📦 Установка backend..."
 cd server
 npm install --production --legacy-peer-deps --no-audit
 cd ..
 
-# Создание .env с правильным портом
-echo "⚙️  Настройка окружения (порт $FREE_PORT)..."
-cat > server/.env << EOF
-PORT=$FREE_PORT
+# Фронтенды
+echo "📦 Сборка website..."
+cd website-frontend
+npm install --legacy-peer-deps --no-audit
+npm run build
+cd ..
+
+echo "📦 Сборка mini-app..."
+cd mini-app-frontend
+npm install --legacy-peer-deps --no-audit
+npm run build
+cd ..
+
+# .env для backend на порту 8080
+echo "⚙️  Настройка backend (порт 8080)..."
+cat > server/.env << 'EOF'
+PORT=8080
 BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
 JWT_SECRET=maks15097_finio_secret_key_production_2026
 NODE_ENV=production
 EOF
 
-# Nginx с правильным портом
+# Nginx - статика + API
 echo "🌐 Настройка nginx..."
-cat > /etc/nginx/sites-available/finio << EOF
+cat > /etc/nginx/sites-available/finio << 'EOF'
 server {
     listen 80;
     server_name studiofinance.ru www.studiofinance.ru;
 
-    location / {
-        proxy_pass http://127.0.0.1:$FREE_PORT;
+    # Статика фронтенда
+    root /var/www/Finio/website-frontend/dist;
+    index index.html;
+
+    # API на backend
+    location /api {
+        proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Health check
+    location /health {
+        proxy_pass http://127.0.0.1:8080;
+    }
+
+    # Mini App
+    location /mini-app {
+        alias /var/www/Finio/mini-app-frontend/dist;
+        try_files $uri $uri/ /mini-app/index.html;
+    }
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
     }
 }
 EOF
 
+rm -f /etc/nginx/sites-enabled/*
 ln -sf /etc/nginx/sites-available/finio /etc/nginx/sites-enabled/finio
-rm -f /etc/nginx/sites-enabled/default
 
-# Проверка nginx
-if nginx -t 2>&1; then
+if nginx -t; then
     systemctl restart nginx
-    echo "✅ Nginx перезапущен"
+    echo "✅ Nginx OK"
 else
-    echo "❌ Ошибка конфигурации nginx"
+    echo "❌ Nginx ошибка"
+    nginx -t
     exit 1
 fi
 
@@ -108,48 +104,36 @@ if ! command -v pm2 &> /dev/null; then
     npm install -g pm2
 fi
 
-# Запуск с ожиданием
-echo "🚀 Запуск на порту $FREE_PORT..."
+# Запуск backend
+echo "🚀 Запуск backend на порту 8080..."
 cd server
-
-# Запускаем и ждем
-pm2 start index.js --name finio --time --wait-ready --listen-timeout 10000
+pm2 start index.js --name finio
 pm2 save
-
-# Настройка автозапуска
 pm2 startup systemd -u root --hp /root 2>/dev/null || true
 
-# Ждем запуска
-echo "⏳ Ожидание запуска..."
 sleep 5
 
 # Проверка
-if pm2 list | grep -q "finio.*online"; then
-    # Проверяем что порт слушается
-    if netstat -tlnp | grep -q ":$FREE_PORT.*node"; then
-        # Проверяем HTTP ответ
-        if curl -s http://localhost:$FREE_PORT/health | grep -q "ok"; then
-            echo ""
-            echo "✅✅✅ ВСЁ РАБОТАЕТ! ✅✅✅"
-            echo "🌐 Сайт: http://studiofinance.ru"
-            echo "🔌 Порт: $FREE_PORT"
-            echo "📊 Статус: pm2 status"
-            echo "📝 Логи: pm2 logs finio"
-            echo ""
-        else
-            echo "⚠️  Backend запущен но не отвечает на /health"
-            pm2 logs finio --lines 20 --nostream
-        fi
-    else
-        echo "⚠️  Процесс запущен но порт не слушается"
-        pm2 logs finio --lines 20 --nostream
-    fi
+echo ""
+echo "🔍 ПРОВЕРКА:"
+if curl -s http://localhost:8080/health | grep -q "ok"; then
+    echo "✅ Backend работает (порт 8080)"
 else
-    echo ""
-    echo "❌ Backend не запустился. Логи:"
-    pm2 logs finio --lines 30 --nostream
-    echo ""
-    echo "Попробуйте запустить вручную:"
-    echo "cd /var/www/Finio/server && node index.js"
+    echo "❌ Backend не работает"
+    pm2 logs finio --lines 20 --nostream
     exit 1
 fi
+
+if systemctl is-active --quiet nginx; then
+    echo "✅ Nginx работает"
+else
+    echo "❌ Nginx не работает"
+    exit 1
+fi
+
+echo ""
+echo "✅✅✅ ВСЁ РАБОТАЕТ! ✅✅✅"
+echo "🌐 Сайт: http://studiofinance.ru"
+echo "🔌 Backend: http://localhost:8080"
+echo "📊 Статус: pm2 status"
+echo ""
