@@ -42,6 +42,12 @@ fuser -k 3000/tcp 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
 fuser -k 3306/tcp 2>/dev/null || true
 
+# Настройка firewall
+log "Настройка firewall..."
+ufw allow 80/tcp 2>/dev/null || true
+ufw allow 8000/tcp 2>/dev/null || true
+ufw allow 3000/tcp 2>/dev/null || true
+
 log "✅ Очистка завершена"
 
 log "📦 Шаг 2: Установка зависимостей"
@@ -50,7 +56,7 @@ log "📦 Шаг 2: Установка зависимостей"
 apt update && apt upgrade -y
 
 # Установка базовых пакетов
-apt install -y curl wget git unzip software-properties-common apt-transport-https ca-certificates gnupg lsb-release
+apt install -y curl wget git unzip software-properties-common apt-transport-https ca-certificates gnupg lsb-release net-tools
 
 # Установка Docker
 if ! command -v docker &> /dev/null; then
@@ -83,6 +89,9 @@ cd /opt/finio
 # Клонирование репозитория
 log "Клонирование репозитория..."
 git clone https://github.com/Franklin15097/Finio.git .
+
+# Права на скрипты
+chmod +x debug.sh restart.sh
 
 log "✅ Проект загружен"
 
@@ -125,28 +134,43 @@ systemctl enable finio.service
 
 log "✅ Настройка завершена"
 
-log "🧪 Шаг 6: Тестирование"
+log "🧪 Шаг 6: Тестирование и диагностика"
 
 sleep 30
+
+echo ""
+echo "📊 Статус контейнеров:"
+docker-compose ps
+
+echo ""
+echo "🌐 Проверка портов:"
+netstat -tulpn | grep -E ":80|:8000|:3000|:3306"
+
+echo ""
+echo "🧪 Тестирование подключений:"
 
 # Тестирование
 if curl -f http://localhost/health > /dev/null 2>&1; then
     log "✅ API работает"
 else
-    log "⚠️ API пока не отвечает (может потребоваться время)"
+    log "⚠️ API не отвечает"
+    echo "Логи backend:"
+    docker-compose logs backend | tail -10
 fi
 
 if curl -f http://localhost > /dev/null 2>&1; then
     log "✅ Frontend работает"
 else
-    log "⚠️ Frontend пока не отвечает (может потребоваться время)"
+    log "⚠️ Frontend не отвечает"
+    echo "Логи nginx:"
+    docker-compose logs nginx | tail -10
 fi
 
 log "✅ Установка завершена"
 
 echo ""
-echo "🎉 Finio установлен успешно!"
-echo "=================================="
+echo "🎉 Finio установлен!"
+echo "==================="
 echo ""
 echo "📱 Доступ:"
 echo "   • Сайт: http://studiofinance.ru"
@@ -158,12 +182,14 @@ echo ""
 echo "🐳 Управление:"
 echo "   • Статус: docker-compose ps"
 echo "   • Логи: docker-compose logs"
-echo "   • Перезапуск: systemctl restart finio"
+echo "   • Перезапуск: ./restart.sh"
+echo "   • Диагностика: ./debug.sh"
 echo ""
 echo "📁 Файлы: /opt/finio"
 echo ""
 
-docker-compose ps
-
-echo ""
-echo "✅ Готово! Приложение доступно на http://studiofinance.ru"
+if curl -f http://localhost > /dev/null 2>&1; then
+    echo "✅ Готово! Приложение работает на http://studiofinance.ru"
+else
+    echo "⚠️ Есть проблемы. Запустите ./debug.sh для диагностики"
+fi
