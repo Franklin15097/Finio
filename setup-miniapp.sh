@@ -18,7 +18,7 @@ if [ -d "/var/www/crypto-bot" ]; then
 else
     echo "📥 Клонирование репозитория..."
     cd /var/www
-    git clone https://github.com/Franklin15097/crypto-bot-miniapp.git crypto-bot
+    git clone https://github.com/Franklin15097/Finio.git crypto-bot
     cd crypto-bot
 fi
 
