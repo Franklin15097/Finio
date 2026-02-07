@@ -1,18 +1,18 @@
 """
 Finio API - Система управления финансами
 """
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Optional
 import os
 import logging
 import asyncio
-from datetime import datetime, date
+from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text, Enum, Numeric
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 import enum
 
@@ -34,24 +34,6 @@ app.add_middleware(
 # Database
 DATABASE_URL = os.getenv("DATABASE_URL", "mysql+aiomysql://finio_user:maks15097@mysql:3306/finio")
 logger.info(f"Database URL: {DATABASE_URL}")
-
-# Попытка подключения к базе данных с повторами
-async def create_db_engine():
-    for attempt in range(10):
-        try:
-            engine = create_async_engine(DATABASE_URL, echo=False)
-            # Тестовое подключение
-            async with engine.begin() as conn:
-                await conn.execute("SELECT 1")
-            logger.info("✅ Database connected successfully")
-            return engine
-        except Exception as e:
-            logger.error(f"❌ Database connection attempt {attempt + 1} failed: {e}")
-            if attempt < 9:
-                await asyncio.sleep(5)
-            else:
-                logger.error("❌ Failed to connect to database after 10 attempts")
-                raise
 
 engine = None
 AsyncSessionLocal = None
@@ -427,26 +409,45 @@ async def miniapp():
     """
     return HTMLResponse(content=html_content)
 
-@app.on_event("startup")
-async def startup_event():
+async def init_database():
+    """Инициализация базы данных с повторными попытками"""
     global engine, AsyncSessionLocal
     
+    for attempt in range(30):  # 30 попыток по 2 секунды = 1 минута
+        try:
+            logger.info(f"Database connection attempt {attempt + 1}/30")
+            engine = create_async_engine(DATABASE_URL, echo=False)
+            
+            # Тестовое подключение
+            async with engine.begin() as conn:
+                await conn.execute("SELECT 1")
+            
+            AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+            
+            # Создание таблиц
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            
+            logger.info("✅ Database connected and tables created")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Database connection attempt {attempt + 1} failed: {e}")
+            if attempt < 29:
+                await asyncio.sleep(2)
+            else:
+                logger.error("❌ Failed to connect to database after 30 attempts")
+                return False
+
+@app.on_event("startup")
+async def startup_event():
     logger.info("🚀 Starting Finio API...")
     
-    try:
-        # Инициализация базы данных
-        engine = await create_db_engine()
-        AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-        
-        # Создание таблиц
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        
-        logger.info("✅ Database tables created")
-        
-    except Exception as e:
-        logger.error(f"❌ Startup error: {e}")
-        raise
+    # Инициализация базы данных
+    success = await init_database()
+    if not success:
+        logger.error("❌ Failed to initialize database")
+        # Не останавливаем приложение, просто логируем ошибку
 
 @app.on_event("shutdown")
 async def shutdown_event():
