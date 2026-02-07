@@ -15,10 +15,7 @@
     "dev:mini-app": "cd mini-app-frontend && npm run dev",
     "dev:website": "cd website-frontend && npm run dev",
     "build": "cd website-frontend && npm run build && cd ../mini-app-frontend && npm run build",
-    "start": "cd server && npm start",
-    "deploy": "./deploy.sh",
-    "stop": "./stop.sh",
-    "restart": "./restart.sh"
+    "start": "cd server && npm start"
   },
   "keywords": [
     "finance",

@@ -12,19 +12,17 @@
 - 📈 **Визуализация данных** с Chart.js
 - 🔐 **Авторизация** и безопасность
 
-## 🚀 Быстрый запуск на хостинге
+## 🚀 Установка на хостинге
+
+**Одна команда для полной установки:**
 
 ```bash
-git clone https://github.com/Franklin15097/Finio.git
-cd Finio
-chmod +x deploy.sh
-./deploy.sh
+git clone https://github.com/Franklin15097/Finio.git && cd Finio && chmod +x install.sh && ./install.sh
 ```
 
 ## ⚙️ Настройка
 
-1. Создайте бота в [@BotFather](https://t.me/BotFather)
-2. Отредактируйте `server/.env`:
+После установки отредактируйте `server/.env`:
 
 ```env
 PORT=3000
@@ -33,29 +31,14 @@ JWT_SECRET=your_secret_key
 NODE_ENV=production
 ```
 
-3. Перезапустите приложение:
+Затем перезапустите:
 ```bash
-./restart.sh
+./install.sh
 ```
 
 ## 🏃 Разработка
 
-### Локальный запуск
-
-**Windows:**
-```bash
-start-dev.bat
-```
-
-**Linux/Mac:**
-```bash
-chmod +x start-dev.sh
-./start-dev.sh
-```
-
-### Ручной запуск
-
-Откройте 3 терминала:
+Для разработки откройте 3 терминала:
 
 ```bash
 # Терминал 1 - API сервер
@@ -70,27 +53,24 @@ cd mini-app-frontend && npm run dev
 
 ## 📱 Доступ
 
-- **Веб-сайт:** http://localhost:5173 (разработка) / http://your-domain.com (продакшн)
-- **Mini App:** http://localhost:5174 (разработка) / http://your-domain.com/mini-app (продакшн)
-- **API:** http://localhost:3000
+- **Веб-сайт:** http://localhost:3000
+- **Mini App:** http://localhost:3000/mini-app
+- **API:** http://localhost:3000/api
 
-## 🛠 Управление на сервере
+## 🛠 Управление
 
 ```bash
-# Деплой/обновление
-./deploy.sh
-
-# Перезапуск
-./restart.sh
-
 # Остановка
-./stop.sh
+kill $(cat app.pid)
 
 # Просмотр логов
 tail -f app.log
 
-# Статус
-ps aux | grep node
+# Проверка статуса
+ps -p $(cat app.pid)
+
+# Переустановка
+./install.sh
 ```
 
 ## 📁 Структура проекта
