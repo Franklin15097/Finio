@@ -6,9 +6,9 @@ import requests
 import json
 
 def test_api():
-    base_url = "http://studiofinance.ru"
+    base_url = "https://studiofinance.ru"
     
-    print("🧪 Тестирование Finio API на продакшн сервере (HTTP)...")
+    print("🧪 Тестирование Finio API на продакшн сервере...")
     
     # Тест 1: Проверка здоровья
     try:

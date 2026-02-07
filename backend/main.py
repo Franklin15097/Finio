@@ -150,7 +150,7 @@ async def get_db():
 
 # Telegram Bot настройки
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "http://studiofinance.ru")
+TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://studiofinance.ru")
 
 print(f"🔧 Инициализация бота...")
 print(f"Token: {'✅ Есть' if TELEGRAM_BOT_TOKEN else '❌ Нет'}")
