@@ -1,54 +1,32 @@
-# Studio Finance Project
+# Studio Finance
 
-Проект включает:
-- Backend сервер (Node.js + Express)
-- Telegram бот с Mini App
-- Frontend для сайта (React)
-- Frontend для Mini App (React)
+Telegram Mini App + Website + Backend
 
-## Структура проекта
-
-```
-├── server/                 # Backend
-│   ├── bot/               # Telegram бот
-│   ├── mini-app/          # API для mini app
-│   ├── website/           # API для сайта
-│   └── shared/            # Общая логика (БД)
-├── mini-app-frontend/     # React для mini app
-├── website-frontend/      # React для сайта
-```
-
-## Установка
+## Быстрый старт на сервере
 
 ```bash
-# Установка зависимостей для всех проектов
-cd server && npm install
-cd ../mini-app-frontend && npm install
-cd ../website-frontend && npm install
+ssh root@85.235.205.99
+cd /var/www/studiofinance
+./install.sh
 ```
 
-## Запуск
+## Управление
 
 ```bash
-# Backend + Bot
-cd server && npm run dev
-
-# Mini App Frontend
-cd mini-app-frontend && npm run dev
-
-# Website Frontend
-cd website-frontend && npm run dev
+pm2 status          # Статус
+pm2 logs            # Логи
+pm2 restart all     # Перезапуск
+./start.sh          # Быстрый перезапуск
 ```
 
-## Конфигурация
+## URLs
 
-Настройки в `server/.env`:
-- BOT_TOKEN - токен Telegram бота
-- MINI_APP_URL - URL mini app
-- DB_* - настройки PostgreSQL
+- Backend: http://85.235.205.99:3000/health
+- Mini App: http://studiofinance.ru:5173
+- Website: http://studiofinance.ru:5174
+- Bot: @FranklinFAT
 
-## Telegram Bot
+## Настройка бота
 
-Команды:
-- /start - Приветствие и кнопка для открытия Mini App
-- /app - Открыть Mini App
+@BotFather → /mybots → Bot Settings → Menu Button
+URL: `http://studiofinance.ru:5173`

@@ -1,53 +1,42 @@
 #!/bin/bash
 
-echo "==================================="
-echo "Studio Finance - Установка проекта"
-echo "==================================="
+echo "🚀 Studio Finance - Установка и запуск"
+echo "======================================"
 
-# Проверка Node.js
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js не установлен. Установите Node.js 18+ и попробуйте снова."
-    exit 1
-fi
+# Остановка старых процессов
+pm2 delete all 2>/dev/null || true
 
-echo "✓ Node.js версия: $(node -v)"
+# Установка зависимостей
+echo "📦 Установка зависимостей..."
+cd server && npm install && cd ..
+cd mini-app-frontend && npm install && cd ..
+cd website-frontend && npm install && cd ..
 
-# Установка зависимостей для сервера
-echo ""
-echo "📦 Установка зависимостей сервера..."
+# Запуск сервисов
+echo "🚀 Запуск сервисов..."
 cd server
-npm install
-if [ $? -ne 0 ]; then
-    echo "❌ Ошибка установки зависимостей сервера"
-    exit 1
-fi
+pm2 start index.js --name backend --node-args="--max-old-space-size=512"
 cd ..
 
-# Установка зависимостей для mini-app
-echo ""
-echo "📦 Установка зависимостей Mini App..."
 cd mini-app-frontend
-npm install
-if [ $? -ne 0 ]; then
-    echo "❌ Ошибка установки зависимостей Mini App"
-    exit 1
-fi
+pm2 start npm --name miniapp -- run dev
 cd ..
 
-# Установка зависимостей для website
-echo ""
-echo "📦 Установка зависимостей Website..."
 cd website-frontend
-npm install
-if [ $? -ne 0 ]; then
-    echo "❌ Ошибка установки зависимостей Website"
-    exit 1
-fi
+pm2 start npm --name website -- run dev
 cd ..
 
+pm2 save
+pm2 startup
+
 echo ""
-echo "✅ Установка завершена успешно!"
+echo "✅ Готово!"
 echo ""
-echo "Для запуска проекта используйте:"
-echo "  ./start.sh          - Запуск всех сервисов"
-echo "  ./deploy.sh         - Деплой на продакшн"
+echo "Проверка:"
+echo "  pm2 status"
+echo "  pm2 logs"
+echo ""
+echo "URLs:"
+echo "  Backend:  http://85.235.205.99:3000/health"
+echo "  Mini App: http://studiofinance.ru:5173"
+echo "  Website:  http://studiofinance.ru:5174"
