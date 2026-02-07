@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../utils/api';
 
 export function LoginForm({ onLogin, onBack }) {
   const [formData, setFormData] = useState({
@@ -14,21 +15,20 @@ export function LoginForm({ onLogin, onBack }) {
     setError('');
 
     try {
-      // Mock авторизация - заменить на реальный API вызов
-      if (formData.email && formData.password) {
-        // Симуляция задержки API
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        onLogin({
-          name: 'Пользователь',
-          email: formData.email,
-          token: 'mock-token-' + Date.now()
-        });
-      } else {
-        setError('Заполните все поля');
-      }
+      // РЕАЛЬНЫЙ API вызов
+      const response = await api.login({
+        email: formData.email,
+        password: formData.password
+      });
+      
+      onLogin({
+        name: response.user.name,
+        email: response.user.email,
+        token: response.token
+      });
     } catch (err) {
-      setError('Ошибка входа. Проверьте данные.');
+      setError('Неверный email или пароль');
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

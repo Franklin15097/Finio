@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../utils/api';
 
 export function RegisterForm({ onRegister, onBack }) {
   const [formData, setFormData] = useState({
@@ -19,29 +20,38 @@ export function RegisterForm({ onRegister, onBack }) {
       // Валидация
       if (!formData.name || !formData.email || !formData.password) {
         setError('Заполните все поля');
+        setLoading(false);
         return;
       }
 
       if (formData.password.length < 6) {
         setError('Пароль должен быть не менее 6 символов');
+        setLoading(false);
         return;
       }
 
       if (formData.password !== formData.confirmPassword) {
         setError('Пароли не совпадают');
+        setLoading(false);
         return;
       }
 
-      // Mock регистрация - заменить на реальный API вызов
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // РЕАЛЬНЫЙ API вызов
+      const response = await api.register({
+        username: formData.email.split('@')[0], // username из email
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.name
+      });
       
       onRegister({
-        name: formData.name,
-        email: formData.email,
-        token: 'mock-token-' + Date.now()
+        name: response.user.name,
+        email: response.user.email,
+        token: response.token
       });
     } catch (err) {
-      setError('Ошибка регистрации. Попробуйте еще раз.');
+      setError('Ошибка регистрации. Возможно, email уже используется.');
+      console.error('Register error:', err);
     } finally {
       setLoading(false);
     }
