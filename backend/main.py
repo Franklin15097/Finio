@@ -150,17 +150,15 @@ try:
             ])
             
             await message.answer(
-                "Добро пожаловать в Finio! 💰\n\n"
-                "Управляйте своими финансами прямо в Telegram.\n"
-                "Нажмите кнопку ниже, чтобы открыть Mini App:",
+                "Добро пожаловать в Finio! 💰",
                 reply_markup=keyboard
             )
             print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
 
-        @dp.message(Command("help"))
-        async def help_command(message: types.Message):
-            """Обработчик команды /help"""
-            print(f"✅ Получена команда /help от пользователя {message.from_user.id}")
+        @dp.message()
+        async def any_message(message: types.Message):
+            """Обработчик любых сообщений"""
+            print(f"✅ Получено сообщение от пользователя {message.from_user.id}")
             
             keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(
@@ -170,12 +168,7 @@ try:
             ])
             
             await message.answer(
-                "🤖 <b>Finio - Управление финансами</b>\n\n"
-                "💰 Отслеживайте доходы и расходы\n"
-                "📊 Просматривайте статистику\n"
-                "📈 Анализируйте финансы\n\n"
-                "Нажмите кнопку ниже, чтобы открыть Mini App:",
-                parse_mode="HTML",
+                "💰 Открыть Finio",
                 reply_markup=keyboard
             )
             print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
