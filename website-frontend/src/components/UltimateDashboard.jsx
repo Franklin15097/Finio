@@ -12,6 +12,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
+import { IncomePage } from './IncomePage';
 import '../styles/dark-premium.css';
 
 ChartJS.register(
@@ -226,6 +227,10 @@ export function UltimateDashboard({ user, onLogout }) {
   ];
 
   const renderContent = () => {
+    if (currentView === 'income') {
+      return <IncomePage />;
+    }
+    
     if (currentView !== 'dashboard') {
       return (
         <div>
