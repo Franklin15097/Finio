@@ -1,0 +1,50 @@
+:root {
+  /* Backgrounds */
+  --bg-primary: #0F0F14;
+  --bg-secondary: #16161D;
+  --surface-base: #1A1A24;
+  --surface-overlay: rgba(255, 255, 255, 0.06);
+
+  /* Brand Colors */
+  --brand-primary: #00D9A3;
+  --brand-primary-hover: #00F5B8;
+  --brand-secondary: #6366F1;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #00D9A3 0%, #00F5B8 100%);
+  --gradient-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(0, 217, 163, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(245, 158, 11, 0.15) 0px, transparent 50%);
+
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-secondary: #B4B4C8;
+  --text-tertiary: #8585A3;
+
+  /* Semantic */
+  --success: #00D9A3;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+
+  /* Spacing */
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Radius */
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  /* Shadows */
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.7);
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+}
