@@ -17,9 +17,9 @@ curl -sSL https://raw.githubusercontent.com/Franklin15097/Finio/main/deploy.sh |
 
 ## После установки:
 
-- **Сайт**: http://studiofinance.ru
-- **API**: http://studiofinance.ru/api
-- **Mini App**: http://studiofinance.ru/miniapp
+- **Сайт**: http://your-server:8080
+- **API**: http://your-server:8080/api
+- **Mini App**: http://your-server:8080/miniapp
 
 ## Управление:
 

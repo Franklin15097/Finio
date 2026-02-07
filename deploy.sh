@@ -27,11 +27,17 @@ docker system prune -af --volumes 2>/dev/null || true
 
 # Удаление старых файлов
 rm -rf /opt/finio 2>/dev/null || true
+
+# Остановка системного nginx и apache
 systemctl stop nginx 2>/dev/null || true
 systemctl disable nginx 2>/dev/null || true
+systemctl stop apache2 2>/dev/null || true
+systemctl disable apache2 2>/dev/null || true
 
 # Освобождение портов
+log "Освобождение портов..."
 fuser -k 80/tcp 2>/dev/null || true
+fuser -k 8080/tcp 2>/dev/null || true
 fuser -k 3000/tcp 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
 fuser -k 3306/tcp 2>/dev/null || true
@@ -124,13 +130,13 @@ log "🧪 Шаг 6: Тестирование"
 sleep 30
 
 # Тестирование
-if curl -f http://localhost/health > /dev/null 2>&1; then
+if curl -f http://localhost:8080/health > /dev/null 2>&1; then
     log "✅ API работает"
 else
     log "⚠️ API пока не отвечает (может потребоваться время)"
 fi
 
-if curl -f http://localhost > /dev/null 2>&1; then
+if curl -f http://localhost:8080 > /dev/null 2>&1; then
     log "✅ Frontend работает"
 else
     log "⚠️ Frontend пока не отвечает (может потребоваться время)"
@@ -143,9 +149,10 @@ echo "🎉 Finio установлен успешно!"
 echo "=================================="
 echo ""
 echo "📱 Доступ:"
-echo "   • Сайт: http://$(hostname -I | awk '{print $1}')"
-echo "   • API: http://$(hostname -I | awk '{print $1}')/api"
-echo "   • Health: http://$(hostname -I | awk '{print $1}')/health"
+echo "   • Сайт: http://$(hostname -I | awk '{print $1}'):8080"
+echo "   • API: http://$(hostname -I | awk '{print $1}'):8080/api"
+echo "   • Health: http://$(hostname -I | awk '{print $1}'):8080/health"
+echo "   • Mini App: http://$(hostname -I | awk '{print $1}'):8080/miniapp"
 echo ""
 echo "🐳 Управление:"
 echo "   • Статус: docker-compose ps"
@@ -158,4 +165,4 @@ echo ""
 docker-compose ps
 
 echo ""
-echo "✅ Готово! Приложение запущено!"
+echo "✅ Готово! Приложение доступно на порту 8080!"
