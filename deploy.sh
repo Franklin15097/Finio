@@ -130,13 +130,13 @@ log "🧪 Шаг 6: Тестирование"
 sleep 30
 
 # Тестирование
-if curl -f http://localhost:8080/health > /dev/null 2>&1; then
+if curl -f http://localhost/health > /dev/null 2>&1; then
     log "✅ API работает"
 else
     log "⚠️ API пока не отвечает (может потребоваться время)"
 fi
 
-if curl -f http://localhost:8080 > /dev/null 2>&1; then
+if curl -f http://localhost > /dev/null 2>&1; then
     log "✅ Frontend работает"
 else
     log "⚠️ Frontend пока не отвечает (может потребоваться время)"
@@ -149,10 +149,11 @@ echo "🎉 Finio установлен успешно!"
 echo "=================================="
 echo ""
 echo "📱 Доступ:"
-echo "   • Сайт: http://$(hostname -I | awk '{print $1}'):8080"
-echo "   • API: http://$(hostname -I | awk '{print $1}'):8080/api"
-echo "   • Health: http://$(hostname -I | awk '{print $1}'):8080/health"
-echo "   • Mini App: http://$(hostname -I | awk '{print $1}'):8080/miniapp"
+echo "   • Сайт: http://studiofinance.ru"
+echo "   • Сайт (IP): http://$(hostname -I | awk '{print $1}')"
+echo "   • API: http://studiofinance.ru/api"
+echo "   • Health: http://studiofinance.ru/health"
+echo "   • Mini App: http://studiofinance.ru/miniapp"
 echo ""
 echo "🐳 Управление:"
 echo "   • Статус: docker-compose ps"
@@ -165,4 +166,4 @@ echo ""
 docker-compose ps
 
 echo ""
-echo "✅ Готово! Приложение доступно на порту 8080!"
+echo "✅ Готово! Приложение доступно на http://studiofinance.ru"
