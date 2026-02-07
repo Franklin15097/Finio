@@ -123,6 +123,8 @@ if bot and dp:
     @dp.message(Command("start"))
     async def start_command(message: types.Message):
         """Обработчик команды /start"""
+        print(f"✅ Получена команда /start от пользователя {message.from_user.id}")
+        
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
                 text="💰 Открыть Finio",
@@ -136,10 +138,13 @@ if bot and dp:
             "Нажмите кнопку ниже, чтобы открыть Mini App:",
             reply_markup=keyboard
         )
+        print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
 
     @dp.message(Command("help"))
     async def help_command(message: types.Message):
         """Обработчик команды /help"""
+        print(f"✅ Получена команда /help от пользователя {message.from_user.id}")
+        
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
                 text="💰 Открыть Finio",
@@ -156,6 +161,9 @@ if bot and dp:
             parse_mode="HTML",
             reply_markup=keyboard
         )
+        print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
+        
+    print("✅ Обработчики бота зарегистрированы")
 
 # API эндпоинты
 @app.get("/")
@@ -488,8 +496,15 @@ async def get_stats(user_id: int):
 async def bot_webhook(update: dict):
     """Обработка webhook от Telegram"""
     if bot and dp:
-        telegram_update = types.Update(**update)
-        await dp.feed_update(bot, telegram_update)
+        try:
+            telegram_update = types.Update(**update)
+            await dp.feed_update(bot, telegram_update)
+            print(f"✅ Обработан update: {update.get('update_id', 'unknown')}")
+        except Exception as e:
+            print(f"❌ Ошибка обработки webhook: {e}")
+            print(f"Update: {update}")
+    else:
+        print("❌ Бот не инициализирован")
     return {"status": "ok"}
 
 # Telegram аутентификация
@@ -589,8 +604,15 @@ async def setup_webhook():
 @app.on_event("startup")
 async def startup_event():
     """Событие запуска приложения"""
+    print("🚀 Запуск приложения...")
+    print(f"TELEGRAM_BOT_TOKEN: {'✅ Установлен' if TELEGRAM_BOT_TOKEN else '❌ Не установлен'}")
+    print(f"TELEGRAM_WEBHOOK_URL: {TELEGRAM_WEBHOOK_URL}")
+    
     if TELEGRAM_BOT_TOKEN:
+        print("🤖 Настройка webhook...")
         await setup_webhook()
+    else:
+        print("❌ Бот не будет работать - токен не установлен")
 
 @app.on_event("shutdown") 
 async def shutdown_event():
