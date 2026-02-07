@@ -43,9 +43,25 @@ os.makedirs(DATA_DIR, exist_ok=True)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://studiofinance.ru")
 
+print(f"🔧 Инициализация бота...")
+print(f"Token: {'✅ Есть' if TELEGRAM_BOT_TOKEN else '❌ Нет'}")
+print(f"Webhook URL: {TELEGRAM_WEBHOOK_URL}")
+
 # Инициализация бота
-bot = Bot(token=TELEGRAM_BOT_TOKEN) if TELEGRAM_BOT_TOKEN else None
-dp = Dispatcher() if TELEGRAM_BOT_TOKEN else None
+bot = None
+dp = None
+
+try:
+    if TELEGRAM_BOT_TOKEN:
+        bot = Bot(token=TELEGRAM_BOT_TOKEN)
+        dp = Dispatcher()
+        print("✅ Бот инициализирован")
+    else:
+        print("❌ Токен бота не установлен")
+except Exception as e:
+    print(f"❌ Ошибка инициализации бота: {e}")
+    bot = None
+    dp = None
 
 # Модели данных
 class User(BaseModel):
@@ -119,51 +135,57 @@ def get_next_id(items: list) -> int:
     return max(item.get('id', 0) for item in items) + 1
 
 # Telegram Bot обработчики
-if bot and dp:
-    @dp.message(Command("start"))
-    async def start_command(message: types.Message):
-        """Обработчик команды /start"""
-        print(f"✅ Получена команда /start от пользователя {message.from_user.id}")
-        
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(
-                text="💰 Открыть Finio",
-                url="https://t.me/FinanceStudio_bot/Finio"
-            )]
-        ])
-        
-        await message.answer(
-            "Добро пожаловать в Finio! 💰\n\n"
-            "Управляйте своими финансами прямо в Telegram.\n"
-            "Нажмите кнопку ниже, чтобы открыть Mini App:",
-            reply_markup=keyboard
-        )
-        print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
+try:
+    if bot and dp:
+        @dp.message(Command("start"))
+        async def start_command(message: types.Message):
+            """Обработчик команды /start"""
+            print(f"✅ Получена команда /start от пользователя {message.from_user.id}")
+            
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(
+                    text="💰 Открыть Finio",
+                    url="https://t.me/FinanceStudio_bot/Finio"
+                )]
+            ])
+            
+            await message.answer(
+                "Добро пожаловать в Finio! 💰\n\n"
+                "Управляйте своими финансами прямо в Telegram.\n"
+                "Нажмите кнопку ниже, чтобы открыть Mini App:",
+                reply_markup=keyboard
+            )
+            print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
 
-    @dp.message(Command("help"))
-    async def help_command(message: types.Message):
-        """Обработчик команды /help"""
-        print(f"✅ Получена команда /help от пользователя {message.from_user.id}")
+        @dp.message(Command("help"))
+        async def help_command(message: types.Message):
+            """Обработчик команды /help"""
+            print(f"✅ Получена команда /help от пользователя {message.from_user.id}")
+            
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(
+                    text="💰 Открыть Finio",
+                    url="https://t.me/FinanceStudio_bot/Finio"
+                )]
+            ])
+            
+            await message.answer(
+                "🤖 <b>Finio - Управление финансами</b>\n\n"
+                "💰 Отслеживайте доходы и расходы\n"
+                "📊 Просматривайте статистику\n"
+                "📈 Анализируйте финансы\n\n"
+                "Нажмите кнопку ниже, чтобы открыть Mini App:",
+                parse_mode="HTML",
+                reply_markup=keyboard
+            )
+            print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
+            
+        print("✅ Обработчики бота зарегистрированы")
+    else:
+        print("❌ Бот не инициализирован - обработчики не зарегистрированы")
         
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(
-                text="💰 Открыть Finio",
-                url="https://t.me/FinanceStudio_bot/Finio"
-            )]
-        ])
-        
-        await message.answer(
-            "🤖 <b>Finio - Управление финансами</b>\n\n"
-            "💰 Отслеживайте доходы и расходы\n"
-            "📊 Просматривайте статистику\n"
-            "📈 Анализируйте финансы\n\n"
-            "Нажмите кнопку ниже, чтобы открыть Mini App:",
-            parse_mode="HTML",
-            reply_markup=keyboard
-        )
-        print(f"✅ Отправлен ответ пользователю {message.from_user.id}")
-        
-    print("✅ Обработчики бота зарегистрированы")
+except Exception as e:
+    print(f"❌ Ошибка регистрации обработчиков: {e}")
 
 # API эндпоинты
 @app.get("/")
@@ -173,6 +195,16 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+@app.get("/bot-status")
+async def bot_status():
+    """Проверка статуса бота"""
+    return {
+        "bot_initialized": bot is not None,
+        "dispatcher_initialized": dp is not None,
+        "token_set": bool(TELEGRAM_BOT_TOKEN),
+        "webhook_url": TELEGRAM_WEBHOOK_URL
+    }
 
 # Mini App endpoint - отдельная страница для Telegram Mini App
 @app.get("/miniapp")
@@ -491,21 +523,25 @@ async def get_stats(user_id: int):
         "transactions_count": len(user_transactions)
     }
 
-# Telegram webhook
+# Telegram webhook - ВСЕГДА регистрируем endpoint
 @app.post("/bot-webhook/")
 async def bot_webhook(update: dict):
     """Обработка webhook от Telegram"""
-    if bot and dp:
-        try:
-            telegram_update = types.Update(**update)
-            await dp.feed_update(bot, telegram_update)
-            print(f"✅ Обработан update: {update.get('update_id', 'unknown')}")
-        except Exception as e:
-            print(f"❌ Ошибка обработки webhook: {e}")
-            print(f"Update: {update}")
-    else:
+    print(f"📨 Получен webhook: {update}")
+    
+    if not bot or not dp:
         print("❌ Бот не инициализирован")
-    return {"status": "ok"}
+        return {"status": "error", "message": "Bot not initialized"}
+    
+    try:
+        telegram_update = types.Update(**update)
+        await dp.feed_update(bot, telegram_update)
+        print(f"✅ Обработан update: {update.get('update_id', 'unknown')}")
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"❌ Ошибка обработки webhook: {e}")
+        print(f"Update: {update}")
+        return {"status": "error", "message": str(e)}
 
 # Telegram аутентификация
 @app.post("/api/auth/telegram")
