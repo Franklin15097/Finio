@@ -5,7 +5,7 @@
 ## 🚀 Установка на хостинге
 
 ```bash
-chmod +x install.sh && ./install.sh
+git clone https://github.com/Franklin15097/Finio.git && cd Finio && chmod +x install.sh && ./install.sh
 ```
 
 ## ⚙️ Настройка
