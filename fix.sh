@@ -61,7 +61,7 @@ fi
 
 # Создаем .env
 cat > /var/www/Finio/server/.env << 'EOF'
-PORT=3000
+PORT=8080
 BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
 JWT_SECRET=maks15097_finio_secret_key_production_2026
 NODE_ENV=production
