@@ -139,8 +139,8 @@ start_services() {
     echo "🎉 СИСТЕМА ЗАПУЩЕНА!"
     echo ""
     echo "🌐 Доступ:"
-    echo "• Веб-сайт: http://$(hostname -I | awk '{print $1}'):3000"
-    echo "• API: http://$(hostname -I | awk '{print $1}'):8000"
+    echo "• Веб-сайт: https://studiofinance.ru"
+    echo "• API: https://studiofinance.ru/api"
     echo "• Mini App: https://t.me/FinanceStudio_bot/Finio"
     echo ""
 }
