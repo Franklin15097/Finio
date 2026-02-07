@@ -2,10 +2,10 @@
 
 Современное приложение для учета личных финансов с веб-версией и Telegram Mini App.
 
-## 🚀 Установка
+## 🚀 Установка на хостинге
 
 ```bash
-cd server && npm install && cd ../website-frontend && npm install && cd ../mini-app-frontend && npm install && cd ..
+chmod +x install.sh && ./install.sh
 ```
 
 ## ⚙️ Настройка
