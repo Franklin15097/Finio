@@ -1,42 +1,42 @@
 #!/bin/bash
 
-echo "🚀 Studio Finance - Установка и запуск"
-echo "======================================"
+echo "🚀 Finio - Полная переустановка проекта"
+echo "========================================"
 
-# Остановка старых процессов
-pm2 delete all 2>/dev/null || true
+# Удаление старых зависимостей
+echo "🗑️  Удаление старых зависимостей..."
+rm -rf server/node_modules server/package-lock.json
+rm -rf website-frontend/node_modules website-frontend/package-lock.json
+rm -rf mini-app-frontend/node_modules mini-app-frontend/package-lock.json
 
 # Установка зависимостей
 echo "📦 Установка зависимостей..."
+
+echo "  → Backend..."
 cd server && npm install && cd ..
-cd mini-app-frontend && npm install && cd ..
+
+echo "  → Website..."
 cd website-frontend && npm install && cd ..
 
-# Запуск сервисов
-echo "🚀 Запуск сервисов..."
-cd server
-pm2 start index.js --name backend --node-args="--max-old-space-size=512"
-cd ..
+echo "  → Mini App..."
+cd mini-app-frontend && npm install && cd ..
 
-cd mini-app-frontend
-pm2 start npm --name miniapp -- run dev
-cd ..
-
-cd website-frontend
-pm2 start npm --name website -- run dev
-cd ..
-
-pm2 save
-pm2 startup
+# Создание .env если не существует
+if [ ! -f server/.env ]; then
+    echo "⚙️  Создание .env файла..."
+    cat > server/.env << EOF
+PORT=3000
+BOT_TOKEN=your_telegram_bot_token
+JWT_SECRET=change_this_secret_key_in_production
+NODE_ENV=production
+EOF
+    echo "⚠️  Не забудьте настроить server/.env"
+fi
 
 echo ""
-echo "✅ Готово!"
+echo "✅ Установка завершена!"
 echo ""
-echo "Проверка:"
-echo "  pm2 status"
-echo "  pm2 logs"
+echo "📝 Следующие шаги:"
+echo "1. Настройте server/.env"
+echo "2. Запустите: cd server && npm start"
 echo ""
-echo "URLs:"
-echo "  Backend:  http://85.235.205.99:3000/health"
-echo "  Mini App: http://studiofinance.ru:5173"
-echo "  Website:  http://studiofinance.ru:5174"
