@@ -11,14 +11,10 @@ pkill -f "node.*index.js" 2>/dev/null || true
 # Удаление старых зависимостей
 echo "🗑️  Очистка старых зависимостей..."
 rm -rf server/node_modules server/package-lock.json
-rm -rf website-frontend/node_modules website-frontend/package-lock.json
-rm -rf mini-app-frontend/node_modules mini-app-frontend/package-lock.json
 
-# Установка зависимостей
-echo "📦 Установка зависимостей..."
+# Установка зависимостей только для backend
+echo "📦 Установка зависимостей backend..."
 cd server && npm install --production && cd ..
-cd website-frontend && npm install && npm run build && cd ..
-cd mini-app-frontend && npm install && npm run build && cd ..
 
 # Создание .env
 echo "⚙️  Настройка окружения..."
@@ -29,15 +25,14 @@ JWT_SECRET=maks15097_finio_secret_key_production_2026
 NODE_ENV=production
 EOF
 
-# Настройка nginx
+# Настройка nginx - проксируем всё на backend
 echo "🌐 Настройка nginx..."
 cat > /etc/nginx/sites-available/finio << 'EOF'
 server {
     listen 80;
     server_name studiofinance.ru www.studiofinance.ru;
 
-    # Backend API
-    location /api {
+    location / {
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -46,25 +41,6 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_cache_bypass $http_upgrade;
-    }
-
-    # Health check
-    location /health {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }
-
-    # Frontend
-    location / {
-        root /var/www/Finio/website-frontend/dist;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Mini App
-    location /mini-app {
-        alias /var/www/Finio/mini-app-frontend/dist;
-        try_files $uri $uri/ /mini-app/index.html;
     }
 }
 EOF
