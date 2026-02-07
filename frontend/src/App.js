@@ -17,18 +17,15 @@ function App() {
       const webapp = window.Telegram.WebApp;
       setTg(webapp);
       
-      // Настройка внешнего вида
       webapp.ready();
       webapp.expand();
       webapp.setHeaderColor('#2481cc');
       webapp.setBackgroundColor('#ffffff');
       
-      // Получение данных пользователя из Telegram
       if (webapp.initDataUnsafe && webapp.initDataUnsafe.user) {
         setUser(webapp.initDataUnsafe.user);
       }
       
-      // Настройка главной кнопки
       webapp.MainButton.setText('Обновить данные');
       webapp.MainButton.onClick(() => loadData());
       webapp.MainButton.show();
@@ -42,54 +39,46 @@ function App() {
       setLoading(true);
       setError(null);
 
-      // Получаем ID пользователя из Telegram
-      let currentUserId = 1; // Fallback для демо
+      let currentUserId = 1;
       
       if (user && user.id) {
-        // Аутентификация через Telegram
         try {
-          const authResponse = await axios.post(`${API_BASE}/auth/telegram`, {
+          const authResponse = await axios.post(`${API_BASE}/api/auth/telegram`, {
             telegram_id: user.id.toString(),
             first_name: user.first_name,
             last_name: user.last_name,
-            username: user.username,
-            init_data: tg ? tg.initData : ''
+            username: user.username
           });
           currentUserId = authResponse.data.user_id;
         } catch (authError) {
-          console.error('Ошибка аутентификации:', authError);
-          // Продолжаем с демо данными
+          console.error('Auth error:', authError);
         }
       }
 
-      // Инициализируем демо данные только если пользователь не из Telegram
       if (!user) {
-        await axios.post(`${API_BASE}/init-demo-data`);
+        await axios.post(`${API_BASE}/api/init-demo-data`);
       }
 
-      // Загружаем статистику и транзакции
       const [statsResponse, transactionsResponse] = await Promise.all([
-        axios.get(`${API_BASE}/users/${currentUserId}/stats`),
-        axios.get(`${API_BASE}/users/${currentUserId}/transactions`)
+        axios.get(`${API_BASE}/api/users/${currentUserId}/stats`),
+        axios.get(`${API_BASE}/api/users/${currentUserId}/transactions`)
       ]);
 
       setStats(statsResponse.data);
       setTransactions(transactionsResponse.data);
       
-      // Обновляем главную кнопку
       if (tg && tg.MainButton) {
-        tg.MainButton.setText('✅ Данные обновлены');
+        tg.MainButton.setText('✅ Обновлено');
         setTimeout(() => {
           tg.MainButton.setText('Обновить данные');
         }, 2000);
       }
       
     } catch (err) {
-      setError('Ошибка загрузки данных: ' + err.message);
+      setError('Ошибка загрузки: ' + err.message);
       
-      // Показываем ошибку через Telegram
       if (tg && tg.showAlert) {
-        tg.showAlert('Ошибка загрузки данных: ' + err.message);
+        tg.showAlert('Ошибка: ' + err.message);
       }
     } finally {
       setLoading(false);
