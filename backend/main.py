@@ -1,5 +1,5 @@
 """
-Finio API - Простое и рабочее приложение с Telegram Mini App
+Finio API - Простое приложение с Telegram Mini App
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,15 +8,12 @@ from pydantic import BaseModel
 from typing import List, Optional
 import json
 import os
-import asyncio
 from datetime import datetime, date
 
 # Telegram Bot
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp import web
 
 app = FastAPI(
     title="Finio API",
@@ -44,7 +41,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 # Telegram Bot настройки
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://your-domain.com")
+TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://studiofinance.ru")
 
 # Инициализация бота
 bot = Bot(token=TELEGRAM_BOT_TOKEN) if TELEGRAM_BOT_TOKEN else None
@@ -123,29 +120,33 @@ def get_next_id(items: list) -> int:
 
 # Telegram Bot обработчики
 if bot and dp:
-    def get_webapp_keyboard():
-        """Клавиатура с Mini App"""
+    @dp.message(Command("start"))
+    async def start_command(message: types.Message):
+        """Обработчик команды /start"""
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
                 text="💰 Открыть Finio",
                 url="https://t.me/FinanceStudio_bot/Finio"
             )]
         ])
-        return keyboard
-
-    @dp.message(Command("start"))
-    async def start_command(message: types.Message):
-        """Обработчик команды /start"""
+        
         await message.answer(
             "Добро пожаловать в Finio! 💰\n\n"
             "Управляйте своими финансами прямо в Telegram.\n"
             "Нажмите кнопку ниже, чтобы открыть Mini App:",
-            reply_markup=get_webapp_keyboard()
+            reply_markup=keyboard
         )
 
     @dp.message(Command("help"))
     async def help_command(message: types.Message):
         """Обработчик команды /help"""
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(
+                text="💰 Открыть Finio",
+                url="https://t.me/FinanceStudio_bot/Finio"
+            )]
+        ])
+        
         await message.answer(
             "🤖 <b>Finio - Управление финансами</b>\n\n"
             "💰 Отслеживайте доходы и расходы\n"
@@ -153,7 +154,7 @@ if bot and dp:
             "📈 Анализируйте финансы\n\n"
             "Нажмите кнопку ниже, чтобы открыть Mini App:",
             parse_mode="HTML",
-            reply_markup=get_webapp_keyboard()
+            reply_markup=keyboard
         )
 
 # API эндпоинты
