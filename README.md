@@ -1,141 +1,44 @@
-# 💎 Finio - Умный контроль финансов
+# 💎 Finio - Финансовый трекер
 
-Современное финансовое приложение с веб-версией и Telegram Mini App для учета личных финансов.
+Современное приложение для учета личных финансов с веб-версией и Telegram Mini App.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-
-## ✨ Особенности
-
-- 💰 **Учет доходов и расходов** - полный контроль над финансами
-- 📊 **Аналитика и графики** - визуализация трат и доходов
-- 💳 **Управление счетами** - несколько карт и счетов
-- 🎯 **Категории** - гибкая система категоризации
-- 📱 **Telegram Mini App** - доступ из мессенджера
-- 🌐 **Веб-версия** - полноценный сайт
-- 🎨 **Современный дизайн** - темная тема с градиентами
-
-## 🚀 Быстрый старт
-
-### Установка зависимостей
+## 🚀 Установка
 
 ```bash
-# Backend
-cd server && npm install
-
-# Website
-cd ../website-frontend && npm install
-
-# Mini App
-cd ../mini-app-frontend && npm install
+cd server && npm install && cd ../website-frontend && npm install && cd ../mini-app-frontend && npm install && cd ..
 ```
 
-### Настройка
+## ⚙️ Настройка
 
-Создайте `.env` в папке `server`:
+Создайте `server/.env`:
 
 ```env
 PORT=3000
 BOT_TOKEN=your_telegram_bot_token
-JWT_SECRET=your_secret_key_change_this
+JWT_SECRET=your_secret_key
 ```
 
-### Запуск
+## 🏃 Запуск
+
+Откройте 3 терминала:
 
 ```bash
-# Backend
+# Терминал 1
 cd server && npm run dev
 
-# Website (новый терминал)
+# Терминал 2
 cd website-frontend && npm run dev
 
-# Mini App (новый терминал)
+# Терминал 3
 cd mini-app-frontend && npm run dev
 ```
 
-📖 **Подробная инструкция**: [INSTALL.md](INSTALL.md)
+## 📱 Доступ
+
+- Backend: http://localhost:3000
+- Website: http://localhost:5173
+- Mini App: http://localhost:5174
 
 ## 🛠 Технологии
 
-- **Frontend**: React 18 + Vite
-- **Backend**: Node.js + Express
-- **Database**: SQLite
-- **Bot**: Telegraf
-- **Auth**: JWT
-- **Styling**: Custom CSS
-
-## 📁 Структура проекта
-
-```
-finio/
-├── server/              # Backend API
-│   ├── api/            # API endpoints
-│   ├── db/             # Database
-│   ├── bot/            # Telegram bot
-│   └── middleware/     # Auth middleware
-├── website-frontend/    # Веб-версия
-│   └── src/
-├── mini-app-frontend/   # Telegram Mini App
-│   └── src/
-└── README.md
-```
-
-## 🎯 API
-
-### Основные endpoints
-
-```
-POST   /api/transactions      # Создать транзакцию
-GET    /api/transactions      # Получить транзакции
-PUT    /api/transactions/:id  # Обновить
-DELETE /api/transactions/:id  # Удалить
-
-GET    /api/categories        # Категории
-GET    /api/assets            # Счета
-GET    /api/statistics/dashboard  # Статистика
-```
-
-## 🎨 Дизайн
-
-Современная темная тема с акцентом на удобство:
-
-- **Цвета**: Градиенты от #00D9A3 до #00F5B8
-- **Шрифт**: Plus Jakarta Sans
-- **Анимации**: Плавные переходы
-- **Адаптив**: Оптимизировано для всех устройств
-
-## 📱 Telegram Bot
-
-1. Создайте бота через [@BotFather](https://t.me/BotFather)
-2. Получите токен
-3. Добавьте в `.env`
-4. Настройте Web App URL
-
-## 🚀 Деплой
-
-### Backend (Railway/Heroku)
-```bash
-git push heroku main
-```
-
-### Frontend (Vercel/Netlify)
-```bash
-npm run build
-vercel deploy
-```
-
-## 🤝 Вклад
-
-Приветствуются Pull Requests! Для больших изменений сначала откройте Issue.
-
-## 📄 Лицензия
-
-MIT © 2026
-
-## 💬 Контакты
-
-Вопросы? Создайте [Issue](../../issues)
-
----
-
-Сделано с ❤️ для управления личными финансами
+React + Node.js + Express + SQLite + Telegraf
