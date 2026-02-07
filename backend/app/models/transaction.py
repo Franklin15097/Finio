@@ -1,5 +1,5 @@
 """
-Модель транзакции
+Модель транзакции для MySQL
 """
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, ForeignKey, Enum, Numeric, func
 from sqlalchemy.orm import relationship
@@ -9,6 +9,7 @@ from app.models.category import TransactionType
 
 class Transaction(Base):
     __tablename__ = "transactions"
+    __table_args__ = {'mysql_charset': 'utf8mb4', 'mysql_collate': 'utf8mb4_unicode_ci'}
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

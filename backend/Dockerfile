@@ -1,9 +1,10 @@
 FROM python:3.11-slim
 
-# Установка системных зависимостей
+# Установка системных зависимостей для MySQL
 RUN apt-get update && apt-get install -y \
     gcc \
-    libpq-dev \
+    default-libmysqlclient-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Создание рабочей директории
