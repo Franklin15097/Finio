@@ -1,26 +1,27 @@
-FROM python:3.11-slim
+FROM node:18-alpine
 
-# Установка системных зависимостей для MySQL
-RUN apt-get update && apt-get install -y \
-    gcc \
-    default-libmysqlclient-dev \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# Установка зависимостей
+RUN apk add --no-cache mysql-client
 
 # Создание рабочей директории
 WORKDIR /app
 
-# Копирование файлов зависимостей
-COPY requirements.txt .
+# Копирование package.json
+COPY package.json .
 
-# Установка Python зависимостей
-RUN pip install --no-cache-dir -r requirements.txt
+# Установка зависимостей
+RUN npm install --production
 
-# Копирование кода приложения
+# Копирование кода
 COPY . .
+
+# Создание пользователя
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
 
 # Открытие порта
 EXPOSE 8000
 
 # Команда запуска
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["npm", "start"]

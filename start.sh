@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "🚀 FINIO STARTER - Система управления финансами"
-echo "=============================================="
+echo "🚀 FINIO V2.0 - ULTRA FAST INSTALLATION"
+echo "======================================="
 
 # Проверка прав root
 if [ "$EUID" -ne 0 ]; then
@@ -9,289 +9,283 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Переход в рабочую директорию
 WORK_DIR="/var/www/finio"
+EMAIL="maks50kucherenko@gmail.com"
+DOMAIN="studiofinance.ru"
 
-# Функция для проверки статуса
-check_status() {
-    echo ""
-    echo "📊 Статус сервисов:"
-    if [ -f "$WORK_DIR/docker-compose.yml" ]; then
-        cd "$WORK_DIR"
-        docker-compose ps
-    else
-        echo "❌ Проект не установлен"
-        return 1
-    fi
-    
-    echo ""
-    echo "🔍 Проверка доступности:"
-    
-    # Проверка MySQL
-    if docker-compose exec -T mysql mysqladmin ping -h localhost -u finio_user -pmaks15097 >/dev/null 2>&1; then
-        echo "✅ MySQL: Работает"
-    else
-        echo "❌ MySQL: Не отвечает"
-    fi
-    
-    # Проверка Backend API
-    if curl -f -s http://localhost:8000/health >/dev/null 2>&1; then
-        echo "✅ Backend API: Работает"
-    else
-        echo "❌ Backend API: Не отвечает"
-    fi
-    
-    # Проверка Frontend
-    if curl -f -s http://localhost:3000 >/dev/null 2>&1; then
-        echo "✅ Frontend: Работает"
-    else
-        echo "❌ Frontend: Не отвечает"
-    fi
-    
-    # Проверка Nginx
-    if curl -f -s http://localhost/health >/dev/null 2>&1; then
-        echo "✅ Nginx Proxy: Работает"
-    else
-        echo "❌ Nginx Proxy: Не отвечает"
-    fi
-    
-    # Проверка внешней доступности
-    if curl -f -s https://studiofinance.ru/health >/dev/null 2>&1; then
-        echo "✅ Внешний доступ: Работает"
-    else
-        echo "❌ Внешний доступ: Недоступен"
-    fi
-    
-    # Проверка Bot Status
-    BOT_STATUS=$(curl -s https://studiofinance.ru/bot-status 2>/dev/null | jq -r .bot_initialized 2>/dev/null)
-    if [ "$BOT_STATUS" = "true" ]; then
-        echo "✅ Telegram Bot: Инициализирован"
-    else
-        echo "❌ Telegram Bot: Не инициализирован"
-    fi
+echo "📧 Email: $EMAIL"
+echo "🌐 Домен: $DOMAIN"
+echo "⚡ Архитектура: Node.js + MySQL 8+ + Nginx"
+echo ""
+
+# 1. Установка зависимостей
+echo "🔧 1/6 Установка зависимостей..."
+apt-get update -y
+apt-get install -y curl git jq nodejs npm mysql-server-8.0 nginx certbot python3-certbot-nginx
+
+# 2. Настройка MySQL
+echo "🗄️ 2/6 Настройка MySQL 8+..."
+systemctl start mysql
+systemctl enable mysql
+
+# Создание базы данных
+mysql -u root << 'EOF'
+CREATE DATABASE IF NOT EXISTS finio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'finio_user'@'localhost' IDENTIFIED BY 'maks15097';
+GRANT ALL PRIVILEGES ON finio.* TO 'finio_user'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+echo "✅ MySQL настроен"
+
+# 3. Клонирование и настройка проекта
+echo "📥 3/6 Клонирование проекта..."
+mkdir -p "$WORK_DIR"
+cd "$WORK_DIR"
+
+if [ -d ".git" ]; then
+    git pull origin main
+else
+    git clone https://github.com/Franklin15097/Finio.git .
+fi
+
+# 4. Установка backend
+echo "⚡ 4/6 Установка Node.js backend..."
+cd "$WORK_DIR/backend"
+npm install --production
+
+# Тест подключения к базе
+if node -e "
+const mysql = require('mysql2/promise');
+mysql.createConnection({
+  host: 'localhost',
+  user: 'finio_user', 
+  password: 'maks15097',
+  database: 'finio'
+}).then(() => {
+  console.log('✅ Database connection OK');
+  process.exit(0);
+}).catch(err => {
+  console.error('❌ Database connection failed:', err.message);
+  process.exit(1);
+});
+"; then
+    echo "✅ Backend готов"
+else
+    echo "❌ Ошибка подключения к базе данных"
+    exit 1
+fi
+
+# 5. Настройка systemd сервиса для backend
+echo "🔧 5/6 Настройка systemd сервиса..."
+cat > /etc/systemd/system/finio-backend.service << EOF
+[Unit]
+Description=Finio Backend API
+After=network.target mysql.service
+Requires=mysql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=$WORK_DIR/backend
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable finio-backend
+systemctl start finio-backend
+
+# Проверка запуска backend
+sleep 5
+if curl -f -s http://localhost:8000/health >/dev/null 2>&1; then
+    echo "✅ Backend запущен"
+else
+    echo "❌ Backend не запустился"
+    systemctl status finio-backend
+    exit 1
+fi
+
+# 6. Настройка Nginx с SSL
+echo "🔒 6/6 Настройка Nginx с SSL..."
+
+# Получение SSL сертификата
+certbot --nginx -d $DOMAIN -d www.$DOMAIN \
+    --non-interactive \
+    --agree-tos \
+    --email $EMAIL \
+    --redirect
+
+# Настройка Nginx конфигурации
+cat > /etc/nginx/sites-available/finio << 'EOF'
+server {
+    listen 80;
+    server_name studiofinance.ru www.studiofinance.ru;
+    return 301 https://$server_name$request_uri;
 }
 
-# Функция установки системы
-install_system() {
-    echo "📦 УСТАНОВКА FINIO С НУЛЯ..."
+server {
+    listen 443 ssl http2;
+    server_name studiofinance.ru www.studiofinance.ru;
     
-    # Установка зависимостей
-    echo "🔧 1. Установка зависимостей..."
+    ssl_certificate /etc/letsencrypt/live/studiofinance.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/studiofinance.ru/privkey.pem;
     
-    # Docker
-    if ! command -v docker &> /dev/null; then
-        echo "🐳 Установка Docker..."
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sh get-docker.sh
-        systemctl enable docker
-        systemctl start docker
-        rm -f get-docker.sh
-    fi
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
     
-    # Docker Compose
-    if ! command -v docker-compose &> /dev/null; then
-        echo "🐳 Установка Docker Compose..."
-        curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        chmod +x /usr/local/bin/docker-compose
-    fi
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
     
-    # jq для парсинга JSON
-    if ! command -v jq &> /dev/null; then
-        echo "📦 Установка jq..."
-        apt-get update && apt-get install -y jq
-    fi
+    # API routes
+    location /api/ {
+        proxy_pass http://localhost:8000/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_cache_bypass $http_upgrade;
+    }
     
-    # Создание рабочей директории
-    echo "📁 2. Создание рабочей директории..."
-    mkdir -p "$WORK_DIR"
-    cd "$WORK_DIR"
+    # Health check
+    location /health {
+        proxy_pass http://localhost:8000/health;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
     
-    # Клонирование проекта
-    echo "📥 3. Клонирование проекта..."
-    if [ -d ".git" ]; then
-        git pull origin main
-    else
-        git clone https://github.com/Franklin15097/Finio.git .
-    fi
+    # Mini App
+    location /miniapp {
+        proxy_pass http://localhost:8000/miniapp;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
     
-    # Установка прав
-    echo "🔐 4. Установка прав доступа..."
-    chown -R root:root "$WORK_DIR"
-    chmod -R 755 "$WORK_DIR"
+    # Bot webhook
+    location /bot-webhook {
+        proxy_pass http://localhost:8000/bot-webhook;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
     
-    echo "✅ Установка завершена!"
+    # Static frontend (placeholder)
+    location / {
+        root /var/www/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
 }
+EOF
 
-# Функция запуска сервисов
-start_services() {
-    echo "🚀 ЗАПУСК СЕРВИСОВ..."
-    
-    if [ ! -f "$WORK_DIR/docker-compose.yml" ]; then
-        echo "❌ Проект не установлен. Запускаю установку..."
-        install_system
-    fi
-    
-    cd "$WORK_DIR"
-    
-    # Остановка старых контейнеров
-    echo "⏹️ Остановка старых контейнеров..."
-    docker-compose down 2>/dev/null || true
-    
-    # Сборка и запуск
-    echo "🔨 Сборка контейнеров..."
-    docker-compose build --no-cache
-    
-    echo "🚀 Запуск контейнеров..."
-    docker-compose up -d
-    
-    echo "⏳ Ожидание запуска сервисов (45 секунд)..."
-    sleep 45
-    
-    check_status
-    
-    echo ""
-    echo "🎉 СИСТЕМА ЗАПУЩЕНА!"
-    echo ""
-    echo "🌐 Доступ:"
-    echo "• Веб-сайт: https://studiofinance.ru"
-    echo "• API: https://studiofinance.ru/api"
-    echo "• Mini App: https://t.me/FinanceStudio_bot/Finio"
-    echo "• Health Check: https://studiofinance.ru/health"
-    echo ""
-    echo "🔧 Локальная разработка:"
-    echo "• Backend: http://localhost:8000"
-    echo "• Frontend: http://localhost:3000"
-    echo "• Nginx: http://localhost"
-    echo ""
-    echo "📋 Диагностика:"
-    echo "• Логи: docker-compose logs -f"
-    echo "• Статус: docker-compose ps"
-    echo "• Диагностика: ./diagnose.sh"
-    echo ""
-}
+# Активация конфигурации
+ln -sf /etc/nginx/sites-available/finio /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl reload nginx
 
-# Функция остановки
-stop_services() {
-    echo "⏹️ ОСТАНОВКА СЕРВИСОВ..."
-    if [ -f "$WORK_DIR/docker-compose.yml" ]; then
-        cd "$WORK_DIR"
-        docker-compose down
-        echo "✅ Все сервисы остановлены"
-    else
-        echo "❌ Проект не найден"
-    fi
-}
+# Создание простой главной страницы
+cat > /var/www/html/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finio - Система управления финансами</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 3rem; margin-bottom: 1rem; }
+        p { font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9; }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #10B981;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .performance {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Finio</h1>
+        <p>Система управления финансами</p>
+        <a href="https://t.me/FinanceStudio_bot/Finio" class="btn">Открыть Mini App</a>
+        <div class="performance">
+            ⚡ Ultra Fast: Node.js + MySQL 8+ + Nginx
+        </div>
+    </div>
+</body>
+</html>
+EOF
 
-# Функция перезапуска
-restart_services() {
-    echo "🔄 ПЕРЕЗАПУСК СЕРВИСОВ..."
-    if [ -f "$WORK_DIR/docker-compose.yml" ]; then
-        cd "$WORK_DIR"
-        docker-compose restart
-        sleep 15
-        check_status
-    else
-        echo "❌ Проект не найден"
-    fi
-}
+# Настройка автообновления SSL
+echo "0 12 * * * /usr/bin/certbot renew --quiet" | crontab -
 
-# Функция просмотра логов
-show_logs() {
-    echo "📋 ЛОГИ СЕРВИСОВ (Ctrl+C для выхода):"
-    if [ -f "$WORK_DIR/docker-compose.yml" ]; then
-        cd "$WORK_DIR"
-        docker-compose logs -f
-    else
-        echo "❌ Проект не найден"
-    fi
-}
+echo ""
+echo "🎉 УСТАНОВКА ЗАВЕРШЕНА!"
+echo ""
+echo "🌐 Доступ:"
+echo "• Веб-сайт: https://$DOMAIN"
+echo "• API: https://$DOMAIN/api"
+echo "• Mini App: https://t.me/FinanceStudio_bot/Finio"
+echo "• Health: https://$DOMAIN/health"
+echo ""
+echo "🔧 Управление:"
+echo "• Backend: systemctl status finio-backend"
+echo "• MySQL: systemctl status mysql"
+echo "• Nginx: systemctl status nginx"
+echo ""
+echo "📊 Производительность:"
+echo "• Backend: Node.js + Express (Ultra Fast ⚡)"
+echo "• Database: MySQL 8+ (Системный)"
+echo "• Proxy: Nginx (Системный с SSL)"
+echo ""
+echo "⏰ Время установки: ~3-5 минут"
+echo "🔄 SSL автообновление настроено"
 
-# Функция полной переустановки
-full_reinstall() {
-    echo "🔥 ПОЛНАЯ ПЕРЕУСТАНОВКА..."
-    echo "⚠️  Это удалит ВСЕ данные! Продолжить? (y/N)"
-    read -p "> " confirm
-    
-    if [[ $confirm =~ ^[Yy]$ ]]; then
-        # Остановка и удаление
-        if [ -f "$WORK_DIR/docker-compose.yml" ]; then
-            cd "$WORK_DIR"
-            docker-compose down --volumes --remove-orphans 2>/dev/null || true
-        fi
-        
-        # Очистка Docker
-        docker system prune -af --volumes 2>/dev/null || true
-        
-        # Удаление директории
-        rm -rf "$WORK_DIR"
-        
-        # Переустановка
-        install_system
-        start_services
-        
-        echo "✅ Полная переустановка завершена!"
-    else
-        echo "❌ Переустановка отменена"
-    fi
-}
-
-# Главное меню
-show_menu() {
+# Финальная проверка
+sleep 10
+if curl -f -s https://$DOMAIN/health >/dev/null 2>&1; then
     echo ""
-    echo "🎯 FINIO CONTROL PANEL"
-    echo "====================="
-    echo "1) 🚀 Запустить систему"
-    echo "2) ⏹️  Остановить систему"
-    echo "3) 🔄 Перезапустить систему"
-    echo "4) 📊 Показать статус"
-    echo "5) 📋 Показать логи"
-    echo "6) 📦 Установить/обновить"
-    echo "7) 🔥 Полная переустановка"
-    echo "0) ❌ Выход"
+    echo "✅ ВСЕ РАБОТАЕТ! Сайт доступен по адресу: https://$DOMAIN"
+else
     echo ""
-    read -p "Выберите действие: " choice
-    
-    case $choice in
-        1) start_services ;;
-        2) stop_services ;;
-        3) restart_services ;;
-        4) check_status ;;
-        5) show_logs ;;
-        6) install_system ;;
-        7) full_reinstall ;;
-        0) echo "👋 До свидания!"; exit 0 ;;
-        *) echo "❌ Неверный выбор" ;;
-    esac
-}
-
-# Проверка аргументов командной строки
-case "${1:-}" in
-    "start") start_services ;;
-    "stop") stop_services ;;
-    "restart") restart_services ;;
-    "status") check_status ;;
-    "logs") show_logs ;;
-    "install") install_system ;;
-    "reinstall") full_reinstall ;;
-    *)
-        echo "🎯 FINIO STARTER v2.0"
-        echo "Использование: $0 [start|stop|restart|status|logs|install|reinstall]"
-        echo ""
-        
-        if [ $# -eq 0 ]; then
-            # Автоматический запуск если проект не установлен
-            if [ ! -f "$WORK_DIR/docker-compose.yml" ]; then
-                echo "🔍 Проект не найден. Запускаю автоматическую установку..."
-                install_system
-                start_services
-            else
-                # Интерактивное меню
-                while true; do
-                    show_menu
-                    echo ""
-                    read -p "Нажмите Enter для продолжения..."
-                done
-            fi
-        fi
-        ;;
-esac
+    echo "⚠️ Проверьте настройки DNS - сайт может быть недоступен извне"
+    echo "🔍 Локальная проверка: curl http://localhost:8000/health"
+fi
