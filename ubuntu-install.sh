@@ -59,6 +59,10 @@ echo "🔨 Сборка фронтенда..."
 cd website-frontend && npm run build && cd ..
 cd mini-app-frontend && npm run build && cd ..
 
+# Перезапуск сервиса для применения изменений
+echo "🔄 Перезапуск сервиса..."
+systemctl restart finio
+
 # Создание .env файла
 echo "⚙️  Создание конфигурации..."
 cat > server/.env << EOF

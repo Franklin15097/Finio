@@ -20,6 +20,14 @@
 curl -fsSL https://raw.githubusercontent.com/Franklin15097/Finio/main/ubuntu-install.sh | sudo bash
 ```
 
+## 🔄 Быстрое обновление
+
+**Для обновления уже установленного проекта:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Franklin15097/Finio/main/update.sh | sudo bash
+```
+
 ## 🚀 Установка на хостинге (старый способ)
 
 **Одна команда для полной установки:**
