@@ -88,14 +88,39 @@ export function ExpensesPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Saving expense:', formData);
+    
+    // Создаем новый расход
+    const newExpense = {
+      id: Date.now(),
+      title: formData.title,
+      amount: parseFloat(formData.amount),
+      category_name: 'Без категории',
+      transaction_date: formData.transaction_date
+    };
+    
+    // Добавляем в список
+    setExpenses([newExpense, ...expenses]);
+    
+    // Закрываем модалку и очищаем форму
     setShowModal(false);
     setFormData({ title: '', amount: '', category_id: '', transaction_date: new Date().toISOString().split('T')[0] });
   };
 
   const handleRecurringSubmit = (e) => {
     e.preventDefault();
-    console.log('Saving recurring expense:', recurringFormData);
+    
+    // Создаем новый обязательный платеж
+    const newRecurring = {
+      id: Date.now(),
+      title: recurringFormData.title,
+      amount: parseFloat(recurringFormData.amount),
+      yearly_amount: parseFloat(recurringFormData.amount) * 12
+    };
+    
+    // Добавляем в список
+    setRecurringExpenses([...recurringExpenses, newRecurring]);
+    
+    // Закрываем модалку и очищаем форму
     setShowRecurringModal(false);
     setRecurringFormData({ title: '', amount: '' });
   };
@@ -157,87 +182,92 @@ export function ExpensesPage() {
         </div>
       </div>
 
-      {/* Chart */}
-      <div className="card" style={{ marginBottom: 'var(--space-8)' }}>
-        <div className="card-header">
-          <h3 className="card-title">Динамика расходов</h3>
-          <div className="filter-tabs">
-            <button className="filter-tab active">Месяц</button>
-            <button className="filter-tab">Год</button>
-            <button className="filter-tab">Всё время</button>
+      {/* Chart and Recurring Expenses - Side by Side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-6)', marginBottom: 'var(--space-8)' }}>
+        {/* Chart */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Динамика расходов</h3>
+            <div className="filter-tabs">
+              <button className="filter-tab active">Месяц</button>
+              <button className="filter-tab">Год</button>
+            </div>
+          </div>
+          <div className="chart-container">
+            <Line data={chartData} options={chartOptions} />
           </div>
         </div>
-        <div className="chart-container">
-          <Line data={chartData} options={chartOptions} />
-        </div>
-      </div>
 
-      {/* Recurring Expenses */}
-      <div className="card" style={{ marginBottom: 'var(--space-8)' }}>
-        <div className="card-header">
-          <h3 className="card-title">Ежемесячные обязательные расходы</h3>
-          <button className="btn btn-primary" onClick={() => setShowRecurringModal(true)}>
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Добавить
-          </button>
+        {/* Recurring Expenses */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Обязательные расходы</h3>
+            <button className="btn btn-primary" onClick={() => setShowRecurringModal(true)}>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Добавить
+            </button>
+          </div>
+          
+          {recurringExpenses.length === 0 ? (
+            <div style={{ 
+              padding: 'var(--space-8)', 
+              textAlign: 'center',
+              color: 'var(--text-secondary)'
+            }}>
+              <svg 
+                width="48" 
+                height="48" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                style={{ 
+                  margin: '0 auto var(--space-3)',
+                  opacity: 0.3
+                }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p style={{ fontSize: 'var(--text-base)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
+                Нет платежей
+              </p>
+              <p style={{ fontSize: 'var(--text-sm)' }}>
+                Добавьте регулярные платежи
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', padding: 'var(--space-2)' }}>
+              {recurringExpenses.map((expense) => (
+                <div key={expense.id} style={{
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: 'var(--space-4)',
+                  transition: 'var(--transition)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-2)' }}>
+                    <h4 style={{ fontSize: 'var(--text-base)', fontWeight: 700 }}>{expense.title}</h4>
+                    <button 
+                      style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}
+                      onClick={() => setRecurringExpenses(recurringExpenses.filter(e => e.id !== expense.id))}
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 'var(--text-xl)', fontWeight: 800, color: 'var(--warning)', marginBottom: 'var(--space-1)' }}>
+                    {formatCurrency(expense.amount)}
+                  </div>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                    {formatCurrency(expense.yearly_amount)} в год
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        
-        {recurringExpenses.length === 0 ? (
-          <div style={{ 
-            padding: 'var(--space-12)', 
-            textAlign: 'center',
-            color: 'var(--text-secondary)'
-          }}>
-            <svg 
-              width="64" 
-              height="64" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-              style={{ 
-                margin: '0 auto var(--space-4)',
-                opacity: 0.3
-              }}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p style={{ fontSize: 'var(--text-lg)', fontWeight: 600, marginBottom: 'var(--space-2)' }}>
-              Нет обязательных платежей
-            </p>
-            <p style={{ fontSize: 'var(--text-sm)' }}>
-              Добавьте регулярные платежи (аренда, интернет, подписки)
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-            {recurringExpenses.map((expense) => (
-              <div key={expense.id} style={{
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                padding: 'var(--space-5)',
-                transition: 'var(--transition)'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-3)' }}>
-                  <h4 style={{ fontSize: 'var(--text-lg)', fontWeight: 700 }}>{expense.title}</h4>
-                  <button style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-                <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 800, color: 'var(--warning)', marginBottom: 'var(--space-2)' }}>
-                  {formatCurrency(expense.amount)}
-                </div>
-                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-                  {formatCurrency(expense.yearly_amount)} в год
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Expenses Table */}

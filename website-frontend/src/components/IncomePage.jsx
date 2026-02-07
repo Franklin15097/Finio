@@ -94,9 +94,22 @@ export function IncomePage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Здесь будет API запрос
-    console.log('Saving income:', formData);
+    
+    // Создаем новый доход
+    const newIncome = {
+      id: Date.now(),
+      title: formData.title,
+      amount: parseFloat(formData.amount),
+      category_name: 'Без категории',
+      transaction_date: formData.transaction_date
+    };
+    
+    // Добавляем в список
+    setIncomes([newIncome, ...incomes]);
+    
+    // Закрываем модалку и очищаем форму
     setShowModal(false);
+    setEditingIncome(null);
     setFormData({ title: '', amount: '', category_id: '', transaction_date: new Date().toISOString().split('T')[0] });
   };
 
