@@ -16,7 +16,7 @@ apt-get update && apt-get upgrade -y
 
 # Установка необходимых пакетов
 echo "📦 Установка системных зависимостей..."
-apt-get install -y curl wget git build-essential python3 python3-pip nginx ufw
+apt-get install -y curl wget git build-essential python3 python3-pip nginx ufw certbot python3-certbot-nginx sqlite3
 
 # Установка Node.js 20.x (LTS)
 echo "📦 Установка Node.js..."
@@ -61,15 +61,18 @@ cd mini-app-frontend && npm run build && cd ..
 
 # Создание .env файла
 echo "⚙️  Создание конфигурации..."
-if [ ! -f "server/.env" ]; then
-    cat > server/.env << EOF
+cat > server/.env << EOF
 PORT=3000
-BOT_TOKEN=your_telegram_bot_token_here
+BOT_TOKEN=8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34
 JWT_SECRET=$(openssl rand -base64 32)
 NODE_ENV=production
+DB_NAME=finio
+DB_USER=finio_user
+DB_PASSWORD=maks15097
+ADMIN_EMAIL=maks50kucherenko@gmail.com
+DOMAIN=studiofinance.ru
 EOF
-    echo "📝 Создан server/.env"
-fi
+echo "📝 Создан server/.env с настройками"
 
 # Создание пользователя для приложения
 echo "👤 Создание пользователя finio..."
@@ -107,7 +110,7 @@ echo "🌐 Настройка Nginx..."
 cat > /etc/nginx/sites-available/finio << EOF
 server {
     listen 80;
-    server_name localhost;
+    server_name studiofinance.ru www.studiofinance.ru;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -129,6 +132,14 @@ rm -f /etc/nginx/sites-enabled/default
 
 # Проверка конфигурации Nginx
 nginx -t
+
+# Настройка SSL сертификата
+echo "🔒 Настройка SSL сертификата..."
+certbot --nginx -d studiofinance.ru -d www.studiofinance.ru --non-interactive --agree-tos --email maks50kucherenko@gmail.com --redirect
+
+# Автообновление SSL
+systemctl enable certbot.timer
+systemctl start certbot.timer
 
 # Настройка файрвола
 echo "🔥 Настройка файрвола..."
@@ -172,15 +183,13 @@ echo "🎉 УСТАНОВКА ЗАВЕРШЕНА!"
 echo "======================"
 echo ""
 echo "📍 Доступные адреса:"
-echo "   🌐 Веб-сайт:     http://$SERVER_IP"
-echo "   🌐 Локально:     http://localhost"
-echo "   📱 Mini App:     http://$SERVER_IP/mini-app"
-echo "   🔧 API:          http://$SERVER_IP/api"
+echo "   🌐 Веб-сайт:     https://studiofinance.ru"
+echo "   🌐 Альтернатива: https://www.studiofinance.ru"
+echo "   📱 Mini App:     https://studiofinance.ru/mini-app"
+echo "   🔧 API:          https://studiofinance.ru/api"
 echo ""
-echo "⚙️  ВАЖНО! Настройте Telegram бота:"
-echo "   1. Отредактируйте: /opt/Finio/server/.env"
-echo "   2. Добавьте BOT_TOKEN от @BotFather"
-echo "   3. Перезапустите: systemctl restart finio"
+echo "🤖 Telegram бот уже настроен с токеном!"
+echo "   Бот готов к работе: @FranklinFATБот"
 echo ""
 echo "📋 Управление сервисом:"
 echo "   Статус:      systemctl status finio"
@@ -191,6 +200,7 @@ echo "   Логи:        journalctl -u finio -f"
 echo ""
 echo "🔧 Файлы проекта: /opt/Finio"
 echo "🔧 Конфигурация:  /opt/Finio/server/.env"
+echo "🔒 SSL сертификат настроен и будет автоматически обновляться"
 echo ""
 echo "🚀 КОМАНДА ДЛЯ БЫСТРОЙ УСТАНОВКИ:"
 echo "curl -fsSL https://raw.githubusercontent.com/Franklin15097/Finio/main/ubuntu-install.sh | sudo bash"
