@@ -13,6 +13,8 @@ import {
   Filler
 } from 'chart.js';
 import { IncomePage } from './IncomePage';
+import { ExpensesPage } from './ExpensesPage';
+import { AssetsPage } from './AssetsPage';
 import '../styles/dark-premium.css';
 
 ChartJS.register(
@@ -229,6 +231,14 @@ export function UltimateDashboard({ user, onLogout }) {
   const renderContent = () => {
     if (currentView === 'income') {
       return <IncomePage />;
+    }
+    
+    if (currentView === 'expenses') {
+      return <ExpensesPage />;
+    }
+    
+    if (currentView === 'assets') {
+      return <AssetsPage />;
     }
     
     if (currentView !== 'dashboard') {
