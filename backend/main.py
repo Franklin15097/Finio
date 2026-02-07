@@ -125,11 +125,10 @@ def get_next_id(items: list) -> int:
 if bot and dp:
     def get_webapp_keyboard():
         """Клавиатура с Mini App"""
-        miniapp_url = f"{TELEGRAM_WEBHOOK_URL}/miniapp"
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(
-                text="💰 Открыть Crypto Bot",
-                web_app=WebAppInfo(url=miniapp_url)
+                text="💰 Открыть Finio",
+                url="https://t.me/FinanceStudio_bot/Finio"
             )]
         ])
         return keyboard
@@ -138,9 +137,9 @@ if bot and dp:
     async def start_command(message: types.Message):
         """Обработчик команды /start"""
         await message.answer(
-            "Добро пожаловать в Crypto Bot! 💰\n\n"
+            "Добро пожаловать в Finio! 💰\n\n"
             "Управляйте своими финансами прямо в Telegram.\n"
-            "Нажмите кнопку ниже, чтобы открыть приложение:",
+            "Нажмите кнопку ниже, чтобы открыть Mini App:",
             reply_markup=get_webapp_keyboard()
         )
 
@@ -148,11 +147,11 @@ if bot and dp:
     async def help_command(message: types.Message):
         """Обработчик команды /help"""
         await message.answer(
-            "🤖 <b>Crypto Bot - Управление финансами</b>\n\n"
+            "🤖 <b>Finio - Управление финансами</b>\n\n"
             "💰 Отслеживайте доходы и расходы\n"
             "📊 Просматривайте статистику\n"
             "📈 Анализируйте финансы\n\n"
-            "Нажмите кнопку ниже, чтобы открыть приложение:",
+            "Нажмите кнопку ниже, чтобы открыть Mini App:",
             parse_mode="HTML",
             reply_markup=get_webapp_keyboard()
         )
@@ -177,7 +176,7 @@ async def miniapp():
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#2481cc" />
-        <title>Crypto Bot</title>
+        <title>Finio</title>
         <script src="https://telegram.org/js/telegram-web-app.js"></script>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -258,7 +257,7 @@ async def miniapp():
     <body>
         <div class="container">
             <div class="header">
-                <h1>💰 Crypto Bot</h1>
+                <h1>💰 Finio</h1>
                 <p id="user-info">Загрузка...</p>
             </div>
             
