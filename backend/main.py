@@ -38,7 +38,15 @@ class User(BaseModel):
     id: int
     email: str
     name: str
+    telegram_id: Optional[str] = None
     created_at: str
+
+class TelegramAuthRequest(BaseModel):
+    telegram_id: str
+    first_name: str
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    init_data: str = ""
 
 class Category(BaseModel):
     id: int
@@ -210,6 +218,36 @@ async def get_stats(user_id: int):
 @app.post("/bot-webhook/")
 async def bot_webhook():
     return {"status": "webhook received"}
+
+# Telegram аутентификация
+@app.post("/api/auth/telegram")
+async def authenticate_telegram_user(auth_data: TelegramAuthRequest):
+    """Аутентификация пользователя через Telegram"""
+    users = load_json(USERS_FILE)
+    
+    # Ищем пользователя по Telegram ID
+    user = next((u for u in users if u.get('telegram_id') == auth_data.telegram_id), None)
+    
+    if user:
+        return {"user_id": user['id'], "message": "Пользователь найден"}
+    
+    # Создаем нового пользователя
+    full_name = auth_data.first_name
+    if auth_data.last_name:
+        full_name += f" {auth_data.last_name}"
+    
+    new_user = {
+        "id": get_next_id(users),
+        "email": f"telegram_{auth_data.telegram_id}@telegram.local",
+        "name": full_name,
+        "telegram_id": auth_data.telegram_id,
+        "created_at": datetime.now().isoformat()
+    }
+    
+    users.append(new_user)
+    save_json(USERS_FILE, users)
+    
+    return {"user_id": new_user['id'], "message": "Новый пользователь создан"}
 
 # Создание тестовых данных
 @app.post("/api/init-demo-data")

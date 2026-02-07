@@ -2,49 +2,41 @@
 Клавиатуры для Telegram бота
 """
 from typing import List
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from app.models.category import Category
 
 
-def get_main_keyboard() -> ReplyKeyboardMarkup:
-    """Основная клавиатура бота"""
+def get_main_keyboard() -> InlineKeyboardMarkup:
+    """Основная клавиатура бота с Mini App"""
+    from app.core.config import settings
+    
+    # URL для Mini App
+    webapp_url = settings.TELEGRAM_WEBHOOK_URL or "https://your-domain.com"
+    
     keyboard = [
         [
-            KeyboardButton(text="💰 Добавить доход"),
-            KeyboardButton(text="💸 Добавить расход")
-        ],
-        [
-            KeyboardButton(text="📊 Баланс"),
-            KeyboardButton(text="📈 Статистика")
-        ],
-        [
-            KeyboardButton(text="📋 Категории"),
-            KeyboardButton(text="⚙️ Настройки")
+            InlineKeyboardButton(
+                text="💰 Открыть Crypto Bot",
+                web_app=WebAppInfo(url=webapp_url)
+            )
         ]
     ]
     
-    return ReplyKeyboardMarkup(
-        keyboard=keyboard,
-        resize_keyboard=True,
-        one_time_keyboard=False
-    )
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def get_auth_keyboard() -> InlineKeyboardMarkup:
     """Клавиатура для неавторизованных пользователей"""
     from app.core.config import settings
     
+    # URL для Mini App (ваш домен + путь к фронтенду)
+    webapp_url = settings.TELEGRAM_WEBHOOK_URL or "https://your-domain.com"
+    
     keyboard = [
         [
             InlineKeyboardButton(
-                text="🔗 Привязать аккаунт",
-                callback_data="link_account"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text="📱 Открыть веб-версию",
-                url=settings.TELEGRAM_WEBHOOK_URL or "https://your-domain.com"
+                text="💰 Открыть Crypto Bot",
+                web_app=WebAppInfo(url=webapp_url)
             )
         ]
     ]

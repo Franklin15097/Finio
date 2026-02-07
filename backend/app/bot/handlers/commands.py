@@ -17,52 +17,28 @@ router = Router()
 @router.message(CommandStart())
 async def start_command(message: Message):
     """Обработчик команды /start"""
-    async with AsyncSessionLocal() as db:
-        user_service = UserService(db)
-        
-        # Проверяем, есть ли пользователь с таким Telegram ID
-        user = await user_service.get_user_by_telegram_id(str(message.from_user.id))
-        
-        if user:
-            # Пользователь уже зарегистрирован
-            await message.answer(
-                f"Добро пожаловать обратно, {user.full_name or 'пользователь'}! 👋\n\n"
-                "Выберите действие:",
-                reply_markup=get_main_keyboard()
-            )
-        else:
-            # Новый пользователь
-            await message.answer(
-                "Добро пожаловать в Finio! 💰\n\n"
-                "Для начала работы необходимо привязать ваш Telegram аккаунт к учетной записи.\n\n"
-                "Если у вас еще нет аккаунта, зарегистрируйтесь на сайте, а затем используйте команду /link для привязки.",
-                reply_markup=get_auth_keyboard()
-            )
+    await message.answer(
+        "Добро пожаловать в Crypto Bot! 💰\n\n"
+        "Управляйте своими финансами прямо в Telegram.\n"
+        "Нажмите кнопку ниже, чтобы открыть приложение:",
+        reply_markup=get_main_keyboard()
+    )
 
 
 @router.message(Command("help"))
 async def help_command(message: Message):
     """Обработчик команды /help"""
     help_text = """
-🤖 <b>Команды бота Finio:</b>
+🤖 <b>Crypto Bot - Управление финансами</b>
 
-/start - Начать работу с ботом
-/help - Показать это сообщение
-/balance - Показать текущий баланс
-/add_income - Добавить доход
-/add_expense - Добавить расход
-/stats - Показать статистику
-/categories - Управление категориями
-/link - Привязать аккаунт
+💰 Отслеживайте доходы и расходы
+📊 Просматривайте статистику
+📈 Анализируйте финансы
 
-📊 <b>Быстрые действия:</b>
-• Отправьте сумму (например: 500) для быстрого добавления расхода
-• Используйте кнопки меню для навигации
-
-💡 <b>Подсказка:</b> Все операции синхронизируются с веб-версией!
+Нажмите кнопку ниже, чтобы открыть приложение:
     """
     
-    await message.answer(help_text, parse_mode="HTML")
+    await message.answer(help_text, parse_mode="HTML", reply_markup=get_main_keyboard())
 
 
 @router.message(Command("balance"))
