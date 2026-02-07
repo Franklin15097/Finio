@@ -50,8 +50,12 @@ export function RegisterForm({ onRegister, onBack }) {
         token: response.token
       });
     } catch (err) {
-      setError('Ошибка регистрации. Возможно, email уже используется.');
       console.error('Register error:', err);
+      if (err.message.includes('Failed to register')) {
+        setError('Email уже используется. Попробуйте войти или используйте другой email.');
+      } else {
+        setError('Ошибка регистрации: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
