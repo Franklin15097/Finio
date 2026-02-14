@@ -4,7 +4,7 @@ import { getIconComponent } from '../components/IconPicker';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
-const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
+const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#a78bfa', '#f472b6', '#fb923c'];
 
 export default function Balance() {
   const [stats, setStats] = useState<any>(null);
@@ -142,56 +142,52 @@ export default function Balance() {
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-white/20 hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <Wallet className="w-6 h-6 text-white" />
               </div>
-              <p className="text-gray-400 text-sm">Баланс</p>
             </div>
-            <p className={`text-4xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <p className="text-gray-300 text-sm font-medium mb-1">Баланс</p>
+            <p className={`text-3xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {balance >= 0 ? '+' : ''}{balance.toFixed(2)} ₽
             </p>
           </div>
         </div>
 
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-white/20 hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
-              <p className="text-gray-400 text-sm">Доходы</p>
             </div>
-            <p className="text-4xl font-bold text-white">{(stats?.totalIncome || 0).toFixed(2)} ₽</p>
+            <p className="text-gray-300 text-sm font-medium mb-1">Доходы</p>
+            <p className="text-3xl font-bold text-white">{(stats?.totalIncome || 0).toFixed(2)} ₽</p>
           </div>
         </div>
 
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-white/20 hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <TrendingDown className="w-6 h-6 text-white" />
               </div>
-              <p className="text-gray-400 text-sm">Расходы</p>
             </div>
-            <p className="text-4xl font-bold text-white">{(stats?.totalExpense || 0).toFixed(2)} ₽</p>
+            <p className="text-gray-300 text-sm font-medium mb-1">Расходы</p>
+            <p className="text-3xl font-bold text-white">{(stats?.totalExpense || 0).toFixed(2)} ₽</p>
           </div>
         </div>
 
         <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-white/20 hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <PiggyBank className="w-6 h-6 text-white" />
               </div>
-              <p className="text-gray-400 text-sm">На счетах</p>
             </div>
-            <p className="text-4xl font-bold text-white">{totalActual.toFixed(2)} ₽</p>
+            <p className="text-gray-300 text-sm font-medium mb-1">На счетах</p>
+            <p className="text-3xl font-bold text-white">{totalActual.toFixed(2)} ₽</p>
           </div>
         </div>
       </div>
@@ -200,183 +196,188 @@ export default function Balance() {
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Income vs Expenses Chart */}
-        <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                📊
-              </div>
+        <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 hover:scale-[1.01] transition-all duration-300 border border-white/20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-3">
               Доходы vs Расходы
             </h2>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               {['all', 'week', 'month', 'year'].map((period) => (
                 <button
                   key={period}
                   onClick={() => setBarChartDateRange(period as any)}
-                  className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                  className={`px-4 py-2 text-xs font-medium rounded-full transition-all ${
                     barChartDateRange === period
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      ? 'bg-white text-gray-900 shadow-lg'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
                   }`}
                 >
-                  {period === 'all' && 'Всё'}
-                  {period === 'week' && '7д'}
-                  {period === 'month' && '30д'}
-                  {period === 'year' && '365д'}
+                  {period === 'all' && 'Всё время'}
+                  {period === 'week' && '7 дней'}
+                  {period === 'month' && '30 дней'}
+                  {period === 'year' && '365 дней'}
                 </button>
               ))}
             </div>
           </div>
           {monthlyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={monthlyData} barGap={8}>
                 <defs>
                   <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="100%" stopColor="#059669" stopOpacity={0.6}/>
+                    <stop offset="0%" stopColor="#34d399" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.8}/>
                   </linearGradient>
                   <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8}/>
-                    <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6}/>
+                    <stop offset="0%" stopColor="#fb7185" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.8}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
                 <XAxis 
                   dataKey="month" 
                   stroke="#9ca3af" 
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '13px', fontWeight: '500' }}
+                  axisLine={false}
+                  tickLine={false}
                 />
                 <YAxis 
                   stroke="#9ca3af" 
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '13px', fontWeight: '500' }}
+                  axisLine={false}
+                  tickLine={false}
                 />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
+                    border: 'none',
                     borderRadius: '16px',
-                    color: '#fff',
-                    padding: '12px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+                    color: '#1f2937',
+                    padding: '12px 16px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                    fontWeight: '600'
                   }}
-                  formatter={(value: any) => `${parseFloat(value).toFixed(2)} ₽`}
-                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                  formatter={(value: any) => [`${parseFloat(value).toFixed(2)} ₽`, '']}
+                  labelStyle={{ color: '#6b7280', fontWeight: '500', marginBottom: '4px' }}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 8 }}
                 />
                 <Bar 
                   dataKey="income" 
                   fill="url(#incomeGradient)" 
-                  radius={[12, 12, 0, 0]} 
+                  radius={[16, 16, 0, 0]} 
                   name="Доходы"
-                  animationDuration={1000}
+                  animationDuration={800}
                   animationBegin={0}
+                  maxBarSize={60}
                 />
                 <Bar 
                   dataKey="expense" 
                   fill="url(#expenseGradient)" 
-                  radius={[12, 12, 0, 0]} 
+                  radius={[16, 16, 0, 0]} 
                   name="Расходы"
-                  animationDuration={1000}
-                  animationBegin={200}
+                  animationDuration={800}
+                  animationBegin={100}
+                  maxBarSize={60}
                 />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-12">Нет данных</p>
+            <div className="flex items-center justify-center h-[320px]">
+              <p className="text-gray-400 text-sm">Нет данных для отображения</p>
+            </div>
           )}
         </div>
 
         {/* Category Expenses Pie Chart */}
-        <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                🥧
-              </div>
+        <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 hover:scale-[1.01] transition-all duration-300 border border-white/20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-white flex items-center gap-3">
               Расходы по категориям
             </h2>
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               {['all', 'week', 'month', 'year'].map((period) => (
                 <button
                   key={period}
                   onClick={() => setPieChartDateRange(period as any)}
-                  className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                  className={`px-4 py-2 text-xs font-medium rounded-full transition-all ${
                     pieChartDateRange === period
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                      ? 'bg-white text-gray-900 shadow-lg'
+                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
                   }`}
                 >
-                  {period === 'all' && 'Всё'}
-                  {period === 'week' && '7д'}
-                  {period === 'month' && '30д'}
-                  {period === 'year' && '365д'}
+                  {period === 'all' && 'Всё время'}
+                  {period === 'week' && '7 дней'}
+                  {period === 'month' && '30 дней'}
+                  {period === 'year' && '365 дней'}
                 </button>
               ))}
             </div>
           </div>
           {categoryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={320}>
               <PieChart>
-                <defs>
-                  {COLORS.map((color, index) => (
-                    <linearGradient key={`gradient-${index}`} id={`colorGradient${index}`} x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity={0.9}/>
-                      <stop offset="100%" stopColor={color} stopOpacity={0.7}/>
-                    </linearGradient>
-                  ))}
-                </defs>
                 <Pie
                   data={categoryData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
-                  paddingAngle={5}
+                  innerRadius={80}
+                  outerRadius={120}
+                  paddingAngle={3}
                   dataKey="value"
-                  animationDuration={1000}
+                  animationDuration={800}
                   animationBegin={0}
                 >
                   {categoryData.map((entry: any, index: number) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={`url(#colorGradient${index % COLORS.length})`}
-                      stroke="rgba(255,255,255,0.1)"
+                      fill={COLORS[index % COLORS.length]}
+                      stroke="rgba(255,255,255,0.2)"
                       strokeWidth={2}
                     />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
+                    border: 'none',
                     borderRadius: '16px',
-                    color: '#fff',
-                    padding: '12px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+                    color: '#1f2937',
+                    padding: '12px 16px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+                    fontWeight: '600'
                   }}
-                  formatter={(value: any) => `${parseFloat(value).toFixed(2)} ₽`}
+                  formatter={(value: any) => [`${parseFloat(value).toFixed(2)} ₽`, '']}
+                  labelStyle={{ color: '#6b7280', fontWeight: '500', marginBottom: '4px' }}
                 />
                 <Legend 
-                  wrapperStyle={{ color: '#fff', fontSize: '14px' }}
+                  wrapperStyle={{ 
+                    color: '#fff', 
+                    fontSize: '13px',
+                    fontWeight: '500'
+                  }}
                   iconType="circle"
+                  iconSize={10}
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-12">Нет данных</p>
+            <div className="flex items-center justify-center h-[320px]">
+              <p className="text-gray-400 text-sm">Нет данных для отображения</p>
+            </div>
           )}
         </div>
       </div>
       </div>
 
       {/* Accounts Section */}
-      <div className="glass-card rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Счета</h2>
+      <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 border border-white/20">
+        <h2 className="text-xl font-semibold text-white mb-6">Счета</h2>
         {accounts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {accounts.map((account) => (
               <div
                 key={account.id}
-                className="bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300 hover:scale-105"
+                className="bg-white/5 hover:bg-white/10 rounded-[24px] p-6 transition-all duration-300 hover:scale-[1.02] border border-white/10"
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-3xl">
@@ -409,16 +410,16 @@ export default function Balance() {
       </div>
 
       {/* Recent Transactions */}
-      <div className="glass-card rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Последние транзакции</h2>
+      <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 border border-white/20">
+        <h2 className="text-xl font-semibold text-white mb-6">Последние транзакции</h2>
         {stats?.recentTransactions?.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {stats.recentTransactions.map((transaction: any) => {
               const IconComponent = getIconComponent(transaction.category_icon);
               return (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-2xl p-4 transition-all"
+                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-[20px] p-5 transition-all border border-white/10"
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
