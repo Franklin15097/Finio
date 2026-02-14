@@ -5,7 +5,6 @@ import {
   TrendingUp, 
   TrendingDown, 
   Wallet, 
-  Settings,
   LogOut,
   Sparkles
 } from 'lucide-react';
@@ -20,10 +19,9 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
+    { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-blue-500 to-indigo-600' },
     { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-green-500 to-emerald-600' },
     { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-red-500 to-pink-600' },
-    { path: '/balance', icon: Wallet, label: 'Баланс', gradient: 'from-blue-500 to-indigo-600' },
-    { path: '/settings', icon: Settings, label: 'Настройки', gradient: 'from-purple-500 to-indigo-600' },
   ];
 
   return (
