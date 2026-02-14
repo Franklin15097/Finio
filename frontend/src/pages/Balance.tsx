@@ -19,11 +19,12 @@ export default function Balance() {
 
   const loadData = async () => {
     try {
-      const [statsData, accountsData] = await Promise.all([
+      const [statsData, accountsData, transactionsData] = await Promise.all([
         api.getDashboardStats(),
-        api.getAccounts()
+        api.getAccounts(),
+        api.getTransactions()
       ]);
-      setStats(statsData);
+      setStats({...statsData, allTransactions: transactionsData});
       setAccounts(accountsData);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -45,8 +46,8 @@ export default function Balance() {
   const balance = (stats?.totalIncome || 0) - (stats?.totalExpense || 0);
 
   // Filter function for date ranges
-  const filterByDateRange = (data: any[], dateRange: string) => {
-    if (dateRange === 'all' || !data) return data;
+  const filterTransactionsByDateRange = (transactions: any[], dateRange: string) => {
+    if (dateRange === 'all' || !transactions) return transactions;
     
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -76,39 +77,57 @@ export default function Balance() {
         break;
     }
     
-    return data.filter((item: any) => {
-      if (item.transaction_date) {
-        const itemDate = new Date(item.transaction_date);
-        itemDate.setHours(0, 0, 0, 0);
-        return itemDate >= startDate && itemDate <= today;
-      }
-      return true;
+    return transactions.filter((item: any) => {
+      const itemDate = new Date(item.transaction_date);
+      itemDate.setHours(0, 0, 0, 0);
+      return itemDate >= startDate && itemDate <= today;
     });
   };
 
   // Prepare monthly trend data with filtering
-  const allMonthlyData = stats?.monthlyTrend?.reduce((acc: any[], item: any) => {
-    const existing = acc.find(d => d.month === item.month);
+  const filteredBarTransactions = filterTransactionsByDateRange(stats?.allTransactions || [], barChartDateRange);
+  
+  const monthlyData = filteredBarTransactions.reduce((acc: any[], transaction: any) => {
+    const month = new Date(transaction.transaction_date).toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
+    const existing = acc.find(d => d.month === month);
+    const amount = parseFloat(transaction.amount);
+    
     if (existing) {
-      existing[item.type] = parseFloat(item.total);
+      if (transaction.transaction_type === 'income') {
+        existing.income = (existing.income || 0) + amount;
+      } else {
+        existing.expense = (existing.expense || 0) + amount;
+      }
     } else {
       acc.push({
-        month: item.month,
-        [item.type]: parseFloat(item.total)
+        month,
+        income: transaction.transaction_type === 'income' ? amount : 0,
+        expense: transaction.transaction_type === 'expense' ? amount : 0
       });
     }
     return acc;
-  }, []) || [];
-  
-  const monthlyData = barChartDateRange === 'all' ? allMonthlyData : allMonthlyData;
+  }, []);
 
   // Prepare category expenses data with filtering
-  const allCategoryData = stats?.categoryExpenses?.filter((c: any) => c.total > 0).map((c: any) => ({
-    name: c.name,
-    value: parseFloat(c.total)
-  })) || [];
+  const filteredPieTransactions = filterTransactionsByDateRange(
+    (stats?.allTransactions || []).filter((t: any) => t.transaction_type === 'expense'),
+    pieChartDateRange
+  );
   
-  const categoryData = pieChartDateRange === 'all' ? allCategoryData : allCategoryData;
+  const categoryData = filteredPieTransactions.reduce((acc: any[], transaction: any) => {
+    const existing = acc.find(c => c.name === transaction.category_name);
+    const amount = parseFloat(transaction.amount);
+    
+    if (existing) {
+      existing.value += amount;
+    } else {
+      acc.push({
+        name: transaction.category_name,
+        value: amount
+      });
+    }
+    return acc;
+  }, []).filter((c: any) => c.value > 0);
 
   return (
     <div className="space-y-6">
