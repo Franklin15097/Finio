@@ -2,13 +2,12 @@ import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
-  LayoutDashboard, 
   TrendingUp, 
   TrendingDown, 
   Wallet, 
   Settings,
-  Bell,
-  User
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -21,47 +20,52 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { path: '/income', icon: TrendingUp, label: 'Доходы' },
-    { path: '/expenses', icon: TrendingDown, label: 'Расходы' },
-    { path: '/balance', icon: Wallet, label: 'Баланс' },
-    { path: '/settings', icon: Settings, label: 'Настройки' },
+    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-green-500 to-emerald-600' },
+    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-red-500 to-pink-600' },
+    { path: '/balance', icon: Wallet, label: 'Баланс', gradient: 'from-blue-500 to-indigo-600' },
+    { path: '/settings', icon: Settings, label: 'Настройки', gradient: 'from-purple-500 to-indigo-600' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#2D3748]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Animated background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 h-20 bg-[#4A5568] border-b border-gray-600 z-50">
-        <div className="h-full px-8 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                <Wallet className="w-6 h-6 text-white" />
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/10">
+        <div className="h-20 px-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-75"></div>
+              <div className="relative w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
+                <Sparkles className="w-7 h-7 text-white" />
               </div>
-              <span className="text-white text-xl font-semibold">Finio</span>
+            </div>
+            <div>
+              <span className="text-white text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Finio</span>
+              <p className="text-xs text-gray-400">Финансовый помощник</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-gray-300 text-sm">{user?.name}</span>
-            <button className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center hover:bg-gray-500 transition">
-              <User className="w-5 h-5 text-white" />
-            </button>
-            <button className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center hover:bg-gray-500 transition">
-              <Bell className="w-5 h-5 text-white" />
-            </button>
-            <button 
-              onClick={() => navigate('/settings')}
-              className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center hover:bg-gray-500 transition"
-            >
-              <Settings className="w-5 h-5 text-white" />
-            </button>
+            <div className="text-right">
+              <p className="text-white font-medium">{user?.name}</p>
+              <p className="text-xs text-gray-400">{user?.email}</p>
+            </div>
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-20 bottom-0 w-64 bg-[#4A5568] border-r border-gray-600 p-4">
-        <nav className="space-y-2">
+      <aside className="fixed left-0 top-20 bottom-0 w-72 backdrop-blur-xl bg-white/5 border-r border-white/10 p-6">
+        <nav className="space-y-3">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -69,14 +73,21 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                  isActive
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-600'
+                className={`w-full group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                  isActive ? 'scale-105' : 'hover:scale-105'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                {isActive && (
+                  <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-100`}></div>
+                )}
+                <div className={`relative flex items-center gap-4 px-6 py-4 ${
+                  isActive 
+                    ? 'text-white' 
+                    : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'
+                }`}>
+                  <Icon className="w-6 h-6" />
+                  <span className="font-semibold text-lg">{item.label}</span>
+                </div>
               </button>
             );
           })}
@@ -84,15 +95,18 @@ export default function Layout({ children }: LayoutProps) {
 
         <button
           onClick={logout}
-          className="absolute bottom-4 left-4 right-4 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition font-medium"
+          className="absolute bottom-6 left-6 right-6 flex items-center justify-center gap-3 px-6 py-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-2xl transition-all duration-300 font-semibold border border-red-500/30"
         >
-          Logout
+          <LogOut className="w-5 h-5" />
+          Выйти
         </button>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 mt-20 p-8">
-        {children}
+      <main className="ml-72 mt-20 p-8 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
