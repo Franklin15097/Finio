@@ -80,29 +80,35 @@ export default function Income() {
     if (dateRange !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      today.setHours(0, 0, 0, 0);
       
       filtered = filtered.filter(t => {
         const transactionDate = new Date(t.transaction_date);
+        transactionDate.setHours(0, 0, 0, 0);
         
         switch (dateRange) {
           case 'today':
-            return transactionDate >= today;
+            const todayEnd = new Date(today);
+            todayEnd.setHours(23, 59, 59, 999);
+            return transactionDate >= today && transactionDate <= todayEnd;
           case 'week':
             const weekAgo = new Date(today);
             weekAgo.setDate(weekAgo.getDate() - 7);
-            return transactionDate >= weekAgo;
+            return transactionDate >= weekAgo && transactionDate <= today;
           case 'month':
             const monthAgo = new Date(today);
             monthAgo.setMonth(monthAgo.getMonth() - 1);
-            return transactionDate >= monthAgo;
+            return transactionDate >= monthAgo && transactionDate <= today;
           case 'year':
             const yearAgo = new Date(today);
             yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-            return transactionDate >= yearAgo;
+            return transactionDate >= yearAgo && transactionDate <= today;
           case 'custom':
             if (customDateFrom && customDateTo) {
               const from = new Date(customDateFrom);
+              from.setHours(0, 0, 0, 0);
               const to = new Date(customDateTo);
+              to.setHours(23, 59, 59, 999);
               return transactionDate >= from && transactionDate <= to;
             }
             return true;
@@ -249,25 +255,29 @@ export default function Income() {
     if (totalDateRange !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      today.setHours(0, 0, 0, 0);
       
       filtered = filtered.filter(t => {
         const transactionDate = new Date(t.transaction_date);
+        transactionDate.setHours(0, 0, 0, 0);
         
         switch (totalDateRange) {
           case 'today':
-            return transactionDate >= today;
+            const todayEnd = new Date(today);
+            todayEnd.setHours(23, 59, 59, 999);
+            return transactionDate >= today && transactionDate <= todayEnd;
           case 'week':
             const weekAgo = new Date(today);
             weekAgo.setDate(weekAgo.getDate() - 7);
-            return transactionDate >= weekAgo;
+            return transactionDate >= weekAgo && transactionDate <= today;
           case 'month':
             const monthAgo = new Date(today);
             monthAgo.setMonth(monthAgo.getMonth() - 1);
-            return transactionDate >= monthAgo;
+            return transactionDate >= monthAgo && transactionDate <= today;
           case 'year':
             const yearAgo = new Date(today);
             yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-            return transactionDate >= yearAgo;
+            return transactionDate >= yearAgo && transactionDate <= today;
           default:
             return true;
         }
