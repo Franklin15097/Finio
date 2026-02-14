@@ -521,8 +521,6 @@ export default function Expenses() {
               </button>
             )}
           </div>
-      <div className="glass-card rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">История ({filteredTransactions.length})</h2>
         {filteredTransactions.length > 0 ? (
           <div className="space-y-4">
             {filteredTransactions.map((transaction) => {
