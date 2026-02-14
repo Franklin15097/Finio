@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { User, Percent, Save } from 'lucide-react';
+import { User, Percent, Save, Sparkles } from 'lucide-react';
 
 export default function Settings() {
   const { user } = useAuth();
@@ -11,8 +11,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
 
   const tabs = [
-    { id: 'distribution', label: 'Распределение', icon: Percent },
-    { id: 'profile', label: 'Профиль', icon: User },
+    { id: 'distribution', label: 'Распределение', icon: Percent, gradient: 'from-purple-500 to-pink-600' },
+    { id: 'profile', label: 'Профиль', icon: User, gradient: 'from-blue-500 to-indigo-600' },
   ];
 
   useEffect(() => {
@@ -39,7 +39,6 @@ export default function Settings() {
   const saveDistribution = async () => {
     setSaving(true);
     try {
-      // Validate total is 100%
       const total = accounts.reduce((sum, acc) => sum + parseFloat(acc.percentage || 0), 0);
       if (Math.abs(total - 100) > 0.01) {
         alert(`Сумма процентов должна быть 100%. Сейчас: ${total.toFixed(2)}%`);
@@ -47,7 +46,6 @@ export default function Settings() {
         return;
       }
 
-      // Save each account
       for (const account of accounts) {
         await api.updateAccount(account.id, {
           percentage: parseFloat(account.percentage)
@@ -67,36 +65,50 @@ export default function Settings() {
   const totalPercentage = accounts.reduce((sum, acc) => sum + parseFloat(acc.percentage || 0), 0);
 
   if (loading) {
-    return <div className="text-gray-400">Загрузка...</div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Настройки</h1>
-        <p className="text-gray-500 mt-1">Управление аккаунтом и распределением</p>
+        <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          Настройки
+        </h1>
+        <p className="text-gray-400">Управление аккаунтом и распределением</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <nav className="space-y-2">
+          <div className="glass-card rounded-3xl p-4">
+            <nav className="space-y-3">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                      activeTab === tab.id
-                        ? 'bg-indigo-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                    className={`w-full group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                      isActive ? 'scale-105' : 'hover:scale-105'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{tab.label}</span>
+                    {isActive && (
+                      <div className={`absolute inset-0 bg-gradient-to-r ${tab.gradient}`}></div>
+                    )}
+                    <div className={`relative flex items-center gap-3 px-4 py-3 ${
+                      isActive 
+                        ? 'text-white' 
+                        : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'
+                    }`}>
+                      <Icon className="w-5 h-5" />
+                      <span className="font-semibold">{tab.label}</span>
+                    </div>
                   </button>
                 );
               })}
@@ -107,40 +119,43 @@ export default function Settings() {
         {/* Content */}
         <div className="lg:col-span-3">
           {activeTab === 'distribution' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
+            <div className="glass-card rounded-3xl p-8">
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Распределение доходов</h2>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <h2 className="text-2xl font-bold text-white mb-2">Распределение доходов</h2>
+                  <p className="text-gray-400 text-sm">
                     Укажите процент от доходов для каждого счёта
                   </p>
                 </div>
                 <button
                   onClick={saveDistribution}
                   disabled={saving}
-                  className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-xl transition font-medium"
+                  className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                 >
-                  <Save className="w-5 h-5" />
-                  {saving ? 'Сохранение...' : 'Сохранить'}
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  <div className="relative flex items-center gap-2 text-white font-semibold">
+                    <Save className="w-5 h-5" />
+                    {saving ? 'Сохранение...' : 'Сохранить'}
+                  </div>
                 </button>
               </div>
 
               {/* Total Percentage Indicator */}
-              <div className={`mb-6 p-4 rounded-xl ${
+              <div className={`mb-8 p-6 rounded-2xl transition-all ${
                 Math.abs(totalPercentage - 100) < 0.01 
-                  ? 'bg-green-50 border border-green-200' 
-                  : 'bg-red-50 border border-red-200'
+                  ? 'bg-gradient-to-r from-green-500/20 to-emerald-600/20 border border-green-500/30' 
+                  : 'bg-gradient-to-r from-red-500/20 to-pink-600/20 border border-red-500/30'
               }`}>
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-900">Общая сумма процентов:</span>
-                  <span className={`text-2xl font-bold ${
-                    Math.abs(totalPercentage - 100) < 0.01 ? 'text-green-600' : 'text-red-600'
+                  <span className="font-semibold text-white text-lg">Общая сумма процентов:</span>
+                  <span className={`text-4xl font-bold ${
+                    Math.abs(totalPercentage - 100) < 0.01 ? 'text-green-400' : 'text-red-400'
                   }`}>
                     {totalPercentage.toFixed(2)}%
                   </span>
                 </div>
                 {Math.abs(totalPercentage - 100) >= 0.01 && (
-                  <p className="text-sm text-red-600 mt-2">
+                  <p className="text-sm text-red-400 mt-3">
                     Сумма должна быть 100%. Осталось: {(100 - totalPercentage).toFixed(2)}%
                   </p>
                 )}
@@ -148,22 +163,23 @@ export default function Settings() {
 
               {/* Accounts List */}
               <div className="space-y-4">
-                {accounts.map((account) => (
+                {accounts.map((account, index) => (
                   <div
                     key={account.id}
-                    className="p-4 border border-gray-200 rounded-xl hover:border-indigo-300 transition"
+                    className="bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center text-2xl">
                           {account.icon === 'wallet' && '💳'}
                           {account.icon === 'card' && '💳'}
                           {account.icon === 'bank' && '🏦'}
                           {account.icon === 'savings' && '🐷'}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">{account.name}</p>
-                          <p className="text-sm text-gray-500 capitalize">{account.type}</p>
+                          <p className="font-bold text-white text-lg">{account.name}</p>
+                          <p className="text-sm text-gray-400 capitalize">{account.type}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -174,9 +190,9 @@ export default function Settings() {
                           max="100"
                           value={account.percentage}
                           onChange={(e) => handlePercentageChange(account.id, e.target.value)}
-                          className="w-24 px-4 py-2 text-right border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-bold text-lg"
+                          className="w-28 px-4 py-3 text-right bg-white/5 border border-white/10 rounded-xl text-white font-bold text-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
-                        <span className="text-gray-500 font-medium">%</span>
+                        <span className="text-gray-400 font-semibold text-xl">%</span>
                       </div>
                     </div>
                   </div>
@@ -184,9 +200,12 @@ export default function Settings() {
               </div>
 
               {accounts.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">Нет счетов для настройки</p>
-                  <p className="text-sm text-gray-400 mt-2">
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
+                    <Percent className="w-12 h-12 text-white" />
+                  </div>
+                  <p className="text-gray-400 text-lg">Нет счетов для настройки</p>
+                  <p className="text-gray-500 text-sm mt-2">
                     Создайте счета на странице "Баланс"
                   </p>
                 </div>
@@ -195,47 +214,50 @@ export default function Settings() {
           )}
 
           {activeTab === 'profile' && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Информация профиля</h2>
+            <div className="glass-card rounded-3xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-8">Информация профиля</h2>
               
               <div className="space-y-6">
                 <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
-                    <User className="w-10 h-10 text-indigo-600" />
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full blur-lg opacity-75"></div>
+                    <div className="relative w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-3xl">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
                   </div>
-                  <button className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition font-medium">
+                  <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold transition-all">
                     Изменить аватар
                   </button>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Имя</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Имя</label>
                   <input
                     type="text"
                     defaultValue={user?.name}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                   <input
                     type="email"
                     defaultValue={user?.email}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Новый пароль</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Новый пароль</label>
                   <input
                     type="password"
                     placeholder="Оставьте пустым, чтобы не менять"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
-                <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium">
+                <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300">
                   Сохранить изменения
                 </button>
               </div>

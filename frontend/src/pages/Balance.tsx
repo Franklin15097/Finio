@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Plus, Wallet, Edit2, Save, X } from 'lucide-react';
+import { Plus, Wallet, Edit2, Save, X, TrendingUp, TrendingDown, PiggyBank } from 'lucide-react';
 
 export default function Balance() {
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -75,7 +75,11 @@ export default function Balance() {
   const difference = totalActual - totalPlanned;
 
   if (loading) {
-    return <div className="text-gray-400">Загрузка...</div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
@@ -83,91 +87,122 @@ export default function Balance() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Баланс</h1>
-          <p className="text-gray-500 mt-1">Управление счетами и распределение средств</p>
+          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            Баланс
+          </h1>
+          <p className="text-gray-400">Управление счетами и распределение средств</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium"
+          className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50"
         >
-          <Plus className="w-5 h-5" />
-          Добавить счёт
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+          <div className="relative flex items-center gap-2 text-white font-semibold">
+            <Plus className="w-5 h-5" />
+            Добавить счёт
+          </div>
         </button>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Должно быть на счетах</p>
-          <p className="text-3xl font-bold text-gray-900">${totalPlanned.toFixed(2)}</p>
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+          <div className="relative glass-card rounded-3xl p-6">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-gray-400 text-sm">Должно быть</p>
+            </div>
+            <p className="text-4xl font-bold text-white">${totalPlanned.toFixed(2)}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Фактически на счетах</p>
-          <p className="text-3xl font-bold text-gray-900">${totalActual.toFixed(2)}</p>
+
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+          <div className="relative glass-card rounded-3xl p-6">
+            <div className="flex items-center gap-4 mb-2">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                <PiggyBank className="w-6 h-6 text-white" />
+              </div>
+              <p className="text-gray-400 text-sm">Фактически</p>
+            </div>
+            <p className="text-4xl font-bold text-white">${totalActual.toFixed(2)}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <p className="text-gray-500 text-sm mb-1">Разница</p>
-          <p className={`text-3xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {difference >= 0 ? '+' : ''}${difference.toFixed(2)}
-          </p>
+
+        <div className="relative group">
+          <div className={`absolute inset-0 ${difference >= 0 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-pink-600'} rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
+          <div className="relative glass-card rounded-3xl p-6">
+            <div className="flex items-center gap-4 mb-2">
+              <div className={`w-12 h-12 ${difference >= 0 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-red-500 to-pink-600'} rounded-xl flex items-center justify-center`}>
+                {difference >= 0 ? <TrendingUp className="w-6 h-6 text-white" /> : <TrendingDown className="w-6 h-6 text-white" />}
+              </div>
+              <p className="text-gray-400 text-sm">Разница</p>
+            </div>
+            <p className={`text-4xl font-bold ${difference >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {difference >= 0 ? '+' : ''}${difference.toFixed(2)}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Add Account Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Новый счёт</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="glass-card rounded-3xl p-8 animate-slide-down">
+          <h2 className="text-2xl font-bold text-white mb-6">Новый счёт</h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Название счёта</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Название счёта</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Например: Основной счёт"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Тип</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Тип</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                  <option value="checking">Текущий</option>
-                  <option value="savings">Накопительный</option>
-                  <option value="emergency">Подушка безопасности</option>
-                  <option value="cash">Наличные</option>
+                  <option value="checking" className="bg-slate-800">Текущий</option>
+                  <option value="savings" className="bg-slate-800">Накопительный</option>
+                  <option value="emergency" className="bg-slate-800">Подушка безопасности</option>
+                  <option value="cash" className="bg-slate-800">Наличные</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Иконка</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Иконка</label>
                 <select
                   value={formData.icon}
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
-                  <option value="wallet">💳 Кошелёк</option>
-                  <option value="card">💳 Карта</option>
-                  <option value="bank">🏦 Банк</option>
-                  <option value="savings">🐷 Копилка</option>
+                  <option value="wallet" className="bg-slate-800">💳 Кошелёк</option>
+                  <option value="card" className="bg-slate-800">💳 Карта</option>
+                  <option value="bank" className="bg-slate-800">🏦 Банк</option>
+                  <option value="savings" className="bg-slate-800">🐷 Копилка</option>
                 </select>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button
                 type="submit"
-                className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
               >
                 Создать счёт
               </button>
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition font-medium"
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold transition-all"
               >
                 Отмена
               </button>
@@ -177,52 +212,51 @@ export default function Balance() {
       )}
 
       {/* Accounts List */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Счета</h2>
+      <div className="glass-card rounded-3xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">Счета</h2>
         {accounts.length > 0 ? (
-          <div className="space-y-4">
-            {accounts.map((account) => (
+          <div className="space-y-6">
+            {accounts.map((account, index) => (
               <div
                 key={account.id}
-                className="p-6 border border-gray-200 rounded-xl hover:border-indigo-300 transition"
+                className="relative group bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl">
-                      {account.icon === 'wallet' && '💳'}
-                      {account.icon === 'card' && '💳'}
-                      {account.icon === 'bank' && '🏦'}
-                      {account.icon === 'savings' && '🐷'}
-                    </div>
-                    <div>
-                      <p className="text-lg font-bold text-gray-900">{account.name}</p>
-                      <p className="text-sm text-gray-500 capitalize">{account.type}</p>
-                    </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-3xl">
+                    {account.icon === 'wallet' && '💳'}
+                    {account.icon === 'card' && '💳'}
+                    {account.icon === 'bank' && '🏦'}
+                    {account.icon === 'savings' && '🐷'}
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-white">{account.name}</p>
+                    <p className="text-sm text-gray-400 capitalize">{account.type}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-500 mb-1">Должно быть</p>
-                    <p className="text-2xl font-bold text-gray-900">
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <p className="text-sm text-gray-400 mb-2">Должно быть</p>
+                    <p className="text-3xl font-bold text-white">
                       ${parseFloat(account.planned_balance || 0).toFixed(2)}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-indigo-50 rounded-xl">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm text-gray-500">Фактически</p>
+                  <div className="bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-xl p-4 border border-blue-500/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-300">Фактически</p>
                       {editingId === account.id ? (
                         <div className="flex gap-2">
                           <button
                             onClick={() => saveEdit(account.id)}
-                            className="p-1 text-green-600 hover:bg-green-100 rounded"
+                            className="p-1 text-green-400 hover:bg-green-500/20 rounded-lg transition-all"
                           >
                             <Save className="w-4 h-4" />
                           </button>
                           <button
                             onClick={cancelEdit}
-                            className="p-1 text-red-600 hover:bg-red-100 rounded"
+                            className="p-1 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -230,7 +264,7 @@ export default function Balance() {
                       ) : (
                         <button
                           onClick={() => startEdit(account)}
-                          className="p-1 text-indigo-600 hover:bg-indigo-100 rounded"
+                          className="p-1 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -242,11 +276,11 @@ export default function Balance() {
                         step="0.01"
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        className="w-full text-2xl font-bold text-gray-900 bg-white border border-indigo-300 rounded px-2 py-1"
+                        className="w-full text-3xl font-bold text-white bg-white/10 border border-blue-400/50 rounded-xl px-3 py-2"
                         autoFocus
                       />
                     ) : (
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-3xl font-bold text-white">
                         ${parseFloat(account.actual_balance || 0).toFixed(2)}
                       </p>
                     )}
@@ -256,12 +290,14 @@ export default function Balance() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Wallet className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">Нет счетов</p>
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
+              <Wallet className="w-12 h-12 text-white" />
+            </div>
+            <p className="text-gray-400 text-lg mb-4">Нет счетов</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition font-medium"
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
             >
               Создать первый счёт
             </button>
