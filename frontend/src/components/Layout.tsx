@@ -6,7 +6,8 @@ import {
   TrendingDown, 
   Wallet, 
   LogOut,
-  Sparkles
+  Sparkles,
+  User
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -26,7 +27,7 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
       {/* Animated background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
@@ -35,36 +36,27 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/10">
-        <div className="h-20 px-8 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/5 border-b border-white/10">
+        <div className="h-16 px-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-75"></div>
-              <div className="relative w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-white" />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-md opacity-75"></div>
+              <div className="relative w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
             </div>
-            <div>
-              <span className="text-white text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Finio</span>
-              <p className="text-xs text-gray-400">Финансовый помощник</p>
-            </div>
+            <span className="text-white text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Finio</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-white font-medium">{user?.name}</p>
-              <p className="text-xs text-gray-400">{user?.email}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-              {user?.name?.charAt(0).toUpperCase()}
-            </div>
+          <div className="text-xs text-gray-400">
+            Финансовый помощник
           </div>
         </div>
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-20 bottom-0 w-72 backdrop-blur-xl bg-white/5 border-r border-white/10 p-6">
-        <nav className="space-y-3">
+      <aside className="fixed left-0 top-16 bottom-0 w-64 backdrop-blur-xl bg-white/5 border-r border-white/10 p-6 flex flex-col">
+        <nav className="space-y-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -72,41 +64,77 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 ${
                   isActive ? 'scale-105' : 'hover:scale-105'
                 }`}
               >
                 {isActive && (
                   <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-100`}></div>
                 )}
-                <div className={`relative flex items-center gap-4 px-6 py-4 ${
+                <div className={`relative flex items-center gap-3 px-4 py-3 ${
                   isActive 
                     ? 'text-white' 
                     : 'text-gray-400 hover:text-white bg-white/5 hover:bg-white/10'
                 }`}>
-                  <Icon className="w-6 h-6" />
-                  <span className="font-semibold text-lg">{item.label}</span>
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium">{item.label}</span>
                 </div>
               </button>
             );
           })}
         </nav>
 
-        <button
-          onClick={logout}
-          className="absolute bottom-6 left-6 right-6 flex items-center justify-center gap-3 px-6 py-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-2xl transition-all duration-300 font-semibold border border-red-500/30"
-        >
-          <LogOut className="w-5 h-5" />
-          Выйти
-        </button>
+        {/* User Profile in Sidebar */}
+        <div className="mt-auto space-y-3 pt-6 border-t border-white/10">
+          <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-medium text-sm truncate">{user?.name}</p>
+              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 rounded-xl transition-all duration-300 font-medium border border-red-500/30"
+          >
+            <LogOut className="w-4 h-4" />
+            Выйти
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-72 mt-20 p-8 relative z-10">
+      <main className="ml-64 mt-16 p-8 relative z-10 flex-1">
         <div className="max-w-7xl mx-auto">
           {children}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="ml-64 relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-white font-semibold text-sm">Finio</p>
+                <p className="text-xs text-gray-400">© 2026 Все права защищены</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-6 text-xs text-gray-400">
+              <a href="#" className="hover:text-white transition-colors">О проекте</a>
+              <a href="#" className="hover:text-white transition-colors">Поддержка</a>
+              <a href="#" className="hover:text-white transition-colors">Конфиденциальность</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
