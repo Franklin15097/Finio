@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
-import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, DollarSign } from 'lucide-react';
+import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, DollarSign, Filter, Calendar, X } from 'lucide-react';
 
 export default function Income() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -20,6 +20,10 @@ export default function Income() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
   
   // Forms
   const [transactionForm, setTransactionForm] = useState({
@@ -40,7 +44,7 @@ export default function Income() {
 
   useEffect(() => {
     filterAndSortTransactions();
-  }, [transactions, searchQuery, sortBy, sortOrder]);
+  }, [transactions, searchQuery, sortBy, sortOrder, selectedCategory, dateRange, customDateFrom, customDateTo]);
 
   const loadData = async () => {
     try {
@@ -61,6 +65,51 @@ export default function Income() {
 
   const filterAndSortTransactions = () => {
     let filtered = [...transactions];
+    
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      if (selectedCategory === 'none') {
+        filtered = filtered.filter(t => !t.category_id);
+      } else {
+        filtered = filtered.filter(t => t.category_id === parseInt(selectedCategory));
+      }
+    }
+    
+    // Filter by date range
+    if (dateRange !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(t => {
+        const transactionDate = new Date(t.transaction_date);
+        
+        switch (dateRange) {
+          case 'today':
+            return transactionDate >= today;
+          case 'week':
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return transactionDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            return transactionDate >= monthAgo;
+          case 'year':
+            const yearAgo = new Date(today);
+            yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+            return transactionDate >= yearAgo;
+          case 'custom':
+            if (customDateFrom && customDateTo) {
+              const from = new Date(customDateFrom);
+              const to = new Date(customDateTo);
+              return transactionDate >= from && transactionDate <= to;
+            }
+            return true;
+          default:
+            return true;
+        }
+      });
+    }
     
     // Search
     if (searchQuery) {
@@ -261,96 +310,162 @@ export default function Income() {
       {/* Search & Sort */}
       <div className="glass-card rounded-3xl p-6">
         <div className="flex flex-col gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Поиск по описанию или категории..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-            />
+          {/* Search Bar */}
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Поиск..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              />
+            </div>
           </div>
           
-          {/* Sort Buttons */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-gray-400 text-sm flex items-center mr-2">Сортировка:</span>
-            <button
-              onClick={() => {
-                if (sortBy === 'date') {
-                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                } else {
-                  setSortBy('date');
-                  setSortOrder('desc');
-                }
-              }}
-              className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
-                sortBy === 'date'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
-              }`}
-            >
-              📅 По дате
-              {sortBy === 'date' && (
-                <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>
-                  ↑
-                </span>
-              )}
-            </button>
+          {/* Filters Row */}
+          <div className="flex flex-wrap gap-2 items-center">
+            {/* Category Filter */}
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="pl-3 pr-8 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-800">Все категории</option>
+                <option value="none" className="bg-slate-800">Без категории</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
+                ))}
+              </select>
+              <Tag className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
             
-            <button
-              onClick={() => {
-                if (sortBy === 'amount') {
-                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                } else {
-                  setSortBy('amount');
-                  setSortOrder('desc');
-                }
-              }}
-              className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
-                sortBy === 'amount'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
-              }`}
-            >
-              💰 По сумме
-              {sortBy === 'amount' && (
-                <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>
-                  ↑
-                </span>
-              )}
-            </button>
+            {/* Date Range Filter */}
+            <div className="relative">
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value as any)}
+                className="pl-3 pr-8 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all appearance-none cursor-pointer"
+              >
+                <option value="all" className="bg-slate-800">Всё время</option>
+                <option value="today" className="bg-slate-800">Сегодня</option>
+                <option value="week" className="bg-slate-800">Неделя</option>
+                <option value="month" className="bg-slate-800">Месяц</option>
+                <option value="year" className="bg-slate-800">Год</option>
+                <option value="custom" className="bg-slate-800">Свой период</option>
+              </select>
+              <Calendar className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
             
-            <button
-              onClick={() => {
-                if (sortBy === 'category') {
-                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                } else {
-                  setSortBy('category');
-                  setSortOrder('asc');
-                }
-              }}
-              className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
-                sortBy === 'category'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg shadow-green-500/30'
-                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
-              }`}
-            >
-              🏷️ По категории
-              {sortBy === 'category' && (
-                <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>
-                  ↑
-                </span>
-              )}
-            </button>
+            {/* Custom Date Range */}
+            {dateRange === 'custom' && (
+              <div className="flex gap-2 items-center animate-fade-in">
+                <input
+                  type="date"
+                  value={customDateFrom}
+                  onChange={(e) => setCustomDateFrom(e.target.value)}
+                  className="px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all"
+                />
+                <span className="text-gray-400">—</span>
+                <input
+                  type="date"
+                  value={customDateTo}
+                  onChange={(e) => setCustomDateTo(e.target.value)}
+                  className="px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all"
+                />
+              </div>
+            )}
+            
+            {/* Sort Menu */}
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={() => {
+                  if (sortBy === 'date') {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy('date');
+                    setSortOrder('desc');
+                  }
+                }}
+                className={`px-3 py-2 text-sm rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                  sortBy === 'date'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                📅
+                {sortBy === 'date' && (
+                  <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (sortBy === 'amount') {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy('amount');
+                    setSortOrder('desc');
+                  }
+                }}
+                className={`px-3 py-2 text-sm rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                  sortBy === 'amount'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                💰
+                {sortBy === 'amount' && (
+                  <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+                )}
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (sortBy === 'category') {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy('category');
+                    setSortOrder('asc');
+                  }
+                }}
+                className={`px-3 py-2 text-sm rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                  sortBy === 'category'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                🏷️
+                {sortBy === 'category' && (
+                  <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Transactions List */}
-      <div className="glass-card rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">История ({filteredTransactions.length})</h2>
+        
+        {/* Transactions List */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white">История ({filteredTransactions.length})</h2>
+            {(selectedCategory !== 'all' || dateRange !== 'all' || searchQuery) && (
+              <button
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setDateRange('all');
+                  setSearchQuery('');
+                  setCustomDateFrom('');
+                  setCustomDateTo('');
+                }}
+                className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <X className="w-4 h-4" />
+                Сбросить фильтры
+              </button>
+            )}
+          </div>
         {filteredTransactions.length > 0 ? (
           <div className="space-y-4">
             {filteredTransactions.map((transaction) => {
@@ -401,6 +516,7 @@ export default function Income() {
             <p className="text-gray-400 text-lg">Нет транзакций</p>
           </div>
         )}
+        </div>
       </div>
 
       {/* Transaction Modal */}
