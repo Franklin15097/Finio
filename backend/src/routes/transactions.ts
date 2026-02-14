@@ -7,9 +7,15 @@ const router = Router();
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color, c.type as transaction_type
+      `SELECT t.*, 
+              COALESCE(c.name, 'Без категории') as category_name, 
+              COALESCE(c.icon, 'DollarSign') as category_icon, 
+              COALESCE(c.color, '#6366f1') as category_color, 
+              COALESCE(c.type, 
+                CASE WHEN t.amount > 0 THEN 'income' ELSE 'expense' END
+              ) as transaction_type
        FROM transactions t 
-       JOIN categories c ON t.category_id = c.id 
+       LEFT JOIN categories c ON t.category_id = c.id 
        WHERE t.user_id = ?
        ORDER BY t.transaction_date DESC, t.created_at DESC
        LIMIT 100`,
@@ -27,7 +33,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
     const [result]: any = await pool.query(
       'INSERT INTO transactions (user_id, category_id, amount, description, transaction_date) VALUES (?, ?, ?, ?, ?)',
-      [req.userId, category_id, amount, description, transaction_date]
+      [req.userId, category_id || null, amount, description, transaction_date]
     );
     
     res.status(201).json({ id: result.insertId });

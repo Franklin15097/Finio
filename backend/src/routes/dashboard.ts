@@ -62,9 +62,15 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
 
     // Recent transactions
     const [recentTransactions]: any = await pool.query(
-      `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color, c.type as transaction_type
+      `SELECT t.*, 
+              COALESCE(c.name, 'Без категории') as category_name, 
+              COALESCE(c.icon, 'DollarSign') as category_icon, 
+              COALESCE(c.color, '#6366f1') as category_color, 
+              COALESCE(c.type, 
+                CASE WHEN t.amount > 0 THEN 'income' ELSE 'expense' END
+              ) as transaction_type
        FROM transactions t 
-       JOIN categories c ON t.category_id = c.id 
+       LEFT JOIN categories c ON t.category_id = c.id 
        WHERE t.user_id = ?
        ORDER BY t.transaction_date DESC, t.created_at DESC
        LIMIT 5`,
