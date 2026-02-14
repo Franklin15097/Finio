@@ -132,25 +132,64 @@ export default function Balance() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Income vs Expenses Chart */}
-        <div className="glass-card rounded-3xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Доходы vs Расходы</h2>
+        <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              📊
+            </div>
+            Доходы vs Расходы
+          </h2>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="month" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
+                <defs>
+                  <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#059669" stopOpacity={0.6}/>
+                  </linearGradient>
+                  <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="100%" stopColor="#dc2626" stopOpacity={0.6}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#9ca3af" 
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="#9ca3af" 
+                  style={{ fontSize: '12px' }}
+                />
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    color: '#fff'
+                    borderRadius: '16px',
+                    color: '#fff',
+                    padding: '12px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
                   }}
                   formatter={(value: any) => `${parseFloat(value).toFixed(2)} ₽`}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                 />
-                <Bar dataKey="income" fill="#10b981" radius={[8, 8, 0, 0]} name="Доходы" />
-                <Bar dataKey="expense" fill="#ef4444" radius={[8, 8, 0, 0]} name="Расходы" />
+                <Bar 
+                  dataKey="income" 
+                  fill="url(#incomeGradient)" 
+                  radius={[12, 12, 0, 0]} 
+                  name="Доходы"
+                  animationDuration={1000}
+                  animationBegin={0}
+                />
+                <Bar 
+                  dataKey="expense" 
+                  fill="url(#expenseGradient)" 
+                  radius={[12, 12, 0, 0]} 
+                  name="Расходы"
+                  animationDuration={1000}
+                  animationBegin={200}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -159,11 +198,24 @@ export default function Balance() {
         </div>
 
         {/* Category Expenses Pie Chart */}
-        <div className="glass-card rounded-3xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Расходы по категориям</h2>
+        <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+              🥧
+            </div>
+            Расходы по категориям
+          </h2>
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
+                <defs>
+                  {COLORS.map((color, index) => (
+                    <linearGradient key={`gradient-${index}`} id={`colorGradient${index}`} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={color} stopOpacity={0.9}/>
+                      <stop offset="100%" stopColor={color} stopOpacity={0.7}/>
+                    </linearGradient>
+                  ))}
+                </defs>
                 <Pie
                   data={categoryData}
                   cx="50%"
@@ -172,22 +224,31 @@ export default function Balance() {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
+                  animationDuration={1000}
+                  animationBegin={0}
                 >
                   {categoryData.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={`url(#colorGradient${index % COLORS.length})`}
+                      stroke="rgba(255,255,255,0.1)"
+                      strokeWidth={2}
+                    />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)', 
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    color: '#fff'
+                    borderRadius: '16px',
+                    color: '#fff',
+                    padding: '12px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
                   }}
                   formatter={(value: any) => `${parseFloat(value).toFixed(2)} ₽`}
                 />
                 <Legend 
-                  wrapperStyle={{ color: '#fff' }}
+                  wrapperStyle={{ color: '#fff', fontSize: '14px' }}
                   iconType="circle"
                 />
               </PieChart>

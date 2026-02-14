@@ -18,7 +18,7 @@ export default function Income() {
   
   // Search & Sort
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Forms
@@ -76,10 +76,15 @@ export default function Income() {
         const dateA = new Date(a.transaction_date).getTime();
         const dateB = new Date(b.transaction_date).getTime();
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-      } else {
+      } else if (sortBy === 'amount') {
         const amountA = parseFloat(a.amount);
         const amountB = parseFloat(b.amount);
         return sortOrder === 'asc' ? amountA - amountB : amountB - amountA;
+      } else {
+        // Sort by category
+        const catA = a.category_name.toLowerCase();
+        const catB = b.category_name.toLowerCase();
+        return sortOrder === 'asc' ? catA.localeCompare(catB) : catB.localeCompare(catA);
       }
     });
     
@@ -269,17 +274,18 @@ export default function Income() {
           <div className="flex gap-3">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'date' | 'amount')}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'amount' | 'category')}
               className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 transition-all"
             >
               <option value="date" className="bg-slate-800">По дате</option>
               <option value="amount" className="bg-slate-800">По сумме</option>
+              <option value="category" className="bg-slate-800">По категории</option>
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+              className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
             >
-              <SortAsc className={`w-5 h-5 text-white transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+              <SortAsc className={`w-5 h-5 text-green-400 transition-all duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
