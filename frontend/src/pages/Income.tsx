@@ -14,6 +14,7 @@ export default function Income() {
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
   
   // Search & Sort
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,11 +89,21 @@ export default function Income() {
   const handleTransactionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.createTransaction({
-        ...transactionForm,
-        amount: parseFloat(transactionForm.amount)
-      });
+      if (editingTransaction) {
+        await api.updateTransaction(editingTransaction.id, {
+          ...transactionForm,
+          amount: parseFloat(transactionForm.amount),
+          category_id: transactionForm.category_id || null
+        });
+      } else {
+        await api.createTransaction({
+          ...transactionForm,
+          amount: parseFloat(transactionForm.amount),
+          category_id: transactionForm.category_id || null
+        });
+      }
       setShowTransactionModal(false);
+      setEditingTransaction(null);
       setTransactionForm({
         amount: '',
         description: '',
@@ -101,7 +112,7 @@ export default function Income() {
       });
       loadData();
     } catch (error) {
-      console.error('Failed to create transaction:', error);
+      console.error('Failed to save transaction:', error);
     }
   };
 
@@ -151,6 +162,17 @@ export default function Income() {
     setEditingCategory(category);
     setCategoryForm({ name: category.name, icon: category.icon });
     setShowCategoryModal(true);
+  };
+
+  const openEditTransaction = (transaction: any) => {
+    setEditingTransaction(transaction);
+    setTransactionForm({
+      amount: transaction.amount,
+      description: transaction.description,
+      category_id: transaction.category_id || '',
+      transaction_date: transaction.transaction_date.split('T')[0]
+    });
+    setShowTransactionModal(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -284,12 +306,20 @@ export default function Income() {
                     </div>
                     <div className="flex items-center gap-6">
                       <p className="text-green-400 font-bold text-2xl">+{parseFloat(transaction.amount).toFixed(2)} ₽</p>
-                      <button
-                        onClick={() => handleDeleteTransaction(transaction.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => openEditTransaction(transaction)}
+                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTransaction(transaction.id)}
+                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -307,7 +337,20 @@ export default function Income() {
       </div>
 
       {/* Transaction Modal */}
-      <Modal isOpen={showTransactionModal} onClose={() => setShowTransactionModal(false)} title="Новый доход">
+      <Modal 
+        isOpen={showTransactionModal} 
+        onClose={() => {
+          setShowTransactionModal(false);
+          setEditingTransaction(null);
+          setTransactionForm({
+            amount: '',
+            description: '',
+            category_id: '',
+            transaction_date: new Date().toISOString().split('T')[0]
+          });
+        }} 
+        title={editingTransaction ? 'Редактировать доход' : 'Новый доход'}
+      >
         <form onSubmit={handleTransactionSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Сумма (₽)</label>
@@ -362,7 +405,7 @@ export default function Income() {
             type="submit"
             className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
           >
-            Добавить доход
+            {editingTransaction ? 'Сохранить' : 'Добавить доход'}
           </button>
         </form>
       </Modal>
