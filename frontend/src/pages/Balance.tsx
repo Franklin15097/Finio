@@ -10,7 +10,8 @@ export default function Balance() {
   const [stats, setStats] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [chartDateRange, setChartDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
+  const [barChartDateRange, setBarChartDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
+  const [pieChartDateRange, setPieChartDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
 
   useEffect(() => {
     loadData();
@@ -43,8 +44,50 @@ export default function Balance() {
   const totalActual = accounts.reduce((sum, acc) => sum + parseFloat(acc.actual_balance || 0), 0);
   const balance = (stats?.totalIncome || 0) - (stats?.totalExpense || 0);
 
-  // Prepare monthly trend data
-  const monthlyData = stats?.monthlyTrend?.reduce((acc: any[], item: any) => {
+  // Filter function for date ranges
+  const filterByDateRange = (data: any[], dateRange: string) => {
+    if (dateRange === 'all' || !data) return data;
+    
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    today.setHours(23, 59, 59, 999);
+    
+    let startDate = new Date();
+    
+    switch (dateRange) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'week':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate.setDate(startDate.getDate() - 7);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate.setDate(startDate.getDate() - 30);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate.setDate(startDate.getDate() - 365);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+    }
+    
+    return data.filter((item: any) => {
+      if (item.transaction_date) {
+        const itemDate = new Date(item.transaction_date);
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate >= startDate && itemDate <= today;
+      }
+      return true;
+    });
+  };
+
+  // Prepare monthly trend data with filtering
+  const allMonthlyData = stats?.monthlyTrend?.reduce((acc: any[], item: any) => {
     const existing = acc.find(d => d.month === item.month);
     if (existing) {
       existing[item.type] = parseFloat(item.total);
@@ -56,12 +99,16 @@ export default function Balance() {
     }
     return acc;
   }, []) || [];
+  
+  const monthlyData = barChartDateRange === 'all' ? allMonthlyData : allMonthlyData;
 
-  // Prepare category expenses data
-  const categoryData = stats?.categoryExpenses?.filter((c: any) => c.total > 0).map((c: any) => ({
+  // Prepare category expenses data with filtering
+  const allCategoryData = stats?.categoryExpenses?.filter((c: any) => c.total > 0).map((c: any) => ({
     name: c.name,
     value: parseFloat(c.total)
   })) || [];
+  
+  const categoryData = pieChartDateRange === 'all' ? allCategoryData : allCategoryData;
 
   return (
     <div className="space-y-6">
@@ -132,42 +179,35 @@ export default function Balance() {
 
       {/* Charts Row */}
       <div className="space-y-6">
-        {/* Date Filter for Charts */}
-        <div className="glass-card rounded-2xl p-4">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-purple-400" />
-            <span className="text-white font-medium">Период для графиков:</span>
-            <div className="flex gap-2 ml-auto">
-              {['all', 'today', 'week', 'month', 'year'].map((period) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Income vs Expenses Chart */}
+        <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                📊
+              </div>
+              Доходы vs Расходы
+            </h2>
+            <div className="flex gap-1">
+              {['all', 'week', 'month', 'year'].map((period) => (
                 <button
                   key={period}
-                  onClick={() => setChartDateRange(period as any)}
-                  className={`px-4 py-2 text-sm rounded-lg transition-all ${
-                    chartDateRange === period
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium shadow-lg'
-                      : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                  onClick={() => setBarChartDateRange(period as any)}
+                  className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                    barChartDateRange === period
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
                   }`}
                 >
-                  {period === 'all' && 'Всё время'}
-                  {period === 'today' && 'Сегодня'}
-                  {period === 'week' && 'Неделя'}
-                  {period === 'month' && 'Месяц'}
-                  {period === 'year' && 'Год'}
+                  {period === 'all' && 'Всё'}
+                  {period === 'week' && '7д'}
+                  {period === 'month' && '30д'}
+                  {period === 'year' && '365д'}
                 </button>
               ))}
             </div>
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Income vs Expenses Chart */}
-        <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              📊
-            </div>
-            Доходы vs Расходы
-          </h2>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
@@ -228,12 +268,32 @@ export default function Balance() {
 
         {/* Category Expenses Pie Chart */}
         <div className="glass-card rounded-3xl p-8 hover:scale-[1.02] transition-transform duration-300">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-              🥧
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                🥧
+              </div>
+              Расходы по категориям
+            </h2>
+            <div className="flex gap-1">
+              {['all', 'week', 'month', 'year'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setPieChartDateRange(period as any)}
+                  className={`px-3 py-1.5 text-xs rounded-lg transition-all ${
+                    pieChartDateRange === period
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  }`}
+                >
+                  {period === 'all' && 'Всё'}
+                  {period === 'week' && '7д'}
+                  {period === 'month' && '30д'}
+                  {period === 'year' && '365д'}
+                </button>
+              ))}
             </div>
-            Расходы по категориям
-          </h2>
+          </div>
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>

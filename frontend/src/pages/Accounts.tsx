@@ -200,11 +200,11 @@ export default function Accounts() {
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
-                      <div className="text-right">
+                      <div className="text-right min-w-[140px]">
+                        <p className="text-gray-500 text-xs mb-1">разница</p>
                         <p className={`text-2xl font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                           {isPositive ? '+' : ''}{difference.toFixed(2)} ₽
                         </p>
-                        <p className="text-gray-500 text-xs">разница</p>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button

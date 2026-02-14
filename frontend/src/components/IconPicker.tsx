@@ -103,8 +103,8 @@ export default function IconPicker({ selectedIcon, onSelectIcon, onUploadImage }
       </div>
 
       {/* Icon Grid */}
-      <div className="max-h-64 overflow-y-auto custom-scrollbar">
-        <div className="grid grid-cols-5 gap-3 pr-2">
+      <div className="max-h-48 overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-2 gap-3 pr-2">
           {ICONS.map((icon) => {
             const IconComponent = icon.component;
             const isSelected = selectedIcon === icon.name;
@@ -113,14 +113,15 @@ export default function IconPicker({ selectedIcon, onSelectIcon, onUploadImage }
                 key={icon.name}
                 type="button"
                 onClick={() => onSelectIcon(icon.name)}
-                className={`p-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
                   isSelected
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 scale-110'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 scale-105'
                     : 'bg-white/5 hover:bg-white/10'
                 }`}
                 title={icon.label}
               >
-                <IconComponent className="w-6 h-6 text-white mx-auto" />
+                <IconComponent className="w-6 h-6 text-white flex-shrink-0" />
+                <span className="text-white text-sm font-medium truncate">{icon.label}</span>
               </button>
             );
           })}
