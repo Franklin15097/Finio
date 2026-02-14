@@ -211,7 +211,7 @@ export default function Expenses() {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl blur-lg opacity-75"></div>
                 <div className="relative w-20 h-20 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl flex items-center justify-center">
-                  <TrendingUp className="w-10 h-10 text-white" />
+                  <TrendingDown className="w-10 h-10 text-white" />
                 </div>
               </div>
               <div>
@@ -220,7 +220,7 @@ export default function Expenses() {
               </div>
             </div>
             <div className="text-red-400 text-6xl opacity-10">
-              <DollarSign className="w-24 h-24" />
+              <CreditCard className="w-24 h-24" />
             </div>
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function Expenses() {
         ) : (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-              <TrendingUp className="w-12 h-12 text-white" />
+              <TrendingDown className="w-12 h-12 text-white" />
             </div>
             <p className="text-gray-400 text-lg">Нет транзакций</p>
           </div>
