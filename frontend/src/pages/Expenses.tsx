@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
-import { Plus, TrendingDown, Search, SortAsc, Edit2, Trash2, Tag, CreditCard } from 'lucide-react';
+import { Plus, TrendingDown, Search, Edit2, Trash2, Tag, CreditCard } from 'lucide-react';
 
 export default function Expenses() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -260,7 +260,8 @@ export default function Expenses() {
 
       {/* Search & Sort */}
       <div className="glass-card rounded-3xl p-6">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col gap-4">
+          {/* Search */}
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -271,21 +272,77 @@ export default function Expenses() {
               className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
             />
           </div>
-          <div className="flex gap-3">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'date' | 'amount' | 'category')}
-              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-red-500 transition-all"
-            >
-              <option value="date" className="bg-slate-800">По дате</option>
-              <option value="amount" className="bg-slate-800">По сумме</option>
-              <option value="category" className="bg-slate-800">По категории</option>
-            </select>
+          
+          {/* Sort Buttons */}
+          <div className="flex flex-wrap gap-2">
+            <span className="text-gray-400 text-sm flex items-center mr-2">Сортировка:</span>
             <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group"
+              onClick={() => {
+                if (sortBy === 'date') {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy('date');
+                  setSortOrder('desc');
+                }
+              }}
+              className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
+                sortBy === 'date'
+                  ? 'bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
+              }`}
             >
-              <SortAsc className={`w-5 h-5 text-red-400 transition-all duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+              📅 По дате
+              {sortBy === 'date' && (
+                <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>
+                  ↑
+                </span>
+              )}
+            </button>
+            
+            <button
+              onClick={() => {
+                if (sortBy === 'amount') {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy('amount');
+                  setSortOrder('desc');
+                }
+              }}
+              className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
+                sortBy === 'amount'
+                  ? 'bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              💰 По сумме
+              {sortBy === 'amount' && (
+                <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>
+                  ↑
+                </span>
+              )}
+            </button>
+            
+            <button
+              onClick={() => {
+                if (sortBy === 'category') {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy('category');
+                  setSortOrder('asc');
+                }
+              }}
+              className={`px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2 ${
+                sortBy === 'category'
+                  ? 'bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30'
+                  : 'bg-white/5 text-gray-300 hover:bg-white/10'
+              }`}
+            >
+              🏷️ По категории
+              {sortBy === 'category' && (
+                <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>
+                  ↑
+                </span>
+              )}
             </button>
           </div>
         </div>
