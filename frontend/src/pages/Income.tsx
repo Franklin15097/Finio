@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import Modal from '../components/Modal';
+import IconPicker, { getIconComponent } from '../components/IconPicker';
 import { Plus, TrendingUp, Search, SortAsc, Edit2, Trash2, Tag, DollarSign } from 'lucide-react';
 
 export default function Income() {
@@ -29,7 +30,7 @@ export default function Income() {
   
   const [categoryForm, setCategoryForm] = useState({
     name: '',
-    icon: '💰'
+    icon: 'DollarSign'
   });
 
   useEffect(() => {
@@ -116,7 +117,7 @@ export default function Income() {
         });
       }
       setShowCategoryModal(false);
-      setCategoryForm({ name: '', icon: '💰' });
+      setCategoryForm({ name: '', icon: 'DollarSign' });
       setEditingCategory(null);
       loadData();
     } catch (error) {
@@ -263,34 +264,37 @@ export default function Income() {
         <h2 className="text-2xl font-bold text-white mb-6">История ({filteredTransactions.length})</h2>
         {filteredTransactions.length > 0 ? (
           <div className="space-y-4">
-            {filteredTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="group relative overflow-hidden bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
-                      {transaction.category_icon}
+            {filteredTransactions.map((transaction) => {
+              const IconComponent = getIconComponent(transaction.category_icon);
+              return (
+                <div
+                  key={transaction.id}
+                  className="group relative overflow-hidden bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
+                        <IconComponent className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-white font-semibold text-lg">{transaction.category_name}</p>
+                        <p className="text-gray-400 text-sm">{transaction.description}</p>
+                        <p className="text-gray-500 text-xs mt-1">{formatDate(transaction.transaction_date)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-white font-semibold text-lg">{transaction.category_name}</p>
-                      <p className="text-gray-400 text-sm">{transaction.description}</p>
-                      <p className="text-gray-500 text-xs mt-1">{formatDate(transaction.transaction_date)}</p>
+                    <div className="flex items-center gap-6">
+                      <p className="text-green-400 font-bold text-2xl">+{parseFloat(transaction.amount).toFixed(2)} ₽</p>
+                      <button
+                        onClick={() => handleDeleteTransaction(transaction.id)}
+                        className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <p className="text-green-400 font-bold text-2xl">+{parseFloat(transaction.amount).toFixed(2)} ₽</p>
-                    <button
-                      onClick={() => handleDeleteTransaction(transaction.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-16">
@@ -320,15 +324,17 @@ export default function Income() {
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Категория</label>
             <select
-              required
               value={transactionForm.category_id}
               onChange={(e) => setTransactionForm({ ...transactionForm, category_id: e.target.value })}
               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
             >
-              <option value="" className="bg-slate-800">Выберите категорию</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.icon} {cat.name}</option>
-              ))}
+              <option value="" className="bg-slate-800">Без категории</option>
+              {categories.map((cat) => {
+                const IconComponent = getIconComponent(cat.icon);
+                return (
+                  <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
+                );
+              })}
             </select>
           </div>
           <div>
@@ -367,35 +373,40 @@ export default function Income() {
         onClose={() => {
           setShowCategoryModal(false);
           setEditingCategory(null);
-          setCategoryForm({ name: '', icon: '💰' });
+          setCategoryForm({ name: '', icon: 'DollarSign' });
         }} 
         title={editingCategory ? 'Редактировать категорию' : 'Управление категориями'}
       >
         {!editingCategory ? (
           <div className="space-y-4">
-            <div className="space-y-3 max-h-60 overflow-y-auto">
-              {categories.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{cat.icon}</span>
-                    <span className="text-white font-medium">{cat.name}</span>
+            <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
+              {categories.map((cat) => {
+                const IconComponent = getIconComponent(cat.icon);
+                return (
+                  <div key={cat.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <span className="text-white font-medium">{cat.name}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openEditCategory(cat)}
+                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openEditCategory(cat)}
-                      className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCategory(cat.id)}
-                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <button
               onClick={() => setEditingCategory({})}
@@ -418,14 +429,10 @@ export default function Income() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Иконка (эмодзи)</label>
-              <input
-                type="text"
-                required
-                value={categoryForm.icon}
-                onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-2xl text-center focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                placeholder="💰"
+              <label className="block text-sm font-medium text-gray-300 mb-2">Иконка</label>
+              <IconPicker
+                selectedIcon={categoryForm.icon}
+                onSelectIcon={(icon) => setCategoryForm({ ...categoryForm, icon })}
               />
             </div>
             <div className="flex gap-3">
@@ -439,7 +446,7 @@ export default function Income() {
                 type="button"
                 onClick={() => {
                   setEditingCategory(null);
-                  setCategoryForm({ name: '', icon: '💰' });
+                  setCategoryForm({ name: '', icon: 'DollarSign' });
                 }}
                 className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold transition-all"
               >

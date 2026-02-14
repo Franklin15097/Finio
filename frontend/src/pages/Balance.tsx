@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
+import { getIconComponent } from '../components/IconPicker';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
 
@@ -242,37 +243,40 @@ export default function Balance() {
         <h2 className="text-2xl font-bold text-white mb-6">Последние транзакции</h2>
         {stats?.recentTransactions?.length > 0 ? (
           <div className="space-y-4">
-            {stats.recentTransactions.map((transaction: any) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-2xl p-4 transition-all"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                    transaction.transaction_type === 'income' 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
-                      : 'bg-gradient-to-r from-red-500 to-pink-600'
-                  }`}>
-                    {transaction.category_icon}
+            {stats.recentTransactions.map((transaction: any) => {
+              const IconComponent = getIconComponent(transaction.category_icon);
+              return (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-2xl p-4 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      transaction.transaction_type === 'income' 
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                        : 'bg-gradient-to-r from-red-500 to-pink-600'
+                    }`}>
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">{transaction.category_name}</p>
+                      <p className="text-gray-400 text-sm">{transaction.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white font-semibold">{transaction.category_name}</p>
-                    <p className="text-gray-400 text-sm">{transaction.description}</p>
+                  <div className="text-right">
+                    <p className={`font-bold text-lg ${
+                      transaction.transaction_type === 'income' ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {transaction.transaction_type === 'income' ? '+' : '-'}{parseFloat(transaction.amount).toFixed(2)} ₽
+                    </p>
+                    <p className="text-gray-400 text-sm flex items-center gap-1 justify-end">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(transaction.transaction_date).toLocaleDateString('ru-RU')}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold text-lg ${
-                    transaction.transaction_type === 'income' ? 'text-green-400' : 'text-red-400'
-                  }`}>
-                    {transaction.transaction_type === 'income' ? '+' : '-'}{parseFloat(transaction.amount).toFixed(2)} ₽
-                  </p>
-                  <p className="text-gray-400 text-sm flex items-center gap-1 justify-end">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(transaction.transaction_date).toLocaleDateString('ru-RU')}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-400 text-center py-8">Нет транзакций</p>
