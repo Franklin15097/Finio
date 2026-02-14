@@ -80,7 +80,7 @@ export default function Income() {
     if (dateRange !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      today.setHours(0, 0, 0, 0);
+      today.setHours(23, 59, 59, 999);
       
       filtered = filtered.filter(t => {
         const transactionDate = new Date(t.transaction_date);
@@ -88,20 +88,23 @@ export default function Income() {
         
         switch (dateRange) {
           case 'today':
-            const todayEnd = new Date(today);
-            todayEnd.setHours(23, 59, 59, 999);
-            return transactionDate >= today && transactionDate <= todayEnd;
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            todayStart.setHours(0, 0, 0, 0);
+            return transactionDate >= todayStart && transactionDate <= today;
           case 'week':
-            const weekAgo = new Date(today);
+            const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             weekAgo.setDate(weekAgo.getDate() - 7);
+            weekAgo.setHours(0, 0, 0, 0);
             return transactionDate >= weekAgo && transactionDate <= today;
           case 'month':
-            const monthAgo = new Date(today);
-            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            const monthAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            monthAgo.setDate(monthAgo.getDate() - 30);
+            monthAgo.setHours(0, 0, 0, 0);
             return transactionDate >= monthAgo && transactionDate <= today;
           case 'year':
-            const yearAgo = new Date(today);
-            yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+            const yearAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            yearAgo.setDate(yearAgo.getDate() - 365);
+            yearAgo.setHours(0, 0, 0, 0);
             return transactionDate >= yearAgo && transactionDate <= today;
           case 'custom':
             if (customDateFrom && customDateTo) {
@@ -255,7 +258,7 @@ export default function Income() {
     if (totalDateRange !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      today.setHours(0, 0, 0, 0);
+      today.setHours(23, 59, 59, 999);
       
       filtered = filtered.filter(t => {
         const transactionDate = new Date(t.transaction_date);
@@ -263,20 +266,23 @@ export default function Income() {
         
         switch (totalDateRange) {
           case 'today':
-            const todayEnd = new Date(today);
-            todayEnd.setHours(23, 59, 59, 999);
-            return transactionDate >= today && transactionDate <= todayEnd;
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            todayStart.setHours(0, 0, 0, 0);
+            return transactionDate >= todayStart && transactionDate <= today;
           case 'week':
-            const weekAgo = new Date(today);
+            const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             weekAgo.setDate(weekAgo.getDate() - 7);
+            weekAgo.setHours(0, 0, 0, 0);
             return transactionDate >= weekAgo && transactionDate <= today;
           case 'month':
-            const monthAgo = new Date(today);
-            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            const monthAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            monthAgo.setDate(monthAgo.getDate() - 30);
+            monthAgo.setHours(0, 0, 0, 0);
             return transactionDate >= monthAgo && transactionDate <= today;
           case 'year':
-            const yearAgo = new Date(today);
-            yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+            const yearAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            yearAgo.setDate(yearAgo.getDate() - 365);
+            yearAgo.setHours(0, 0, 0, 0);
             return transactionDate >= yearAgo && transactionDate <= today;
           default:
             return true;

@@ -22,6 +22,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-blue-500 to-indigo-600' },
     { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-green-500 to-emerald-600' },
     { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-red-500 to-pink-600' },
+    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-purple-500 to-pink-600' },
   ];
 
   return (

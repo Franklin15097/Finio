@@ -62,6 +62,14 @@ export const api = {
     return res.json();
   },
 
+  deleteAccount: async (id: number) => {
+    const res = await fetch(`${API_URL}/accounts/${id}`, {
+      method: 'DELETE',
+      headers: headers(),
+    });
+    return res.json();
+  },
+
   // Categories
   getCategories: async () => {
     const res = await fetch(`${API_URL}/categories`, { headers: headers() });
