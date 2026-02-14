@@ -2,6 +2,27 @@
 
 A full-stack web application for tracking income, expenses, and budgets with a React frontend and Node.js/Express backend.
 
+## 🚀 Telegram Mini App
+
+Finio теперь доступен как Telegram Mini App! Используйте приложение прямо в Telegram без необходимости открывать браузер.
+
+### Быстрая настройка Telegram бота:
+
+1. Создайте бота через [@BotFather](https://t.me/BotFather)
+2. Добавьте токен в `backend/.env`:
+   ```
+   TELEGRAM_BOT_TOKEN=your_bot_token_here
+   ```
+3. Выполните миграцию БД:
+   ```bash
+   mysql -u app_user -p financial_db < backend/database/telegram_migration.sql
+   ```
+4. Настройте Menu Button в BotFather:
+   - URL: `https://studiofinance.ru`
+   - Text: `Открыть Finio`
+
+📖 Подробная инструкция: [TELEGRAM_SETUP.md](./TELEGRAM_SETUP.md)
+
 ## Project Structure
 
 ```

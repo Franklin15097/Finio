@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../services/api';
+import { isTelegramWebApp, getTelegramInitData } from '../utils/telegram';
 
 interface User {
   id: number;
   email: string;
   name: string;
+  telegram_id?: number;
 }
 
 interface AuthContextType {
@@ -12,7 +14,9 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  loginWithTelegram: () => Promise<void>;
   logout: () => void;
+  isTelegram: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,12 +24,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const isTelegram = isTelegramWebApp();
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
+    // Try Telegram auth first if in Telegram
+    if (isTelegram) {
+      try {
+        await loginWithTelegram();
+        setLoading(false);
+        return;
+      } catch (error) {
+        console.log('Telegram auth failed, trying token auth');
+      }
+    }
+
+    // Fallback to token auth
     const token = localStorage.getItem('token');
     if (token) {
       try {
@@ -38,6 +55,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     setLoading(false);
+  };
+
+  const loginWithTelegram = async () => {
+    const initData = getTelegramInitData();
+    if (!initData) {
+      throw new Error('No Telegram init data');
+    }
+
+    const data = await api.loginWithTelegram(initData);
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+    } else {
+      throw new Error(data.error || 'Telegram login failed');
+    }
   };
 
   const login = async (email: string, password: string) => {
@@ -66,7 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithTelegram, logout, isTelegram }}>
       {children}
     </AuthContext.Provider>
   );

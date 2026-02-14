@@ -16,6 +16,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #0f172a;
   color: #ffffff;
+  /* Telegram Web App specific */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Telegram Web App theme variables */
+:root {
+  --tg-theme-bg-color: #0f172a;
+  --tg-theme-text-color: #ffffff;
+  --tg-theme-button-color: #8b5cf6;
+}
+
+/* Apply Telegram theme if available */
+body.telegram-app {
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
 }
 
 code {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles, Mail, Lock, User as UserIcon } from 'lucide-react';
 
@@ -9,7 +9,25 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, register } = useAuth();
+  const { login, register, isTelegram, loginWithTelegram } = useAuth();
+
+  // Auto-login for Telegram users
+  useEffect(() => {
+    if (isTelegram) {
+      handleTelegramLogin();
+    }
+  }, [isTelegram]);
+
+  const handleTelegramLogin = async () => {
+    setLoading(true);
+    try {
+      await loginWithTelegram();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Telegram authentication failed';
+      setError(errorMessage);
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,6 +47,23 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  // Show loading for Telegram users
+  if (isTelegram && loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="relative inline-block mb-4">
+            <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl flex items-center justify-center mx-auto animate-pulse">
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Вход через Telegram...</h2>
+          <p className="text-gray-400">Подождите немного</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
