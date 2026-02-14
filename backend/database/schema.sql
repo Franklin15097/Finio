@@ -11,8 +11,10 @@ CREATE TABLE IF NOT EXISTS accounts (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
   name VARCHAR(100) NOT NULL,
-  type ENUM('cash', 'bank', 'credit', 'investment', 'checking', 'savings') NOT NULL,
-  balance DECIMAL(15, 2) DEFAULT 0,
+  type ENUM('cash', 'bank', 'credit', 'investment', 'checking', 'savings', 'emergency') NOT NULL,
+  percentage DECIMAL(5, 2) DEFAULT 0 COMMENT 'Percentage of income to allocate',
+  planned_balance DECIMAL(15, 2) DEFAULT 0 COMMENT 'Calculated from income * percentage',
+  actual_balance DECIMAL(15, 2) DEFAULT 0 COMMENT 'User-entered actual balance',
   currency VARCHAR(3) DEFAULT 'USD',
   color VARCHAR(7) DEFAULT '#6366f1',
   icon VARCHAR(50) DEFAULT 'wallet',
@@ -35,14 +37,13 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS transactions (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
-  account_id INT NOT NULL,
   category_id INT NOT NULL,
   amount DECIMAL(15, 2) NOT NULL,
   description VARCHAR(255),
   transaction_date DATE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
   INDEX idx_user_date (user_id, transaction_date)
 );

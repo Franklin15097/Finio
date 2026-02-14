@@ -38,11 +38,19 @@ router.post('/register',
 
       const userId = result.insertId;
 
-      // Create default account
-      await pool.query(
-        'INSERT INTO accounts (user_id, name, type, balance, color, icon) VALUES (?, ?, ?, ?, ?, ?)',
-        [userId, 'Main Account', 'cash', 0, '#6366f1', 'wallet']
-      );
+      // Create default accounts with percentages
+      const defaultAccounts = [
+        ['Основной счёт', 'checking', 70, 'wallet'],
+        ['Подушка безопасности', 'emergency', 20, 'savings'],
+        ['Накопления', 'savings', 10, 'bank'],
+      ];
+
+      for (const [name, type, percentage, icon] of defaultAccounts) {
+        await pool.query(
+          'INSERT INTO accounts (user_id, name, type, percentage, icon) VALUES (?, ?, ?, ?, ?)',
+          [userId, name, type, percentage, icon]
+        );
+      }
 
       // Create default categories
       const defaultCategories = [

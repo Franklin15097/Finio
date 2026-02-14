@@ -21,11 +21,10 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/income', icon: TrendingUp, label: 'Income' },
-    { path: '/expenses', icon: TrendingDown, label: 'Expenses' },
-    { path: '/accounts', icon: Wallet, label: 'Accounts' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/income', icon: TrendingUp, label: 'Доходы' },
+    { path: '/expenses', icon: TrendingDown, label: 'Расходы' },
+    { path: '/balance', icon: Wallet, label: 'Баланс' },
+    { path: '/settings', icon: Settings, label: 'Настройки' },
   ];
 
   return (

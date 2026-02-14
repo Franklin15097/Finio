@@ -9,15 +9,27 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
 
-    // Total balance across all accounts
-    const [balanceResult]: any = await pool.query(
-      'SELECT COALESCE(SUM(balance), 0) as total_balance FROM accounts WHERE user_id = ?',
+    // Total income
+    const [incomeResult]: any = await pool.query(
+      `SELECT COALESCE(SUM(t.amount), 0) as total_income 
+       FROM transactions t 
+       JOIN categories c ON t.category_id = c.id 
+       WHERE t.user_id = ? AND c.type = 'income'`,
+      [req.userId]
+    );
+
+    // Total expenses
+    const [expenseResult]: any = await pool.query(
+      `SELECT COALESCE(SUM(t.amount), 0) as total_expense 
+       FROM transactions t 
+       JOIN categories c ON t.category_id = c.id 
+       WHERE t.user_id = ? AND c.type = 'expense'`,
       [req.userId]
     );
 
     // Income this month
-    const [incomeResult]: any = await pool.query(
-      `SELECT COALESCE(SUM(t.amount), 0) as total_income 
+    const [monthlyIncomeResult]: any = await pool.query(
+      `SELECT COALESCE(SUM(t.amount), 0) as monthly_income 
        FROM transactions t 
        JOIN categories c ON t.category_id = c.id 
        WHERE t.user_id = ? AND c.type = 'income' 
@@ -26,8 +38,8 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
     );
 
     // Expenses this month
-    const [expenseResult]: any = await pool.query(
-      `SELECT COALESCE(SUM(t.amount), 0) as total_expense 
+    const [monthlyExpenseResult]: any = await pool.query(
+      `SELECT COALESCE(SUM(t.amount), 0) as monthly_expense 
        FROM transactions t 
        JOIN categories c ON t.category_id = c.id 
        WHERE t.user_id = ? AND c.type = 'expense' 
@@ -50,11 +62,9 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
 
     // Recent transactions
     const [recentTransactions]: any = await pool.query(
-      `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color,
-              a.name as account_name, c.type as transaction_type
+      `SELECT t.*, c.name as category_name, c.icon as category_icon, c.color as category_color, c.type as transaction_type
        FROM transactions t 
        JOIN categories c ON t.category_id = c.id 
-       JOIN accounts a ON t.account_id = a.id
        WHERE t.user_id = ?
        ORDER BY t.transaction_date DESC, t.created_at DESC
        LIMIT 5`,
@@ -75,13 +85,28 @@ router.get('/stats', authenticate, async (req: AuthRequest, res) => {
       [req.userId]
     );
 
+    // Get accounts with planned balances
+    const totalIncome = parseFloat(incomeResult[0].total_income);
+    const [accounts]: any = await pool.query(
+      'SELECT * FROM accounts WHERE user_id = ? ORDER BY created_at ASC',
+      [req.userId]
+    );
+
+    const accountsWithPlanned = accounts.map((acc: any) => ({
+      ...acc,
+      planned_balance: (totalIncome * parseFloat(acc.percentage)) / 100
+    }));
+
     res.json({
-      totalBalance: parseFloat(balanceResult[0].total_balance),
-      monthlyIncome: parseFloat(incomeResult[0].total_income),
-      monthlyExpense: parseFloat(expenseResult[0].total_expense),
+      totalIncome: parseFloat(incomeResult[0].total_income),
+      totalExpense: parseFloat(expenseResult[0].total_expense),
+      monthlyIncome: parseFloat(monthlyIncomeResult[0].monthly_income),
+      monthlyExpense: parseFloat(monthlyExpenseResult[0].monthly_expense),
+      balance: parseFloat(incomeResult[0].total_income) - parseFloat(expenseResult[0].total_expense),
       categoryExpenses,
       recentTransactions,
-      monthlyTrend
+      monthlyTrend,
+      accounts: accountsWithPlanned
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);

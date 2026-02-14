@@ -53,6 +53,15 @@ export const api = {
     return res.json();
   },
 
+  updateAccount: async (id: number, data: any) => {
+    const res = await fetch(`${API_URL}/accounts/${id}`, {
+      method: 'PUT',
+      headers: headers(),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
   // Categories
   getCategories: async () => {
     const res = await fetch(`${API_URL}/categories`, { headers: headers() });
@@ -77,6 +86,15 @@ export const api = {
   createTransaction: async (data: any) => {
     const res = await fetch(`${API_URL}/transactions`, {
       method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  updateTransaction: async (id: number, data: any) => {
+    const res = await fetch(`${API_URL}/transactions/${id}`, {
+      method: 'PUT',
       headers: headers(),
       body: JSON.stringify(data),
     });
