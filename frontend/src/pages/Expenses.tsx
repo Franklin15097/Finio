@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
-import { Plus, TrendingDown, Search, Edit2, Trash2, Tag, CreditCard } from 'lucide-react';
+import { Plus, TrendingDown, Search, Edit2, Trash2, Tag, CreditCard, Filter, Calendar, X } from 'lucide-react';
 
 export default function Expenses() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -20,6 +20,10 @@ export default function Expenses() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
   
   // Forms
   const [transactionForm, setTransactionForm] = useState({
@@ -40,7 +44,7 @@ export default function Expenses() {
 
   useEffect(() => {
     filterAndSortTransactions();
-  }, [transactions, searchQuery, sortBy, sortOrder]);
+  }, [transactions, searchQuery, sortBy, sortOrder, selectedCategory, dateRange, customDateFrom, customDateTo]);
 
   const loadData = async () => {
     try {
@@ -61,6 +65,51 @@ export default function Expenses() {
 
   const filterAndSortTransactions = () => {
     let filtered = [...transactions];
+    
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      if (selectedCategory === 'none') {
+        filtered = filtered.filter(t => !t.category_id);
+      } else {
+        filtered = filtered.filter(t => t.category_id === parseInt(selectedCategory));
+      }
+    }
+    
+    // Filter by date range
+    if (dateRange !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(t => {
+        const transactionDate = new Date(t.transaction_date);
+        
+        switch (dateRange) {
+          case 'today':
+            return transactionDate >= today;
+          case 'week':
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return transactionDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            return transactionDate >= monthAgo;
+          case 'year':
+            const yearAgo = new Date(today);
+            yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+            return transactionDate >= yearAgo;
+          case 'custom':
+            if (customDateFrom && customDateTo) {
+              const from = new Date(customDateFrom);
+              const to = new Date(customDateTo);
+              return transactionDate >= from && transactionDate <= to;
+            }
+            return true;
+          default:
+            return true;
+        }
+      });
+    }
     
     // Search
     if (searchQuery) {
