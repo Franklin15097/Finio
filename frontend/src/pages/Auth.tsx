@@ -11,7 +11,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -22,8 +22,9 @@ export default function Auth() {
       } else {
         await register(email, password, name);
       }
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
