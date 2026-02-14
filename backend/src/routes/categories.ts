@@ -41,4 +41,26 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+router.put('/:id', authenticate, async (req: AuthRequest, res) => {
+  const { name, icon, color } = req.body;
+  try {
+    await pool.query(
+      'UPDATE categories SET name = ?, icon = ?, color = ? WHERE id = ? AND user_id = ?',
+      [name, icon, color, req.params.id, req.userId]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
+  try {
+    await pool.query('DELETE FROM categories WHERE id = ? AND user_id = ?', [req.params.id, req.userId]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
 export default router;

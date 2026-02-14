@@ -77,6 +77,23 @@ export const api = {
     return res.json();
   },
 
+  updateCategory: async (id: number, data: any) => {
+    const res = await fetch(`${API_URL}/categories/${id}`, {
+      method: 'PUT',
+      headers: headers(),
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  deleteCategory: async (id: number) => {
+    const res = await fetch(`${API_URL}/categories/${id}`, {
+      method: 'DELETE',
+      headers: headers(),
+    });
+    return res.json();
+  },
+
   // Transactions
   getTransactions: async () => {
     const res = await fetch(`${API_URL}/transactions`, { headers: headers() });
