@@ -40,8 +40,8 @@ router.post('/register',
 
       // Create default account
       await pool.query(
-        'INSERT INTO accounts (user_id, name, type, balance, color) VALUES (?, ?, ?, ?, ?)',
-        [userId, 'Main Account', 'cash', 0, '#6366f1']
+        'INSERT INTO accounts (user_id, name, type, balance, color, icon) VALUES (?, ?, ?, ?, ?, ?)',
+        [userId, 'Main Account', 'cash', 0, '#6366f1', 'wallet']
       );
 
       // Create default categories

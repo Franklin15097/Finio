@@ -19,11 +19,11 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 
 // Create account
 router.post('/', authenticate, async (req: AuthRequest, res) => {
-  const { name, type, balance, currency, color } = req.body;
+  const { name, type, balance, currency, color, icon } = req.body;
   try {
     const [result]: any = await pool.query(
-      'INSERT INTO accounts (user_id, name, type, balance, currency, color) VALUES (?, ?, ?, ?, ?, ?)',
-      [req.userId, name, type, balance || 0, currency || 'USD', color || '#6366f1']
+      'INSERT INTO accounts (user_id, name, type, balance, currency, color, icon) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [req.userId, name, type, balance || 0, currency || 'USD', color || '#6366f1', icon || 'wallet']
     );
     res.status(201).json({ id: result.insertId });
   } catch (error) {
@@ -33,11 +33,11 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 
 // Update account
 router.put('/:id', authenticate, async (req: AuthRequest, res) => {
-  const { name, type, balance, currency, color } = req.body;
+  const { name, type, balance, currency, color, icon } = req.body;
   try {
     await pool.query(
-      'UPDATE accounts SET name = ?, type = ?, balance = ?, currency = ?, color = ? WHERE id = ? AND user_id = ?',
-      [name, type, balance, currency, color, req.params.id, req.userId]
+      'UPDATE accounts SET name = ?, type = ?, balance = ?, currency = ?, color = ?, icon = ? WHERE id = ? AND user_id = ?',
+      [name, type, balance, currency, color, icon, req.params.id, req.userId]
     );
     res.json({ success: true });
   } catch (error) {

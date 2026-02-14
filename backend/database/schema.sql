@@ -11,10 +11,11 @@ CREATE TABLE IF NOT EXISTS accounts (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
   name VARCHAR(100) NOT NULL,
-  type ENUM('cash', 'bank', 'credit', 'investment') NOT NULL,
+  type ENUM('cash', 'bank', 'credit', 'investment', 'checking', 'savings') NOT NULL,
   balance DECIMAL(15, 2) DEFAULT 0,
   currency VARCHAR(3) DEFAULT 'USD',
   color VARCHAR(7) DEFAULT '#6366f1',
+  icon VARCHAR(50) DEFAULT 'wallet',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
