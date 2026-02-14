@@ -38,7 +38,13 @@ export default function Layout({ children }: LayoutProps) {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/5 border-b border-white/10">
         <div className="h-16 px-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              navigate('/');
+              window.location.reload();
+            }}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-md opacity-75"></div>
               <div className="relative w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
@@ -46,7 +52,7 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
             <span className="text-white text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Finio</span>
-          </div>
+          </button>
 
           <div className="text-xs text-gray-400">
             Финансовый помощник

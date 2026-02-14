@@ -168,7 +168,7 @@ export default function Accounts() {
       <div className="glass-card rounded-3xl p-8">
         <h2 className="text-2xl font-bold text-white mb-6">Мои счета ({accounts.length})</h2>
         {accounts.length > 0 ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {accounts.map((account) => {
               const IconComponent = getIconComponent(account.icon);
               const difference = parseFloat(account.actual_balance) - parseFloat(account.planned_balance);
@@ -177,49 +177,62 @@ export default function Accounts() {
               return (
                 <div
                   key={account.id}
-                  className="group relative overflow-hidden bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300"
+                  className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-[28px] p-6 transition-all duration-300 hover:scale-[1.02] border border-white/20"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-8 h-8 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white font-semibold text-xl mb-1">{account.name}</p>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="text-gray-400">
-                            Процент: <span className="text-blue-400 font-medium">{account.percentage}%</span>
-                          </span>
-                          <span className="text-gray-400">
-                            План: <span className="text-green-400 font-medium">{parseFloat(account.planned_balance).toFixed(2)} ₽</span>
-                          </span>
-                          <span className="text-gray-400">
-                            Факт: <span className="text-purple-400 font-medium">{parseFloat(account.actual_balance).toFixed(2)} ₽</span>
-                          </span>
-                        </div>
-                      </div>
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <IconComponent className="w-8 h-8 text-white" />
                     </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right min-w-[140px]">
-                        <p className="text-gray-500 text-xs mb-1">разница</p>
-                        <p className={`text-2xl font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                          {isPositive ? '+' : ''}{difference.toFixed(2)} ₽
-                        </p>
-                      </div>
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => openEdit(account)}
-                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(account.id)}
-                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => openEdit(account)}
+                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(account.id)}
+                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Account Name */}
+                  <h3 className="text-xl font-bold text-white mb-4">{account.name}</h3>
+
+                  {/* Stats */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">Процент</span>
+                      <span className="text-sm font-semibold text-blue-400">{account.percentage}%</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">План</span>
+                      <span className="text-sm font-semibold text-green-400">
+                        {parseFloat(account.planned_balance).toFixed(2)} ₽
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">Факт</span>
+                      <span className="text-sm font-semibold text-purple-400">
+                        {parseFloat(account.actual_balance).toFixed(2)} ₽
+                      </span>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-white/10 my-3"></div>
+
+                    {/* Difference */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Разница</span>
+                      <span className={`text-lg font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{difference.toFixed(2)} ₽
+                      </span>
                     </div>
                   </div>
                 </div>

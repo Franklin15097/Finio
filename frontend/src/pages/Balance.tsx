@@ -47,87 +47,104 @@ export default function Balance() {
 
   // Filter function for date ranges
   const filterTransactionsByDateRange = (transactions: any[], dateRange: string) => {
-    if (dateRange === 'all' || !transactions) return transactions;
+    if (dateRange === 'all' || !transactions || transactions.length === 0) return transactions;
     
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    today.setHours(23, 59, 59, 999);
+    now.setHours(23, 59, 59, 999);
     
     let startDate = new Date();
     
     switch (dateRange) {
       case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate = new Date(now);
         startDate.setHours(0, 0, 0, 0);
         break;
       case 'week':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate = new Date(now);
         startDate.setDate(startDate.getDate() - 7);
         startDate.setHours(0, 0, 0, 0);
         break;
       case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate = new Date(now);
         startDate.setDate(startDate.getDate() - 30);
         startDate.setHours(0, 0, 0, 0);
         break;
       case 'year':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate = new Date(now);
         startDate.setDate(startDate.getDate() - 365);
         startDate.setHours(0, 0, 0, 0);
         break;
+      default:
+        return transactions;
     }
     
     return transactions.filter((item: any) => {
       const itemDate = new Date(item.transaction_date);
       itemDate.setHours(0, 0, 0, 0);
-      return itemDate >= startDate && itemDate <= today;
+      return itemDate >= startDate && itemDate <= now;
     });
   };
 
   // Prepare monthly trend data with filtering
-  const filteredBarTransactions = filterTransactionsByDateRange(stats?.allTransactions || [], barChartDateRange);
+  const allTransactions = stats?.allTransactions || [];
+  const filteredBarTransactions = filterTransactionsByDateRange(allTransactions, barChartDateRange);
   
-  const monthlyData = filteredBarTransactions.reduce((acc: any[], transaction: any) => {
-    const month = new Date(transaction.transaction_date).toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
-    const existing = acc.find(d => d.month === month);
+  // Group by month for bar chart
+  const monthlyDataMap = new Map<string, { income: number; expense: number }>();
+  
+  filteredBarTransactions.forEach((transaction: any) => {
+    const date = new Date(transaction.transaction_date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (!monthlyDataMap.has(monthKey)) {
+      monthlyDataMap.set(monthKey, { income: 0, expense: 0 });
+    }
+    
+    const data = monthlyDataMap.get(monthKey)!;
     const amount = parseFloat(transaction.amount);
     
-    if (existing) {
-      if (transaction.transaction_type === 'income') {
-        existing.income = (existing.income || 0) + amount;
-      } else {
-        existing.expense = (existing.expense || 0) + amount;
-      }
-    } else {
-      acc.push({
-        month,
-        income: transaction.transaction_type === 'income' ? amount : 0,
-        expense: transaction.transaction_type === 'expense' ? amount : 0
-      });
+    if (transaction.transaction_type === 'income') {
+      data.income += amount;
+    } else if (transaction.transaction_type === 'expense') {
+      data.expense += amount;
     }
-    return acc;
-  }, []);
+  });
+  
+  // Convert map to array and sort by date
+  const monthlyData = Array.from(monthlyDataMap.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, data]) => {
+      const [year, month] = key.split('-');
+      const date = new Date(parseInt(year), parseInt(month) - 1);
+      return {
+        month: date.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' }),
+        income: data.income,
+        expense: data.expense
+      };
+    });
 
   // Prepare category expenses data with filtering
-  const filteredPieTransactions = filterTransactionsByDateRange(
-    (stats?.allTransactions || []).filter((t: any) => t.transaction_type === 'expense'),
-    pieChartDateRange
-  );
+  const expenseTransactions = allTransactions.filter((t: any) => t.transaction_type === 'expense');
+  const filteredPieTransactions = filterTransactionsByDateRange(expenseTransactions, pieChartDateRange);
   
-  const categoryData = filteredPieTransactions.reduce((acc: any[], transaction: any) => {
-    const existing = acc.find(c => c.name === transaction.category_name);
+  // Group by category for pie chart
+  const categoryDataMap = new Map<string, number>();
+  
+  filteredPieTransactions.forEach((transaction: any) => {
+    const categoryName = transaction.category_name || 'Без категории';
     const amount = parseFloat(transaction.amount);
     
-    if (existing) {
-      existing.value += amount;
-    } else {
-      acc.push({
-        name: transaction.category_name,
-        value: amount
-      });
+    if (!categoryDataMap.has(categoryName)) {
+      categoryDataMap.set(categoryName, 0);
     }
-    return acc;
-  }, []).filter((c: any) => c.value > 0);
+    
+    categoryDataMap.set(categoryName, categoryDataMap.get(categoryName)! + amount);
+  });
+  
+  const categoryData = Array.from(categoryDataMap.entries())
+    .map(([name, value]) => ({ name, value }))
+    .filter(item => item.value > 0)
+    .sort((a, b) => b.value - a.value);
 
   return (
     <div className="space-y-6">
