@@ -422,9 +422,15 @@ export default function Income() {
           setEditingCategory(null);
           setCategoryForm({ name: '', icon: 'DollarSign' });
         }} 
-        title={editingCategory && editingCategory.id ? 'Редактировать категорию' : 'Управление категориями'}
+        title={
+          !editingCategory 
+            ? 'Управление категориями' 
+            : editingCategory.id 
+              ? 'Редактировать категорию' 
+              : 'Создать категорию'
+        }
       >
-        {!editingCategory || !editingCategory.id ? (
+        {!editingCategory ? (
           <div className="space-y-4">
             <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
               {categories.map((cat) => {
