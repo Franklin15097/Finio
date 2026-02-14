@@ -1,24 +1,44 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Plus, TrendingUp, Calendar, Edit2, Save, X, Trash2, DollarSign } from 'lucide-react';
+import Modal from '../components/Modal';
+import { Plus, TrendingUp, Search, SortAsc, Edit2, Trash2, Tag, DollarSign } from 'lucide-react';
 
 export default function Income() {
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  
+  // Modals
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  
+  // Search & Sort
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Forms
+  const [transactionForm, setTransactionForm] = useState({
     amount: '',
     description: '',
     category_id: '',
     transaction_date: new Date().toISOString().split('T')[0]
   });
-  const [editData, setEditData] = useState<any>({});
+  
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    icon: '💰'
+  });
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    filterAndSortTransactions();
+  }, [transactions, searchQuery, sortBy, sortOrder]);
 
   const loadData = async () => {
     try {
@@ -37,15 +57,42 @@ export default function Income() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const filterAndSortTransactions = () => {
+    let filtered = [...transactions];
+    
+    // Search
+    if (searchQuery) {
+      filtered = filtered.filter(t => 
+        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.category_name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.transaction_date).getTime();
+        const dateB = new Date(b.transaction_date).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        const amountA = parseFloat(a.amount);
+        const amountB = parseFloat(b.amount);
+        return sortOrder === 'asc' ? amountA - amountB : amountB - amountA;
+      }
+    });
+    
+    setFilteredTransactions(filtered);
+  };
+
+  const handleTransactionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await api.createTransaction({
-        ...formData,
-        amount: parseFloat(formData.amount)
+        ...transactionForm,
+        amount: parseFloat(transactionForm.amount)
       });
-      setShowForm(false);
-      setFormData({
+      setShowTransactionModal(false);
+      setTransactionForm({
         amount: '',
         description: '',
         category_id: '',
@@ -57,36 +104,39 @@ export default function Income() {
     }
   };
 
-  const startEdit = (transaction: any) => {
-    setEditingId(transaction.id);
-    setEditData({
-      amount: transaction.amount,
-      description: transaction.description,
-      category_id: transaction.category_id,
-      transaction_date: transaction.transaction_date
-    });
-  };
-
-  const saveEdit = async (id: number) => {
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await api.updateTransaction(id, {
-        ...editData,
-        amount: parseFloat(editData.amount)
-      });
-      setEditingId(null);
+      if (editingCategory) {
+        await api.updateCategory(editingCategory.id, categoryForm);
+      } else {
+        await api.createCategory({
+          ...categoryForm,
+          type: 'income'
+        });
+      }
+      setShowCategoryModal(false);
+      setCategoryForm({ name: '', icon: '💰' });
+      setEditingCategory(null);
       loadData();
     } catch (error) {
-      console.error('Failed to update transaction:', error);
+      console.error('Failed to save category:', error);
     }
   };
 
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditData({});
+  const handleDeleteCategory = async (id: number) => {
+    if (confirm('Удалить категорию? Все связанные транзакции останутся без категории.')) {
+      try {
+        await api.deleteCategory(id);
+        loadData();
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+      }
+    }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Удалить эту транзакцию?')) {
+  const handleDeleteTransaction = async (id: number) => {
+    if (confirm('Удалить транзакцию?')) {
       try {
         await api.deleteTransaction(id);
         loadData();
@@ -96,41 +146,65 @@ export default function Income() {
     }
   };
 
+  const openEditCategory = (category: any) => {
+    setEditingCategory(category);
+    setCategoryForm({ name: category.name, icon: category.icon });
+    setShowCategoryModal(true);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
+
   const totalIncome = transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
             Доходы
           </h1>
-          <p className="text-gray-400">Отслеживайте источники дохода</p>
+          <p className="text-gray-400">Управление доходами и категориями</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/50"
-        >
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-          <div className="relative flex items-center gap-2 text-white font-semibold">
-            <Plus className="w-5 h-5" />
-            Добавить доход
-          </div>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowCategoryModal(true)}
+            className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all font-semibold flex items-center gap-2"
+          >
+            <Tag className="w-5 h-5" />
+            Категории
+          </button>
+          <button
+            onClick={() => setShowTransactionModal(true)}
+            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl transition-all duration-300 hover:scale-105"
+          >
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+            <div className="relative flex items-center gap-2 text-white font-semibold">
+              <Plus className="w-5 h-5" />
+              Добавить
+            </div>
+          </button>
+        </div>
       </div>
 
-      {/* Total Income Card */}
+      {/* Total Card */}
       <div className="relative group">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
         <div className="relative glass-card rounded-3xl p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -142,7 +216,7 @@ export default function Income() {
               </div>
               <div>
                 <p className="text-gray-400 text-sm mb-1">Всего доходов</p>
-                <p className="text-5xl font-bold text-white">${totalIncome.toFixed(2)}</p>
+                <p className="text-5xl font-bold text-white">{totalIncome.toFixed(2)} ₽</p>
               </div>
             </div>
             <div className="text-green-400 text-6xl opacity-10">
@@ -152,177 +226,69 @@ export default function Income() {
         </div>
       </div>
 
-      {/* Add Income Form */}
-      {showForm && (
-        <div className="glass-card rounded-3xl p-8 animate-slide-down">
-          <h2 className="text-2xl font-bold text-white mb-6">Новый доход</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Сумма</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Дата</label>
-                <input
-                  type="date"
-                  required
-                  value={formData.transaction_date}
-                  onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Категория</label>
-              <select
-                required
-                value={formData.category_id}
-                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-              >
-                <option value="" className="bg-slate-800">Выберите категорию</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.icon} {cat.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Описание</label>
-              <input
-                type="text"
-                required
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                placeholder="Введите описание"
-              />
-            </div>
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
-              >
-                Добавить доход
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold transition-all"
-              >
-                Отмена
-              </button>
-            </div>
-          </form>
+      {/* Search & Sort */}
+      <div className="glass-card rounded-3xl p-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Поиск по описанию или категории..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <div className="flex gap-3">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'date' | 'amount')}
+              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 transition-all"
+            >
+              <option value="date" className="bg-slate-800">По дате</option>
+              <option value="amount" className="bg-slate-800">По сумме</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+            >
+              <SortAsc className={`w-5 h-5 text-white transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Transactions List */}
       <div className="glass-card rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">История доходов</h2>
-        {transactions.length > 0 ? (
+        <h2 className="text-2xl font-bold text-white mb-6">История ({filteredTransactions.length})</h2>
+        {filteredTransactions.length > 0 ? (
           <div className="space-y-4">
-            {transactions.map((transaction, index) => (
+            {filteredTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="group relative overflow-hidden bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]"
-                style={{ animationDelay: `${index * 50}ms` }}
+                className="group relative overflow-hidden bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300"
               >
-                {editingId === transaction.id ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editData.amount}
-                        onChange={(e) => setEditData({ ...editData, amount: e.target.value })}
-                        className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white"
-                        placeholder="Сумма"
-                      />
-                      <input
-                        type="date"
-                        value={editData.transaction_date}
-                        onChange={(e) => setEditData({ ...editData, transaction_date: e.target.value })}
-                        className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white"
-                      />
-                      <select
-                        value={editData.category_id}
-                        onChange={(e) => setEditData({ ...editData, category_id: e.target.value })}
-                        className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white"
-                      >
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.icon} {cat.name}</option>
-                        ))}
-                      </select>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
+                      {transaction.category_icon}
                     </div>
-                    <input
-                      type="text"
-                      value={editData.description}
-                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                      className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white"
-                      placeholder="Описание"
-                    />
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => saveEdit(transaction.id)}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl transition-colors"
-                      >
-                        <Save className="w-4 h-4" />
-                        Сохранить
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                        Отмена
-                      </button>
+                    <div>
+                      <p className="text-white font-semibold text-lg">{transaction.category_name}</p>
+                      <p className="text-gray-400 text-sm">{transaction.description}</p>
+                      <p className="text-gray-500 text-xs mt-1">{formatDate(transaction.transaction_date)}</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center text-2xl">
-                        {transaction.category_icon}
-                      </div>
-                      <div>
-                        <p className="text-white font-semibold text-lg">{transaction.category_name}</p>
-                        <p className="text-gray-400 text-sm">{transaction.description}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className="text-green-400 font-bold text-2xl">+${parseFloat(transaction.amount).toFixed(2)}</p>
-                        <p className="text-gray-400 text-sm flex items-center gap-1 justify-end">
-                          <Calendar className="w-3 h-3" />
-                          {transaction.transaction_date}
-                        </p>
-                      </div>
-                      <div className="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
-                        <button
-                          onClick={() => startEdit(transaction)}
-                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(transaction.id)}
-                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-6">
+                    <p className="text-green-400 font-bold text-2xl">+{parseFloat(transaction.amount).toFixed(2)} ₽</p>
+                    <button
+                      onClick={() => handleDeleteTransaction(transaction.id)}
+                      className="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
@@ -332,10 +298,157 @@ export default function Income() {
               <TrendingUp className="w-12 h-12 text-white" />
             </div>
             <p className="text-gray-400 text-lg">Нет транзакций</p>
-            <p className="text-gray-500 text-sm mt-2">Добавьте свой первый доход</p>
           </div>
         )}
       </div>
+
+      {/* Transaction Modal */}
+      <Modal isOpen={showTransactionModal} onClose={() => setShowTransactionModal(false)} title="Новый доход">
+        <form onSubmit={handleTransactionSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Сумма (₽)</label>
+            <input
+              type="number"
+              step="0.01"
+              required
+              value={transactionForm.amount}
+              onChange={(e) => setTransactionForm({ ...transactionForm, amount: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              placeholder="0.00"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Категория</label>
+            <select
+              required
+              value={transactionForm.category_id}
+              onChange={(e) => setTransactionForm({ ...transactionForm, category_id: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            >
+              <option value="" className="bg-slate-800">Выберите категорию</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.icon} {cat.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Описание</label>
+            <input
+              type="text"
+              required
+              value={transactionForm.description}
+              onChange={(e) => setTransactionForm({ ...transactionForm, description: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              placeholder="Например: Зарплата"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Дата</label>
+            <input
+              type="date"
+              required
+              value={transactionForm.transaction_date}
+              onChange={(e) => setTransactionForm({ ...transactionForm, transaction_date: e.target.value })}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+          >
+            Добавить доход
+          </button>
+        </form>
+      </Modal>
+
+      {/* Category Modal */}
+      <Modal 
+        isOpen={showCategoryModal} 
+        onClose={() => {
+          setShowCategoryModal(false);
+          setEditingCategory(null);
+          setCategoryForm({ name: '', icon: '💰' });
+        }} 
+        title={editingCategory ? 'Редактировать категорию' : 'Управление категориями'}
+      >
+        {!editingCategory ? (
+          <div className="space-y-4">
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {categories.map((cat) => (
+                <div key={cat.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{cat.icon}</span>
+                    <span className="text-white font-medium">{cat.name}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEditCategory(cat)}
+                      className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setEditingCategory({})}
+              className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+            >
+              + Создать категорию
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleCategorySubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Название</label>
+              <input
+                type="text"
+                required
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                placeholder="Например: Зарплата"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Иконка (эмодзи)</label>
+              <input
+                type="text"
+                required
+                value={categoryForm.icon}
+                onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-2xl text-center focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                placeholder="💰"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+              >
+                {editingCategory.id ? 'Сохранить' : 'Создать'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingCategory(null);
+                  setCategoryForm({ name: '', icon: '💰' });
+                }}
+                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold transition-all"
+              >
+                Назад
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }
