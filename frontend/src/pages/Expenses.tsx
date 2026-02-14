@@ -119,7 +119,7 @@ export default function Expenses() {
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingCategory) {
+      if (editingCategory && editingCategory.id) {
         await api.updateCategory(editingCategory.id, {
           ...categoryForm,
           color: '#ef4444'
@@ -419,9 +419,9 @@ export default function Expenses() {
           setEditingCategory(null);
           setCategoryForm({ name: '', icon: 'ShoppingCart' });
         }} 
-        title={editingCategory ? 'Редактировать категорию' : 'Управление категориями'}
+        title={editingCategory && editingCategory.id ? 'Редактировать категорию' : 'Управление категориями'}
       >
-        {!editingCategory ? (
+        {!editingCategory || !editingCategory.id ? (
           <div className="space-y-4">
             <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
               {categories.map((cat) => {
