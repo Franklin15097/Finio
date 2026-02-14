@@ -11,8 +11,25 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
 // Validate Telegram Web App data
 function validateTelegramWebAppData(initData: string): any {
+  // Skip validation in development if no token
+  if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE') {
+    console.warn('⚠️  Telegram validation skipped - no bot token configured');
+    // Try to parse user data anyway for development
+    const urlParams = new URLSearchParams(initData);
+    const userParam = urlParams.get('user');
+    if (userParam) {
+      return JSON.parse(userParam);
+    }
+    throw new Error('No user data in initData');
+  }
+
   const urlParams = new URLSearchParams(initData);
   const hash = urlParams.get('hash');
+  
+  if (!hash) {
+    throw new Error('No hash in initData');
+  }
+  
   urlParams.delete('hash');
   
   const dataCheckString = Array.from(urlParams.entries())
@@ -24,6 +41,7 @@ function validateTelegramWebAppData(initData: string): any {
   const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
   
   if (calculatedHash !== hash) {
+    console.error('Hash mismatch:', { calculated: calculatedHash, received: hash });
     throw new Error('Invalid hash');
   }
   
@@ -51,6 +69,8 @@ router.post('/telegram', async (req, res) => {
     const username = telegramUser.username || '';
     const name = `${firstName} ${lastName}`.trim() || username || `User${telegramId}`;
     
+    console.log('Telegram auth attempt:', { telegramId, username, name });
+    
     // Check if user exists by telegram_id
     let [users]: any = await pool.query('SELECT * FROM users WHERE telegram_id = ?', [telegramId]);
     
@@ -62,6 +82,7 @@ router.post('/telegram', async (req, res) => {
         'UPDATE users SET name = ?, telegram_username = ? WHERE id = ?',
         [name, username, userId]
       );
+      console.log('Existing Telegram user logged in:', userId);
     } else {
       // Create new user
       const [result]: any = await pool.query(
@@ -69,6 +90,7 @@ router.post('/telegram', async (req, res) => {
         [telegramId, username, name, `tg${telegramId}@telegram.user`]
       );
       userId = result.insertId;
+      console.log('New Telegram user created:', userId);
       
       // Create default accounts
       const defaultAccounts = [
@@ -104,16 +126,81 @@ router.post('/telegram', async (req, res) => {
     }
     
     // Get updated user
-    [users] = await pool.query('SELECT id, email, name, telegram_id FROM users WHERE id = ?', [userId]);
+    [users] = await pool.query('SELECT id, email, name, telegram_id, telegram_username FROM users WHERE id = ?', [userId]);
     const user = users[0];
     
     // Generate token
     const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
     
+    console.log('Telegram auth successful:', { userId, email: user.email });
     res.json({ token, user });
   } catch (error) {
     console.error('Telegram auth error:', error);
-    res.status(401).json({ error: 'Telegram authentication failed' });
+    res.status(401).json({ error: 'Telegram authentication failed', details: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Link Telegram to existing account
+router.post('/link-telegram', async (req, res) => {
+  const { initData, email, password } = req.body;
+  
+  if (!initData || !email || !password) {
+    return res.status(400).json({ error: 'Init data, email and password required' });
+  }
+  
+  try {
+    // Validate Telegram data
+    const telegramUser = validateTelegramWebAppData(initData);
+    const telegramId = telegramUser.id;
+    const username = telegramUser.username || '';
+    
+    // Check if telegram_id already linked
+    const [existingTg]: any = await pool.query('SELECT id FROM users WHERE telegram_id = ?', [telegramId]);
+    if (existingTg.length > 0) {
+      return res.status(400).json({ error: 'This Telegram account is already linked to another user' });
+    }
+    
+    // Verify email/password
+    const [users]: any = await pool.query(
+      'SELECT id, email, name, password_hash FROM users WHERE email = ?',
+      [email]
+    );
+    
+    if (users.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    const user = users[0];
+    const validPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Link Telegram to account
+    await pool.query(
+      'UPDATE users SET telegram_id = ?, telegram_username = ? WHERE id = ?',
+      [telegramId, username, user.id]
+    );
+    
+    // Generate token
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    
+    console.log('Telegram linked to existing account:', { userId: user.id, email, telegramId });
+    res.json({ 
+      token, 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        name: user.name,
+        telegram_id: telegramId,
+        telegram_username: username
+      },
+      message: 'Telegram account linked successfully'
+    });
+  } catch (error) {
+    console.error('Link Telegram error:', error);
+    res.status(500).json({ error: 'Failed to link Telegram account' });
   }
 });
 
@@ -241,7 +328,7 @@ router.get('/me', async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
     const [users]: any = await pool.query(
-      'SELECT id, email, name, created_at FROM users WHERE id = ?',
+      'SELECT id, email, name, telegram_id, telegram_username, created_at FROM users WHERE id = ?',
       [decoded.userId]
     );
 

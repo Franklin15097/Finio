@@ -230,6 +230,24 @@ export default function Settings() {
                   </button>
                 </div>
 
+                {/* Telegram Connection Status */}
+                {user?.telegram_id && (
+                  <div className="p-6 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 border border-blue-500/30 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Sparkles className="w-6 h-6 text-blue-400" />
+                      <h3 className="text-lg font-bold text-white">Telegram подключен</h3>
+                    </div>
+                    <p className="text-gray-300 text-sm mb-3">
+                      Ваш аккаунт связан с Telegram
+                    </p>
+                    {user.telegram_username && (
+                      <p className="text-blue-400 font-semibold">
+                        @{user.telegram_username}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Имя</label>
                   <input

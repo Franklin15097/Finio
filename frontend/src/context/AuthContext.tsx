@@ -7,6 +7,7 @@ interface User {
   email: string;
   name: string;
   telegram_id?: number;
+  telegram_username?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   loginWithTelegram: () => Promise<void>;
+  linkTelegram: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isTelegram: boolean;
 }
@@ -72,6 +74,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const linkTelegram = async (email: string, password: string) => {
+    const initData = getTelegramInitData();
+    if (!initData) {
+      throw new Error('No Telegram init data');
+    }
+
+    const data = await api.linkTelegram(initData, email, password);
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+    } else {
+      throw new Error(data.error || 'Failed to link Telegram');
+    }
+  };
+
   const login = async (email: string, password: string) => {
     const data = await api.login(email, password);
     if (data.token) {
@@ -98,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithTelegram, logout, isTelegram }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithTelegram, linkTelegram, logout, isTelegram }}>
       {children}
     </AuthContext.Provider>
   );

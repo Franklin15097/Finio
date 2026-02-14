@@ -36,6 +36,15 @@ export const api = {
     return res.json();
   },
 
+  linkTelegram: async (initData: string, email: string, password: string) => {
+    const res = await fetch(`${API_URL}/auth/link-telegram`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initData, email, password }),
+    });
+    return res.json();
+  },
+
   getMe: async () => {
     const res = await fetch(`${API_URL}/auth/me`, { headers: headers() });
     return res.json();

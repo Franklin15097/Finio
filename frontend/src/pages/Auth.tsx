@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, Mail, Lock, User as UserIcon } from 'lucide-react';
+import { Sparkles, Mail, Lock, User as UserIcon, Link as LinkIcon } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,7 +9,8 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, register, isTelegram, loginWithTelegram } = useAuth();
+  const [showLinkForm, setShowLinkForm] = useState(false);
+  const { login, register, isTelegram, loginWithTelegram, linkTelegram } = useAuth();
 
   // Auto-login for Telegram users
   useEffect(() => {
@@ -24,7 +25,10 @@ export default function Auth() {
       await loginWithTelegram();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Telegram authentication failed';
-      setError(errorMessage);
+      console.error('Telegram auth failed:', errorMessage);
+      // Show link form if Telegram auth fails
+      setShowLinkForm(true);
+      setError('Аккаунт Telegram не найден. Войдите с email/паролем чтобы связать аккаунты.');
       setLoading(false);
     }
   };
@@ -35,7 +39,10 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (showLinkForm && isTelegram) {
+        // Link Telegram to existing account
+        await linkTelegram(email, password);
+      } else if (isLogin) {
         await login(email, password);
       } else {
         await register(email, password, name);
@@ -49,7 +56,7 @@ export default function Auth() {
   };
 
   // Show loading for Telegram users
-  if (isTelegram && loading) {
+  if (isTelegram && loading && !showLinkForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
@@ -91,29 +98,44 @@ export default function Auth() {
 
         {/* Auth Card */}
         <div className="glass-card rounded-3xl p-8 shadow-2xl">
-          {/* Toggle Buttons */}
-          <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-2xl">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-                isLogin
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Вход
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-                !isLogin
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              Регистрация
-            </button>
-          </div>
+          {/* Show link message for Telegram users */}
+          {showLinkForm && isTelegram && (
+            <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500/50 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <LinkIcon className="w-5 h-5 text-blue-400" />
+                <h3 className="text-blue-400 font-semibold">Связать с Telegram</h3>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Войдите с вашим email и паролем, чтобы связать аккаунт с Telegram
+              </p>
+            </div>
+          )}
+
+          {/* Toggle Buttons - hide if linking Telegram */}
+          {!showLinkForm && (
+            <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-2xl">
+              <button
+                onClick={() => setIsLogin(true)}
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
+                  isLogin
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Вход
+              </button>
+              <button
+                onClick={() => setIsLogin(false)}
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
+                  !isLogin
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Регистрация
+              </button>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -124,7 +146,7 @@ export default function Auth() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && (
+            {!isLogin && !showLinkForm && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Имя</label>
                 <div className="relative">
@@ -184,23 +206,31 @@ export default function Auth() {
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
               <span className="relative text-white font-bold text-lg">
-                {loading ? 'Загрузка...' : isLogin ? 'Войти' : 'Зарегистрироваться'}
+                {loading 
+                  ? 'Загрузка...' 
+                  : showLinkForm 
+                    ? 'Связать с Telegram' 
+                    : isLogin 
+                      ? 'Войти' 
+                      : 'Зарегистрироваться'}
               </span>
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              {isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-purple-400 hover:text-purple-300 font-semibold transition-colors"
-              >
-                {isLogin ? 'Зарегистрируйтесь' : 'Войдите'}
-              </button>
-            </p>
-          </div>
+          {/* Footer - hide if linking */}
+          {!showLinkForm && (
+            <div className="mt-6 text-center">
+              <p className="text-gray-400 text-sm">
+                {isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
+                <button
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-purple-400 hover:text-purple-300 font-semibold transition-colors"
+                >
+                  {isLogin ? 'Зарегистрируйтесь' : 'Войдите'}
+                </button>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Features */}
