@@ -120,11 +120,15 @@ export default function Expenses() {
     e.preventDefault();
     try {
       if (editingCategory) {
-        await api.updateCategory(editingCategory.id, categoryForm);
+        await api.updateCategory(editingCategory.id, {
+          ...categoryForm,
+          color: '#ef4444'
+        });
       } else {
         await api.createCategory({
           ...categoryForm,
-          type: 'expense'
+          type: 'expense',
+          color: '#ef4444'
         });
       }
       setShowCategoryModal(false);

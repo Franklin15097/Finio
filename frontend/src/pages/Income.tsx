@@ -120,11 +120,15 @@ export default function Income() {
     e.preventDefault();
     try {
       if (editingCategory) {
-        await api.updateCategory(editingCategory.id, categoryForm);
+        await api.updateCategory(editingCategory.id, {
+          ...categoryForm,
+          color: '#10b981'
+        });
       } else {
         await api.createCategory({
           ...categoryForm,
-          type: 'income'
+          type: 'income',
+          color: '#10b981'
         });
       }
       setShowCategoryModal(false);
