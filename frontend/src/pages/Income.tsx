@@ -24,6 +24,7 @@ export default function Income() {
   const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
   const [customDateFrom, setCustomDateFrom] = useState('');
   const [customDateTo, setCustomDateTo] = useState('');
+  const [totalDateRange, setTotalDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
   
   // Forms
   const [transactionForm, setTransactionForm] = useState({
@@ -242,7 +243,41 @@ export default function Income() {
     });
   };
 
-  const totalIncome = transactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const calculateTotalIncome = () => {
+    let filtered = [...transactions];
+    
+    if (totalDateRange !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter(t => {
+        const transactionDate = new Date(t.transaction_date);
+        
+        switch (totalDateRange) {
+          case 'today':
+            return transactionDate >= today;
+          case 'week':
+            const weekAgo = new Date(today);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return transactionDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            return transactionDate >= monthAgo;
+          case 'year':
+            const yearAgo = new Date(today);
+            yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+            return transactionDate >= yearAgo;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    return filtered.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  };
+
+  const totalIncome = calculateTotalIncome();
 
   if (loading) {
     return (
@@ -287,7 +322,7 @@ export default function Income() {
       <div className="relative group">
         <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
         <div className="relative glass-card rounded-3xl p-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-6">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur-lg opacity-75"></div>
@@ -303,6 +338,26 @@ export default function Income() {
             <div className="text-green-400 text-6xl opacity-10">
               <DollarSign className="w-24 h-24" />
             </div>
+          </div>
+          {/* Period Filter */}
+          <div className="flex gap-2 flex-wrap">
+            {['all', 'today', 'week', 'month', 'year'].map((period) => (
+              <button
+                key={period}
+                onClick={() => setTotalDateRange(period as any)}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
+                  totalDateRange === period
+                    ? 'bg-white/20 text-white font-medium'
+                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                }`}
+              >
+                {period === 'all' && 'Всё время'}
+                {period === 'today' && 'Сегодня'}
+                {period === 'week' && 'Неделя'}
+                {period === 'month' && 'Месяц'}
+                {period === 'year' && 'Год'}
+              </button>
+            ))}
           </div>
         </div>
       </div>
