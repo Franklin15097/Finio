@@ -25,7 +25,7 @@ export default function TelegramLayout({ children }: TelegramLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pb-32">
       {/* Animated background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -34,7 +34,7 @@ export default function TelegramLayout({ children }: TelegramLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 animate-fade-in">
+      <main className="relative z-10 animate-fade-in pb-4">
         {children}
       </main>
 
