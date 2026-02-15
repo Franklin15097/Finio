@@ -149,11 +149,18 @@ export default function Balance() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-5xl font-bold text-white mb-2">
-          Баланс
-        </h1>
-        <p className="text-white/80 text-lg">Обзор финансов в реальном времени</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center shadow-xl">
+            <Wallet className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-5xl font-bold text-white mb-2">
+              Баланс
+            </h1>
+            <p className="text-white/80 text-lg">Обзор финансов в реальном времени</p>
+          </div>
+        </div>
       </div>
 
       {/* Main Stats */}

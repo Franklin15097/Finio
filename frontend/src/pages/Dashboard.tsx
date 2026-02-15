@@ -48,16 +48,14 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <img 
-          src="/logo2.png" 
-          alt="Dashboard" 
-          className="h-16 w-auto drop-shadow-lg"
-        />
+        <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-xl">
+          <Wallet className="w-8 h-8 text-white" />
+        </div>
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold text-white mb-2">
             Панель управления
           </h1>
-          <p className="text-purple-200">Обзор финансовой активности</p>
+          <p className="text-white/80 text-lg">Обзор финансовой активности</p>
         </div>
       </div>
 

@@ -76,16 +76,14 @@ export default function Settings() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <img 
-          src="/logo2.png" 
-          alt="Settings" 
-          className="h-16 w-auto drop-shadow-lg"
-        />
+        <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-xl">
+          <User className="w-8 h-8 text-white" />
+        </div>
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold text-white mb-2">
             Настройки
           </h1>
-          <p className="text-purple-200">Управление аккаунтом и распределением</p>
+          <p className="text-white/80 text-lg">Управление аккаунтом и распределением</p>
         </div>
       </div>
 
@@ -137,7 +135,7 @@ export default function Settings() {
                 <button
                   onClick={saveDistribution}
                   disabled={saving}
-                  className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-3xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 shadow-xl"
                 >
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   <div className="relative flex items-center gap-2 text-white font-semibold">

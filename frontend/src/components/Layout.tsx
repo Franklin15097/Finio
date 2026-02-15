@@ -19,10 +19,10 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-[#7c3aed] to-[#a855f7]' },
-    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-[#a855f7] to-[#c084fc]' },
-    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-[#c084fc] to-[#a855f7]' },
-    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-[#7c3aed] to-[#c084fc]' },
+    { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-blue-500 to-cyan-500' },
+    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-green-500 to-emerald-500' },
+    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-red-500 to-pink-500' },
+    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-purple-500 to-fuchsia-500' },
   ];
 
   return (
@@ -45,7 +45,7 @@ export default function Layout({ children }: LayoutProps) {
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/logo3.png" 
+              src="/logo.png" 
               alt="Finio" 
               className="h-14 w-auto drop-shadow-lg"
             />
@@ -124,7 +124,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
-                src="/logo3.png" 
+                src="/logo.png" 
                 alt="Finio" 
                 className="h-8 w-auto opacity-80"
               />
