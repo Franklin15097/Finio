@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
+import DatePicker from '../components/DatePicker';
 import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, DollarSign, Filter, Calendar, X } from 'lucide-react';
 import { isTelegramWebApp } from '../utils/telegram';
 import TelegramIncome from './telegram/TelegramIncome';
@@ -446,18 +447,14 @@ export default function Income() {
             {/* Custom Date Range */}
             {dateRange === 'custom' && (
               <div className="flex gap-2 items-center animate-fade-in">
-                <input
-                  type="date"
+                <DatePicker
                   value={customDateFrom}
-                  onChange={(e) => setCustomDateFrom(e.target.value)}
-                  className="px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all"
+                  onChange={(date) => setCustomDateFrom(date)}
                 />
                 <span className="text-gray-400">—</span>
-                <input
-                  type="date"
+                <DatePicker
                   value={customDateTo}
-                  onChange={(e) => setCustomDateTo(e.target.value)}
-                  className="px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all"
+                  onChange={(date) => setCustomDateTo(date)}
                 />
               </div>
             )}
@@ -659,13 +656,10 @@ export default function Income() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Дата</label>
-            <input
-              type="date"
-              required
+            <DatePicker
+              label="Дата"
               value={transactionForm.transaction_date}
-              onChange={(e) => setTransactionForm({ ...transactionForm, transaction_date: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              onChange={(date) => setTransactionForm({ ...transactionForm, transaction_date: date })}
             />
           </div>
           <button

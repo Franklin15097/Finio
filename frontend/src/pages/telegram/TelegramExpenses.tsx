@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import Modal from '../../components/Modal';
 import IconPicker, { getIconComponent } from '../../components/IconPicker';
+import DatePicker from '../../components/DatePicker';
 import { Plus, TrendingDown, Search, Edit2, Trash2, Tag, Calendar, X } from 'lucide-react';
 
 export default function TelegramExpenses() {
@@ -467,13 +468,10 @@ export default function TelegramExpenses() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1">Дата</label>
-            <input
-              type="date"
-              required
+            <DatePicker
+              label="Дата"
               value={transactionForm.transaction_date}
-              onChange={(e) => setTransactionForm({ ...transactionForm, transaction_date: e.target.value })}
-              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-red-500"
+              onChange={(date) => setTransactionForm({ ...transactionForm, transaction_date: date })}
             />
           </div>
           <button
