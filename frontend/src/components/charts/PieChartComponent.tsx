@@ -1,4 +1,5 @@
-import { PieChart, Pie, Cell } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
+import { useState } from 'react';
 
 const PIE_COLORS = [
   'hsl(258, 90%, 62%)',
@@ -24,40 +25,95 @@ interface PieChartComponentProps {
   outerRadius?: number;
 }
 
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+  
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 8}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={outerRadius + 10}
+        outerRadius={outerRadius + 12}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.3}
+      />
+    </g>
+  );
+};
+
 export function PieChartComponent({ 
   data, 
-  width = 180, 
-  height = 180,
-  innerRadius = 55,
-  outerRadius = 80
+  width = 200, 
+  height = 200,
+  innerRadius = 60,
+  outerRadius = 85
 }: PieChartComponentProps) {
+  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+
   return (
     <div className="flex flex-col items-center">
-      <PieChart width={width} height={height}>
-        <Pie
-          data={data}
-          cx={width / 2}
-          cy={height / 2}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          paddingAngle={3}
-          dataKey="value"
-          strokeWidth={0}
-        >
-          {data.map((_, i) => (
-            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-          ))}
-        </Pie>
-      </PieChart>
-      <div className="space-y-2 mt-3 max-h-[140px] overflow-y-auto w-full">
+      <ResponsiveContainer width={width} height={height}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={innerRadius}
+            outerRadius={outerRadius}
+            paddingAngle={4}
+            dataKey="value"
+            strokeWidth={0}
+            activeIndex={activeIndex}
+            activeShape={renderActiveShape}
+            onMouseEnter={(_, index) => setActiveIndex(index)}
+            onMouseLeave={() => setActiveIndex(undefined)}
+            animationDuration={1000}
+            animationEasing="ease-out"
+          >
+            {data.map((_, i) => (
+              <Cell 
+                key={i} 
+                fill={PIE_COLORS[i % PIE_COLORS.length]}
+                style={{ 
+                  filter: activeIndex === i ? 'brightness(1.2)' : 'none',
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="space-y-2 mt-4 max-h-[160px] overflow-y-auto w-full custom-scrollbar">
         {data.map((item, i) => (
-          <div key={item.name} className="flex items-center gap-2.5 text-sm">
+          <div 
+            key={item.name} 
+            className={`flex items-center gap-3 text-sm p-2 rounded-lg transition-all duration-200 cursor-pointer ${
+              activeIndex === i ? 'bg-secondary/50 scale-105' : 'hover:bg-secondary/30'
+            }`}
+            onMouseEnter={() => setActiveIndex(i)}
+            onMouseLeave={() => setActiveIndex(undefined)}
+          >
             <div 
-              className="w-3 h-3 rounded-full shrink-0" 
-              style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} 
+              className="w-3.5 h-3.5 rounded-full shrink-0 shadow-lg" 
+              style={{ 
+                background: PIE_COLORS[i % PIE_COLORS.length],
+                boxShadow: activeIndex === i ? `0 0 12px ${PIE_COLORS[i % PIE_COLORS.length]}` : 'none'
+              }} 
             />
-            <span className="flex-1 text-muted-foreground text-xs truncate">{item.name}</span>
-            <span className="font-semibold text-xs">{item.value.toFixed(0)} ₽</span>
+            <span className="flex-1 text-muted-foreground text-xs truncate font-medium">{item.name}</span>
+            <span className="font-bold text-sm text-foreground">{item.value.toFixed(0)} ₽</span>
           </div>
         ))}
       </div>

@@ -48,31 +48,31 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-card/80 border-b border-border shadow-lg">
-        <div className="h-14 px-4 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-card/90 border-b border-border shadow-lg">
+        <div className="h-16 px-6 flex items-center justify-between">
           <button 
             onClick={() => {
               navigate('/');
               window.location.reload();
             }}
-            className="flex items-center gap-2 hover:opacity-80 transition-all duration-300"
+            className="flex items-center gap-3 hover:opacity-80 transition-all duration-300"
           >
             <img 
               src="/logo.png" 
               alt="Finio" 
-              className="h-10 w-auto drop-shadow-2xl"
+              className="h-12 w-auto drop-shadow-2xl"
             />
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-all duration-300"
+              className="p-3 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-all duration-300 hover:scale-105"
               aria-label="Toggle theme"
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <div className="text-xs text-muted-foreground font-medium">
+            <div className="text-sm text-foreground font-semibold">
               Finance Studio
             </div>
           </div>
@@ -80,8 +80,8 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-14 bottom-0 w-52 backdrop-blur-xl bg-card/80 border-r border-border p-3 flex flex-col shadow-xl">
-        <nav className="space-y-1.5 flex-1">
+      <aside className="fixed left-0 top-16 bottom-0 w-64 backdrop-blur-xl bg-card/90 border-r border-border p-4 flex flex-col shadow-xl">
+        <nav className="space-y-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -99,13 +99,13 @@ export default function Layout({ children }: LayoutProps) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                   </>
                 )}
-                <div className={`relative flex items-center gap-2.5 px-3 py-2.5 ${
+                <div className={`relative flex items-center gap-3 px-4 py-3.5 ${
                   isActive 
                     ? 'text-primary-foreground' 
                     : 'text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary'
                 }`}>
-                  <Icon className="w-4 h-4" />
-                  <span className="font-medium text-xs">{item.label}</span>
+                  <Icon className="w-5 h-5" />
+                  <span className="font-semibold text-sm">{item.label}</span>
                 </div>
               </button>
             );
@@ -113,52 +113,52 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* User Profile in Sidebar */}
-        <div className="mt-auto space-y-1.5 pt-3 border-t border-border">
-          <div className="relative overflow-hidden flex items-center gap-2.5 px-3 py-2.5 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-sm">
+        <div className="mt-auto space-y-2 pt-4 border-t border-border">
+          <div className="relative overflow-hidden flex items-center gap-3 px-4 py-3 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="relative w-8 h-8 gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs shadow-lg">
+            <div className="relative w-10 h-10 gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm shadow-lg">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="relative flex-1 min-w-0">
-              <p className="text-foreground font-medium text-xs truncate">{user?.name}</p>
-              <p className="text-[9px] text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-foreground font-semibold text-sm truncate">{user?.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
           
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-destructive/20 hover:bg-destructive/30 text-destructive hover:text-destructive-foreground rounded-xl transition-all duration-300 font-medium text-xs border border-destructive/20 backdrop-blur-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive hover:text-destructive-foreground rounded-xl transition-all duration-300 font-semibold text-sm border border-destructive/20 backdrop-blur-sm hover:scale-105"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
             Выйти
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-52 mt-14 p-4 relative z-10 flex-1 animate-fade-in">
+      <main className="ml-64 mt-16 p-6 relative z-10 flex-1 animate-fade-in">
         <div className="max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="ml-52 relative z-10 backdrop-blur-xl bg-card/80 border-t border-border shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+      <footer className="ml-64 relative z-0 backdrop-blur-xl bg-card/90 border-t border-border shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <img 
                 src="/logo.png" 
                 alt="Finio" 
-                className="h-5 w-auto opacity-80"
+                className="h-6 w-auto opacity-80"
               />
               <div>
-                <p className="text-foreground font-semibold text-xs">Finio</p>
-                <p className="text-[9px] text-muted-foreground">© 2026 Все права защищены</p>
+                <p className="text-foreground font-semibold text-sm">Finio</p>
+                <p className="text-xs text-muted-foreground">© 2026 Все права защищены</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <a href="/terms.html" target="_blank" className="hover:text-foreground transition-colors">Соглашение</a>
               <a href="/privacy.html" target="_blank" className="hover:text-foreground transition-colors">Конфиденциальность</a>
               <a href="mailto:support@studiofinance.ru" className="hover:text-foreground transition-colors">Поддержка</a>
