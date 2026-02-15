@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import categoryRoutes from './routes/categories.js';
@@ -8,7 +10,18 @@ import budgetRoutes from './routes/budgets.js';
 import accountRoutes from './routes/accounts.js';
 import dashboardRoutes from './routes/dashboard.js';
 
-dotenv.config();
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from backend directory
+dotenv.config({ path: path.join(__dirname, '../.env') });
+
+console.log('Environment loaded:');
+console.log('- PORT:', process.env.PORT);
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- DB_NAME:', process.env.DB_NAME);
+console.log('- TELEGRAM_BOT_TOKEN configured:', !!process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN !== 'YOUR_BOT_TOKEN_HERE');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
