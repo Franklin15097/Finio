@@ -26,16 +26,16 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       ></div>
       
-      {/* Modal */}
-      <div className={`relative bg-slate-800 rounded-t-3xl sm:rounded-3xl p-6 max-w-md w-full overflow-y-auto border border-slate-700/50 shadow-2xl animate-slide-up ${
-        isTelegram ? 'max-h-[75vh] mb-20' : 'max-h-[85vh]'
+      {/* Modal - Always centered */}
+      <div className={`relative bg-slate-800 rounded-3xl p-6 max-w-md w-full overflow-y-auto border border-slate-700/50 shadow-2xl animate-scale-in ${
+        isTelegram ? 'max-h-[70vh]' : 'max-h-[85vh]'
       }`}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">{title}</h2>

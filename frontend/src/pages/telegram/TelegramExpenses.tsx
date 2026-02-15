@@ -624,7 +624,7 @@ export default function TelegramExpenses() {
       {/* Floating Action Button */}
       <button
         onClick={() => setShowTransactionModal(true)}
-        className="fixed right-4 bottom-24 w-14 h-14 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-2xl z-30 hover:scale-110 transition-transform"
+        className="fixed right-4 bottom-32 w-14 h-14 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-2xl z-30 hover:scale-110 transition-transform"
       >
         <Plus className="w-7 h-7 text-white" />
       </button>
