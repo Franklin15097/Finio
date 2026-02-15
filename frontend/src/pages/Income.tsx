@@ -321,15 +321,16 @@ export default function Income() {
         <div className="flex gap-3">
           <button
             onClick={() => setShowCategoryModal(true)}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-3xl transition-all font-semibold flex items-center gap-2 border border-white/20"
+            className="px-6 py-3 bg-gradient-to-r from-purple-600/20 to-fuchsia-600/20 hover:from-purple-600/30 hover:to-fuchsia-600/30 text-purple-200 hover:text-white rounded-3xl transition-all font-semibold flex items-center gap-2 border border-purple-400/20 backdrop-blur-sm"
           >
             <Tag className="w-5 h-5" />
             Категории
           </button>
           <button
             onClick={() => setShowTransactionModal(true)}
-            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-600 to-emerald-600 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl"
+            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-600/90 to-emerald-600/90 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl shadow-purple-500/50 backdrop-blur-sm border border-purple-400/20"
           >
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
             <div className="relative flex items-center gap-2 text-white font-semibold">
               <Plus className="w-5 h-5" />
