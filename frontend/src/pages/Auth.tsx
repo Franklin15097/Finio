@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Sparkles, Mail, Lock, User as UserIcon, Link as LinkIcon } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showLinkForm, setShowLinkForm] = useState(false);
-  const { login, register, isTelegram, loginWithTelegram, linkTelegram } = useAuth();
+  const { isTelegram, loginWithTelegram } = useAuth();
 
   // Auto-login for Telegram users
   useEffect(() => {
@@ -26,37 +21,13 @@ export default function Auth() {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Telegram authentication failed';
       console.error('Telegram auth failed:', errorMessage);
-      // Show link form if Telegram auth fails
-      setShowLinkForm(true);
-      setError('Аккаунт Telegram не найден. Войдите с email/паролем чтобы связать аккаунты.');
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      if (showLinkForm && isTelegram) {
-        // Link Telegram to existing account
-        await linkTelegram(email, password);
-      } else if (isLogin) {
-        await login(email, password);
-      } else {
-        await register(email, password, name);
-      }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
-      setError(errorMessage);
-    } finally {
+      setError('Ошибка авторизации через Telegram. Попробуйте еще раз.');
       setLoading(false);
     }
   };
 
   // Show loading for Telegram users
-  if (isTelegram && loading && !showLinkForm) {
+  if (isTelegram && loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center">
@@ -96,141 +67,48 @@ export default function Auth() {
           <p className="text-gray-400">Ваш личный финансовый помощник</p>
         </div>
 
-        {/* Auth Card */}
-        <div className="glass-card rounded-3xl p-8 shadow-2xl">
-          {/* Show link message for Telegram users */}
-          {showLinkForm && isTelegram && (
-            <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500/50 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <LinkIcon className="w-5 h-5 text-blue-400" />
-                <h3 className="text-blue-400 font-semibold">Связать с Telegram</h3>
-              </div>
-              <p className="text-gray-300 text-sm">
-                Войдите с вашим email и паролем, чтобы связать аккаунт с Telegram
-              </p>
-            </div>
-          )}
+        {/* Telegram Only Message */}
+        <div className="glass-card rounded-3xl p-8 shadow-2xl text-center">
+          <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.155.232.171.326.016.094.036.308.02.475z"/>
+            </svg>
+          </div>
 
-          {/* Toggle Buttons - hide if linking Telegram */}
-          {!showLinkForm && (
-            <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-2xl">
-              <button
-                onClick={() => setIsLogin(true)}
-                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-                  isLogin
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Вход
-              </button>
-              <button
-                onClick={() => setIsLogin(false)}
-                className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
-                  !isLogin
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Регистрация
-              </button>
-            </div>
-          )}
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Вход только через Telegram
+          </h2>
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm animate-slide-down">
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm">
               {error}
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {!isLogin && !showLinkForm && (
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Имя</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <UserIcon className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required={!isLogin}
-                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                    placeholder="Ваше имя"
-                  />
-                </div>
-              </div>
-            )}
+          <p className="text-gray-300 mb-6">
+            Finio работает только в Telegram Mini App. Откройте бота в Telegram для доступа к приложению.
+          </p>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="your@email.com"
-                />
-              </div>
+          <div className="space-y-4">
+            <div className="p-4 bg-white/5 rounded-xl text-left">
+              <p className="text-sm text-gray-400 mb-2">Шаг 1:</p>
+              <p className="text-white font-semibold">Найдите бота в Telegram</p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Пароль</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
+            <div className="p-4 bg-white/5 rounded-xl text-left">
+              <p className="text-sm text-gray-400 mb-2">Шаг 2:</p>
+              <p className="text-white font-semibold">Нажмите на кнопку меню</p>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full overflow-hidden py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:hover:scale-100"
-            >
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-              <span className="relative text-white font-bold text-lg">
-                {loading 
-                  ? 'Загрузка...' 
-                  : showLinkForm 
-                    ? 'Связать с Telegram' 
-                    : isLogin 
-                      ? 'Войти' 
-                      : 'Зарегистрироваться'}
-              </span>
-            </button>
-          </form>
-
-          {/* Footer - hide if linking */}
-          {!showLinkForm && (
-            <div className="mt-6 text-center">
-              <p className="text-gray-400 text-sm">
-                {isLogin ? 'Нет аккаунта?' : 'Уже есть аккаунт?'}{' '}
-                <button
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-purple-400 hover:text-purple-300 font-semibold transition-colors"
-                >
-                  {isLogin ? 'Зарегистрируйтесь' : 'Войдите'}
-                </button>
-              </p>
+            <div className="p-4 bg-white/5 rounded-xl text-left">
+              <p className="text-sm text-gray-400 mb-2">Шаг 3:</p>
+              <p className="text-white font-semibold">Выберите "Открыть Finio"</p>
             </div>
-          )}
+          </div>
+
+          <div className="mt-8 p-4 bg-gradient-to-r from-purple-500/20 to-pink-600/20 border border-purple-500/30 rounded-xl">
+            <p className="text-sm text-gray-300">
+              💡 Все ваши данные синхронизируются автоматически через Telegram
+            </p>
+          </div>
         </div>
 
         {/* Features */}

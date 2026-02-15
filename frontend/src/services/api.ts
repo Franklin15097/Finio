@@ -8,39 +8,12 @@ const headers = () => ({
 });
 
 export const api = {
-  // Auth
-  register: async (email: string, password: string, name: string) => {
-    const res = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name }),
-    });
-    return res.json();
-  },
-
-  login: async (email: string, password: string) => {
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    return res.json();
-  },
-
+  // Auth - Telegram only
   loginWithTelegram: async (initData: string) => {
     const res = await fetch(`${API_URL}/auth/telegram`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ initData }),
-    });
-    return res.json();
-  },
-
-  linkTelegram: async (initData: string, email: string, password: string) => {
-    const res = await fetch(`${API_URL}/auth/link-telegram`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initData, email, password }),
     });
     return res.json();
   },

@@ -13,10 +13,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
   loginWithTelegram: () => Promise<void>;
-  linkTelegram: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isTelegram: boolean;
 }
@@ -74,39 +71,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const linkTelegram = async (email: string, password: string) => {
-    const initData = getTelegramInitData();
-    if (!initData) {
-      throw new Error('No Telegram init data');
-    }
-
-    const data = await api.linkTelegram(initData, email, password);
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-    } else {
-      throw new Error(data.error || 'Failed to link Telegram');
-    }
-  };
-
   const login = async (email: string, password: string) => {
-    const data = await api.login(email, password);
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-    } else {
-      throw new Error(data.error || 'Login failed');
-    }
+    throw new Error('Email/password login is disabled. Use Telegram only.');
   };
 
   const register = async (email: string, password: string, name: string) => {
-    const data = await api.register(email, password, name);
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-    } else {
-      throw new Error(data.error || 'Registration failed');
-    }
+    throw new Error('Registration is disabled. Use Telegram only.');
   };
 
   const logout = () => {
@@ -115,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithTelegram, linkTelegram, logout, isTelegram }}>
+    <AuthContext.Provider value={{ user, loading, loginWithTelegram, logout, isTelegram }}>
       {children}
     </AuthContext.Provider>
   );
