@@ -4,6 +4,30 @@
 
 @layer base {
   :root {
+    /* Default to dark theme */
+    --background: 225 25% 7%;
+    --foreground: 0 0% 96%;
+    --card: 225 20% 11%;
+    --card-foreground: 0 0% 96%;
+    --primary: 258 85% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 18% 15%;
+    --secondary-foreground: 220 10% 75%;
+    --muted: 225 15% 17%;
+    --muted-foreground: 220 10% 52%;
+    --accent: 258 35% 20%;
+    --accent-foreground: 258 80% 78%;
+    --border: 225 15% 16%;
+    --input: 225 15% 16%;
+    --ring: 258 85% 65%;
+
+    --income: 160 84% 44%;
+    --expense: 350 89% 65%;
+    --info: 210 100% 62%;
+    --warning: 36 100% 60%;
+  }
+
+  .light {
     --background: 220 20% 97%;
     --foreground: 220 25% 10%;
     --card: 0 0% 100%;
@@ -64,7 +88,7 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
     /* Telegram Web App specific */
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -101,30 +125,18 @@ code {
 @layer utilities {
   /* Glass card effect */
   .glass-card {
-    @apply bg-card border border-border/60 shadow-sm;
-  }
-  .dark .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border-border/40;
+    @apply bg-card/80 backdrop-blur-xl border border-border/60 shadow-sm transition-colors duration-300;
   }
 
   /* Gradient utilities */
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(258 90% 62%), hsl(280 75% 58%));
-  }
-  .dark .gradient-primary {
-    background: linear-gradient(135deg, hsl(258 85% 65%), hsl(280 70% 60%));
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(280 75% 58%));
   }
   .gradient-income {
-    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(172 70% 42%));
-  }
-  .dark .gradient-income {
-    background: linear-gradient(135deg, hsl(160 84% 44%), hsl(172 70% 46%));
+    background: linear-gradient(135deg, hsl(var(--income)), hsl(172 70% 42%));
   }
   .gradient-expense {
-    background: linear-gradient(135deg, hsl(350 89% 60%), hsl(10 80% 58%));
-  }
-  .dark .gradient-expense {
-    background: linear-gradient(135deg, hsl(350 89% 65%), hsl(10 80% 62%));
+    background: linear-gradient(135deg, hsl(var(--expense)), hsl(10 80% 58%));
   }
 
   /* Color utilities */
@@ -140,7 +152,6 @@ code {
   .bg-expense {
     background-color: hsl(var(--expense));
   }
-
 
   @keyframes blob {
     0% {
@@ -209,19 +220,6 @@ code {
     animation: shimmer 2s infinite;
     background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
     background-size: 1000px 100%;
-  }
-
-  .glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
 
   /* Custom Scrollbar */

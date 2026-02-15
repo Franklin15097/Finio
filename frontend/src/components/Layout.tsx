@@ -37,18 +37,18 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 flex flex-col animate-gradient">
+    <div className="min-h-screen bg-background flex flex-col transition-colors duration-300">
       {/* Animated purple background blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:opacity-20"></div>
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:opacity-20"></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:opacity-20"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-6000 dark:opacity-20"></div>
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-8000 dark:opacity-20"></div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none transition-opacity duration-300">
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:opacity-20 light:opacity-10"></div>
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:opacity-20 light:opacity-10"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:opacity-20 light:opacity-10"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-6000 dark:opacity-20 light:opacity-10"></div>
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-8000 dark:opacity-20 light:opacity-10"></div>
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-gradient-to-r from-purple-900/80 via-purple-800/80 to-purple-900/80 dark:from-purple-900/80 dark:via-purple-800/80 dark:to-purple-900/80 border-b border-purple-500/20 shadow-lg shadow-purple-900/50">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-card/80 border-b border-border shadow-lg">
         <div className="h-14 px-4 flex items-center justify-between">
           <button 
             onClick={() => {
@@ -67,12 +67,12 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all duration-300"
+              className="p-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground transition-all duration-300"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <div className="text-xs text-purple-200/70 font-medium">
+            <div className="text-xs text-muted-foreground font-medium">
               Finance Studio
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-14 bottom-0 w-52 backdrop-blur-xl bg-gradient-to-b from-purple-900/80 via-purple-800/80 to-purple-900/80 border-r border-purple-500/20 p-3 flex flex-col shadow-xl shadow-purple-900/50">
+      <aside className="fixed left-0 top-14 bottom-0 w-52 backdrop-blur-xl bg-card/80 border-r border-border p-3 flex flex-col shadow-xl">
         <nav className="space-y-1.5 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -90,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 ${
-                  isActive ? 'scale-105 shadow-lg shadow-purple-500/50' : 'hover:scale-105'
+                  isActive ? 'scale-105 shadow-lg shadow-primary/50' : 'hover:scale-105'
                 }`}
               >
                 {isActive && (
@@ -101,8 +101,8 @@ export default function Layout({ children }: LayoutProps) {
                 )}
                 <div className={`relative flex items-center gap-2.5 px-3 py-2.5 ${
                   isActive 
-                    ? 'text-white' 
-                    : 'text-purple-200/70 hover:text-white bg-white/5 hover:bg-white/10'
+                    ? 'text-primary-foreground' 
+                    : 'text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary'
                 }`}>
                   <Icon className="w-4 h-4" />
                   <span className="font-medium text-xs">{item.label}</span>
@@ -113,21 +113,21 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* User Profile in Sidebar */}
-        <div className="mt-auto space-y-1.5 pt-3 border-t border-purple-500/20">
-          <div className="relative overflow-hidden flex items-center gap-2.5 px-3 py-2.5 bg-gradient-to-r from-purple-600/30 to-fuchsia-600/30 rounded-xl border border-purple-400/20 backdrop-blur-sm">
+        <div className="mt-auto space-y-1.5 pt-3 border-t border-border">
+          <div className="relative overflow-hidden flex items-center gap-2.5 px-3 py-2.5 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="relative w-8 h-8 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
+            <div className="relative w-8 h-8 gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs shadow-lg">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="relative flex-1 min-w-0">
-              <p className="text-white font-medium text-xs truncate">{user?.name}</p>
-              <p className="text-[9px] text-purple-200/60 truncate">{user?.email}</p>
+              <p className="text-foreground font-medium text-xs truncate">{user?.name}</p>
+              <p className="text-[9px] text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
           
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-red-600/20 to-pink-600/20 hover:from-red-600/30 hover:to-pink-600/30 text-red-200 hover:text-white rounded-xl transition-all duration-300 font-medium text-xs border border-red-400/20 backdrop-blur-sm"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-destructive/20 hover:bg-destructive/30 text-destructive hover:text-destructive-foreground rounded-xl transition-all duration-300 font-medium text-xs border border-destructive/20 backdrop-blur-sm"
           >
             <LogOut className="w-3.5 h-3.5" />
             Выйти
@@ -143,7 +143,7 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="ml-52 relative z-10 backdrop-blur-xl bg-gradient-to-r from-purple-900/80 via-purple-800/80 to-purple-900/80 border-t border-purple-500/20 shadow-lg shadow-purple-900/50">
+      <footer className="ml-52 relative z-10 backdrop-blur-xl bg-card/80 border-t border-border shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -153,15 +153,15 @@ export default function Layout({ children }: LayoutProps) {
                 className="h-5 w-auto opacity-80"
               />
               <div>
-                <p className="text-white font-semibold text-xs">Finio</p>
-                <p className="text-[9px] text-purple-200/60">© 2026 Все права защищены</p>
+                <p className="text-foreground font-semibold text-xs">Finio</p>
+                <p className="text-[9px] text-muted-foreground">© 2026 Все права защищены</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 text-[9px] text-purple-200/60">
-              <a href="/terms.html" target="_blank" className="hover:text-white transition-colors">Соглашение</a>
-              <a href="/privacy.html" target="_blank" className="hover:text-white transition-colors">Конфиденциальность</a>
-              <a href="mailto:support@studiofinance.ru" className="hover:text-white transition-colors">Поддержка</a>
+            <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
+              <a href="/terms.html" target="_blank" className="hover:text-foreground transition-colors">Соглашение</a>
+              <a href="/privacy.html" target="_blank" className="hover:text-foreground transition-colors">Конфиденциальность</a>
+              <a href="mailto:support@studiofinance.ru" className="hover:text-foreground transition-colors">Поддержка</a>
             </div>
           </div>
         </div>
