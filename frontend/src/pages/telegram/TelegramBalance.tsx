@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import { getIconComponent } from '../../components/IconPicker';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import LineChart from '../../components/charts/LineChart';
+import { BalanceChart } from '../../components/charts/BalanceChart';
 import ProgressBar from '../../components/charts/ProgressBar';
 import SparklineChart from '../../components/charts/SparklineChart';
 
@@ -10,7 +10,7 @@ export default function TelegramBalance() {
   const [stats, setStats] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [chartPeriod, setChartPeriod] = useState<string>('all');
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
@@ -23,8 +23,9 @@ export default function TelegramBalance() {
         api.getAccounts(),
         api.getTransactions()
       ]);
-      setStats({...statsData, allTransactions: transactionsData});
+      setStats(statsData);
       setAccounts(accountsData);
+      setAllTransactions(transactionsData);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -44,63 +45,25 @@ export default function TelegramBalance() {
   const totalActual = accounts.reduce((sum, acc) => sum + parseFloat(acc.actual_balance || 0), 0);
   const balance = (stats?.totalIncome || 0) - (stats?.totalExpense || 0);
 
-  // Prepare data for balance trend chart
-  const allTransactions = stats?.allTransactions || [];
-  
-  // Filter by period
-  const filterByPeriod = (transactions: any[], period: string) => {
-    if (period === 'all') return transactions;
-    
-    const now = new Date();
-    const startDate = new Date();
-    
-    switch (period) {
-      case 'day':
-        startDate.setDate(now.getDate() - 1);
-        break;
-      case 'week':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        startDate.setDate(now.getDate() - 30);
-        break;
-      case 'year':
-        startDate.setDate(now.getDate() - 365);
-        break;
-    }
-    
-    return transactions.filter((t: any) => new Date(t.transaction_date) >= startDate);
-  };
-
-  const filteredTransactions = filterByPeriod(allTransactions, chartPeriod);
-  
-  // Calculate cumulative balance over time
-  const sortedTransactions = [...filteredTransactions].sort(
-    (a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
-  );
-  
-  let cumulativeBalance = 0;
-  const balanceData = sortedTransactions.map((t: any) => {
-    const amount = parseFloat(t.amount);
-    cumulativeBalance += t.transaction_type === 'income' ? amount : -amount;
-    return { value: cumulativeBalance };
-  });
-
-  // Add current balance if no data
-  if (balanceData.length === 0) {
-    balanceData.push({ value: balance });
-  }
-
   // Prepare sparkline data for recent trend (last 30 days)
-  const recentTransactions = filterByPeriod(allTransactions, 'month');
-  const dailyBalances: { [key: string]: number } = {};
-  
-  recentTransactions.forEach((t: any) => {
-    const date = new Date(t.transaction_date).toISOString().split('T')[0];
-    if (!dailyBalances[date]) dailyBalances[date] = 0;
-    const amount = parseFloat(t.amount);
-    dailyBalances[date] += t.transaction_type === 'income' ? amount : -amount;
+  const recentTransactions = allTransactions.filter((t: any) => {
+    const transactionDate = new Date(t.transaction_date);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    return transactionDate >= thirtyDaysAgo;
   });
+  
+  const dailyBalances: { [key: string]: number } = {};
+  let cumulativeBalance = 0;
+  
+  recentTransactions
+    .sort((a: any, b: any) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime())
+    .forEach((t: any) => {
+      const date = new Date(t.transaction_date).toISOString().split('T')[0];
+      const amount = parseFloat(t.amount);
+      cumulativeBalance += t.transaction_type === 'income' ? amount : -amount;
+      dailyBalances[date] = cumulativeBalance;
+    });
   
   const sparklineData = Object.values(dailyBalances).slice(-30);
 
@@ -108,7 +71,7 @@ export default function TelegramBalance() {
     <div className="p-4 space-y-4 pb-24">
       {/* Main Stats */}
       <div className="grid grid-cols-2 gap-3 pt-2">
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-4 border border-border/30">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
               <Wallet className="w-4 h-4 text-white" />
@@ -130,7 +93,7 @@ export default function TelegramBalance() {
           </div>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-4 border border-border/30">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-white" />
@@ -140,7 +103,7 @@ export default function TelegramBalance() {
           <p className="text-xl font-bold text-white">{(stats?.totalIncome || 0).toFixed(0)} ₽</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-4 border border-border/30">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-600 rounded-xl flex items-center justify-center">
               <TrendingDown className="w-4 h-4 text-white" />
@@ -150,7 +113,7 @@ export default function TelegramBalance() {
           <p className="text-xl font-bold text-white">{(stats?.totalExpense || 0).toFixed(0)} ₽</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-4 border border-border/30">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center">
               <PiggyBank className="w-4 h-4 text-white" />
@@ -162,28 +125,15 @@ export default function TelegramBalance() {
       </div>
 
       {/* Balance Trend Chart */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+      <div className="glass-card rounded-2xl p-4 border border-border/30">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-white">Динамика баланса</h2>
         </div>
-        {balanceData.length > 0 ? (
-          <LineChart
-            data={balanceData}
-            color={balance >= 0 ? '#10b981' : '#ef4444'}
-            height={200}
-            showPeriods={true}
-            currentPeriod={chartPeriod}
-            onPeriodChange={setChartPeriod}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-[200px]">
-            <p className="text-gray-400 text-xs">Нет данных</p>
-          </div>
-        )}
+        <BalanceChart transactions={allTransactions} height={220} />
       </div>
 
       {/* Income vs Expenses Progress Bar */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+      <div className="glass-card rounded-2xl p-4 border border-border/30">
         <h2 className="text-sm font-semibold text-white mb-4">Доходы vs Расходы</h2>
         <ProgressBar
           leftValue={stats?.totalIncome || 0}
@@ -198,7 +148,7 @@ export default function TelegramBalance() {
       </div>
 
       {/* Accounts Section */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+      <div className="glass-card rounded-2xl p-4 border border-border/30">
         <h2 className="text-sm font-semibold text-white mb-3">Счета</h2>
         {accounts.length > 0 ? (
           <div className="space-y-2">
@@ -238,7 +188,7 @@ export default function TelegramBalance() {
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+      <div className="glass-card rounded-2xl p-4 border border-border/30">
         <h2 className="text-sm font-semibold text-white mb-3">Последние транзакции</h2>
         {stats?.recentTransactions?.length > 0 ? (
           <div className="space-y-2">

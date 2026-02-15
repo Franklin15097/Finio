@@ -125,7 +125,7 @@ code {
 @layer utilities {
   /* Glass card effect */
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/60 shadow-sm transition-colors duration-300;
+    @apply bg-card/50 backdrop-blur-xl border border-border/40 shadow-sm transition-colors duration-300;
   }
 
   /* Gradient utilities */
