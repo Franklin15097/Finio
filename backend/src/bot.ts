@@ -77,25 +77,37 @@ async function handleUpdate(update: TelegramUpdate) {
       // Generate auth token
       const authToken = await generateAuthToken(telegramId);
       const authUrl = `${FRONTEND_URL}?auth=${authToken}`;
+      const miniAppUrl = `https://t.me/FinanceStudio_bot/app`;
       
       await sendMessage(
         chatId,
+        `🎉 <b>Добро пожаловать в Finio!</b>\n\n` +
         `👋 Привет, ${firstName}!\n\n` +
-        `Добро пожаловать в <b>Finio</b> - ваш личный финансовый помощник.\n\n` +
-        `Нажмите кнопку ниже, чтобы открыть приложение:`,
+        `<b>Finio</b> — это ваш личный финансовый помощник, который поможет:\n\n` +
+        `💰 Отслеживать доходы и расходы\n` +
+        `📊 Анализировать финансы с помощью графиков\n` +
+        `🎯 Достигать финансовых целей\n` +
+        `💳 Управлять несколькими счетами\n\n` +
+        `<b>Выберите, как хотите использовать Finio:</b>`,
         {
           inline_keyboard: [
             [
               {
-                text: '🚀 Открыть Finio',
+                text: '🌐 Открыть Сайт',
                 url: authUrl
+              }
+            ],
+            [
+              {
+                text: '📱 Открыть Mini App',
+                url: miniAppUrl
               }
             ]
           ]
         }
       );
       
-      console.log(`Sent auth link to user ${telegramId}`);
+      console.log(`Sent welcome message to user ${telegramId}`);
     } catch (error) {
       console.error('Error handling /start:', error);
       await sendMessage(
@@ -103,6 +115,21 @@ async function handleUpdate(update: TelegramUpdate) {
         '❌ Произошла ошибка. Попробуйте позже.'
       );
     }
+  } else if (text === '/help') {
+    await sendMessage(
+      chatId,
+      `📖 <b>Помощь по Finio</b>\n\n` +
+      `<b>Доступные команды:</b>\n\n` +
+      `/start - Начать работу с Finio\n` +
+      `/help - Показать эту справку\n\n` +
+      `<b>Возможности Finio:</b>\n\n` +
+      `• Учёт доходов и расходов\n` +
+      `• Категории транзакций\n` +
+      `• Несколько счетов\n` +
+      `• Графики и аналитика\n` +
+      `• Бюджеты и цели\n\n` +
+      `Используйте /start чтобы открыть приложение!`
+    );
   }
 }
 
@@ -125,11 +152,40 @@ async function getUpdates(offset: number = 0): Promise<TelegramUpdate[]> {
   }
 }
 
+async function setCommands() {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setMyCommands`;
+  
+  const commands = [
+    { command: 'start', description: '🚀 Начать работу с Finio' },
+    { command: 'help', description: '📖 Помощь и информация' }
+  ];
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commands }),
+    });
+    
+    const data: any = await response.json();
+    if (data.ok) {
+      console.log('✅ Bot commands set successfully');
+    } else {
+      console.error('Failed to set commands:', data);
+    }
+  } catch (error) {
+    console.error('Error setting commands:', error);
+  }
+}
+
 async function startBot() {
   console.log('🤖 Telegram bot started');
   console.log('Bot token configured:', !!TELEGRAM_BOT_TOKEN);
   console.log('Backend URL:', BACKEND_URL);
   console.log('Frontend URL:', FRONTEND_URL);
+  
+  // Set bot commands
+  await setCommands();
   
   let offset = 0;
   
