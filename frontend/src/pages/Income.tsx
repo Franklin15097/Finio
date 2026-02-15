@@ -1,40 +1,37 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
 import DatePicker from '../components/DatePicker';
-import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, DollarSign, Filter, Calendar, X } from 'lucide-react';
+import SparklineChart from '../components/charts/SparklineChart';
+import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, Calendar, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { isTelegramWebApp } from '../utils/telegram';
 import TelegramIncome from './telegram/TelegramIncome';
 
 export default function Income() {
-  // Use Telegram version if in Telegram Mini App
   if (isTelegramWebApp()) {
     return <TelegramIncome />;
   }
 
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Modals
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   
-  // Search & Sort
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
-  const [customDateFrom, setCustomDateFrom] = useState('');
-  const [customDateTo, setCustomDateTo] = useState('');
-  const [totalDateRange, setTotalDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
+  const [dateRange, setDateRange] = useState<'all' | 'week' | 'month' | 'year'>('month');
+  const [showFilters, setShowFilters] = useState(false);
   
-  // Forms
   const [transactionForm, setTransactionForm] = useState({
     amount: '',
     description: '',
@@ -52,8 +49,8 @@ export default function Income() {
   }, []);
 
   useEffect(() => {
-    filterAndSortTransactions();
-  }, [transactions, searchQuery, sortBy, sortOrder, selectedCategory, dateRange, customDateFrom, customDateTo]);
+    filterTransactions();
+  }, [transactions, searchQuery, selectedCategory, dateRange, sortBy, sortOrder]);
 
   const loadData = async () => {
     try {
@@ -72,10 +69,9 @@ export default function Income() {
     }
   };
 
-  const filterAndSortTransactions = () => {
+  const filterTransactions = () => {
     let filtered = [...transactions];
     
-    // Filter by category
     if (selectedCategory !== 'all') {
       if (selectedCategory === 'none') {
         filtered = filtered.filter(t => !t.category_id);
@@ -84,7 +80,6 @@ export default function Income() {
       }
     }
     
-    // Filter by date range
     if (dateRange !== 'all') {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -95,41 +90,27 @@ export default function Income() {
         transactionDate.setHours(0, 0, 0, 0);
         
         switch (dateRange) {
-          case 'today':
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            todayStart.setHours(0, 0, 0, 0);
-            return transactionDate >= todayStart && transactionDate <= today;
           case 'week':
-            const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekAgo = new Date(now);
             weekAgo.setDate(weekAgo.getDate() - 7);
             weekAgo.setHours(0, 0, 0, 0);
             return transactionDate >= weekAgo && transactionDate <= today;
           case 'month':
-            const monthAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const monthAgo = new Date(now);
             monthAgo.setDate(monthAgo.getDate() - 30);
             monthAgo.setHours(0, 0, 0, 0);
             return transactionDate >= monthAgo && transactionDate <= today;
           case 'year':
-            const yearAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yearAgo = new Date(now);
             yearAgo.setDate(yearAgo.getDate() - 365);
             yearAgo.setHours(0, 0, 0, 0);
             return transactionDate >= yearAgo && transactionDate <= today;
-          case 'custom':
-            if (customDateFrom && customDateTo) {
-              const from = new Date(customDateFrom);
-              from.setHours(0, 0, 0, 0);
-              const to = new Date(customDateTo);
-              to.setHours(23, 59, 59, 999);
-              return transactionDate >= from && transactionDate <= to;
-            }
-            return true;
           default:
             return true;
         }
       });
     }
     
-    // Search
     if (searchQuery) {
       filtered = filtered.filter(t => 
         t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -137,21 +118,15 @@ export default function Income() {
       );
     }
     
-    // Sort
     filtered.sort((a, b) => {
       if (sortBy === 'date') {
         const dateA = new Date(a.transaction_date).getTime();
         const dateB = new Date(b.transaction_date).getTime();
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-      } else if (sortBy === 'amount') {
+      } else {
         const amountA = parseFloat(a.amount);
         const amountB = parseFloat(b.amount);
         return sortOrder === 'asc' ? amountA - amountB : amountB - amountA;
-      } else {
-        // Sort by category
-        const catA = a.category_name.toLowerCase();
-        const catB = b.category_name.toLowerCase();
-        return sortOrder === 'asc' ? catA.localeCompare(catB) : catB.localeCompare(catA);
       }
     });
     
@@ -213,7 +188,7 @@ export default function Income() {
   };
 
   const handleDeleteCategory = async (id: number) => {
-    if (confirm('Удалить категорию? Все связанные транзакции останутся без категории.')) {
+    if (confirm('Удалить категорию?')) {
       try {
         await api.deleteCategory(id);
         loadData();
@@ -251,216 +226,153 @@ export default function Income() {
     setShowTransactionModal(true);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric' 
-    });
-  };
+  const totalIncome = filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
-  const calculateTotalIncome = () => {
-    let filtered = [...transactions];
+  const getChartData = () => {
+    const days = 30;
+    const data = new Array(days).fill(0);
+    const now = new Date();
     
-    if (totalDateRange !== 'all') {
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      today.setHours(23, 59, 59, 999);
+    filteredTransactions.forEach(t => {
+      const transactionDate = new Date(t.transaction_date);
+      const diffTime = now.getTime() - transactionDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.transaction_date);
-        transactionDate.setHours(0, 0, 0, 0);
-        
-        switch (totalDateRange) {
-          case 'today':
-            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            todayStart.setHours(0, 0, 0, 0);
-            return transactionDate >= todayStart && transactionDate <= today;
-          case 'week':
-            const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            weekAgo.setDate(weekAgo.getDate() - 7);
-            weekAgo.setHours(0, 0, 0, 0);
-            return transactionDate >= weekAgo && transactionDate <= today;
-          case 'month':
-            const monthAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            monthAgo.setDate(monthAgo.getDate() - 30);
-            monthAgo.setHours(0, 0, 0, 0);
-            return transactionDate >= monthAgo && transactionDate <= today;
-          case 'year':
-            const yearAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            yearAgo.setDate(yearAgo.getDate() - 365);
-            yearAgo.setHours(0, 0, 0, 0);
-            return transactionDate >= yearAgo && transactionDate <= today;
-          default:
-            return true;
-        }
-      });
-    }
+      if (diffDays >= 0 && diffDays < days) {
+        data[days - 1 - diffDays] += parseFloat(t.amount);
+      }
+    });
     
-    return filtered.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    return data;
   };
-
-  const totalIncome = calculateTotalIncome();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl flex items-center justify-center shadow-xl">
-            <TrendingUp className="w-8 h-8 text-white" />
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <TrendingUp className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-5xl font-bold text-white mb-2">
-              Доходы
-            </h1>
-            <p className="text-white/80 text-lg">Управление доходами и категориями</p>
+            <h1 className="text-2xl font-bold text-white">Доходы</h1>
+            <p className="text-white/60 text-sm">Управление доходами</p>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
             onClick={() => setShowCategoryModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600/20 to-fuchsia-600/20 hover:from-purple-600/30 hover:to-fuchsia-600/30 text-purple-200 hover:text-white rounded-3xl transition-all font-semibold flex items-center gap-2 border border-purple-400/20 backdrop-blur-sm"
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-sm flex items-center gap-2"
           >
-            <Tag className="w-5 h-5" />
-            Категории
+            <Tag className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowTransactionModal(true)}
-            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-600/90 to-emerald-600/90 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl shadow-purple-500/50 backdrop-blur-sm border border-purple-400/20"
+            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl text-white font-semibold text-sm flex items-center gap-2 shadow-lg"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-            <div className="relative flex items-center gap-2 text-white font-semibold">
-              <Plus className="w-5 h-5" />
-              Добавить
-            </div>
+            <Plus className="w-4 h-4" />
+            Добавить
           </button>
         </div>
       </div>
 
-      {/* Total Card */}
-      <div className="relative group">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-        <div className="relative glass-card rounded-3xl p-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl blur-lg opacity-75"></div>
-                <div className="relative w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-                  <TrendingUp className="w-10 h-10 text-white" />
-                </div>
-              </div>
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Всего доходов</p>
-                <p className="text-5xl font-bold text-white">{totalIncome.toFixed(2)} ₽</p>
-              </div>
-            </div>
-            <div className="text-green-400 text-6xl opacity-10">
-              <DollarSign className="w-24 h-24" />
-            </div>
+      {/* Total Card with Chart */}
+      <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-4 border border-green-500/30">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <p className="text-white/60 text-xs mb-1">Доходы за период</p>
+            <p className="text-3xl font-bold text-white">{totalIncome.toFixed(0)} ₽</p>
           </div>
-          {/* Period Filter */}
-          <div className="flex gap-2 flex-wrap">
-            {['all', 'today', 'week', 'month', 'year'].map((period) => (
-              <button
-                key={period}
-                onClick={() => setTotalDateRange(period as any)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-all ${
-                  totalDateRange === period
-                    ? 'bg-white/20 text-white font-medium'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                }`}
-              >
-                {period === 'all' && 'Всё время'}
-                {period === 'today' && 'Сегодня'}
-                {period === 'week' && 'Неделя'}
-                {period === 'month' && 'Месяц'}
-                {period === 'year' && 'Год'}
-              </button>
-            ))}
+          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-white" />
           </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <SparklineChart 
+              data={getChartData()} 
+              color="#10b981" 
+              width={180} 
+              height={40}
+            />
+          </div>
+          <button
+            onClick={() => navigate('/balance')}
+            className="ml-3 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white flex items-center gap-1 transition-colors"
+          >
+            Подробнее
+            <ChevronRight className="w-3 h-3" />
+          </button>
         </div>
       </div>
 
-      {/* Search & Sort */}
-      <div className="glass-card rounded-3xl p-6">
-        <div className="flex flex-col gap-4">
-          {/* Search Bar */}
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Поиск..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-              />
-            </div>
+      {/* Compact Filters */}
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Поиск..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
           </div>
           
-          {/* Filters Row */}
-          <div className="flex flex-wrap gap-2 items-center">
-            {/* Category Filter */}
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="pl-3 pr-8 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all appearance-none cursor-pointer"
-              >
-                <option value="all" className="bg-slate-800">Все категории</option>
-                <option value="none" className="bg-slate-800">Без категории</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
-                ))}
-              </select>
-              <Tag className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-2 rounded-xl text-white transition-all ${
+              showFilters ? 'bg-green-500' : 'bg-white/10'
+            }`}
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className="space-y-2 animate-slide-up">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500"
+            >
+              <option value="all" className="bg-slate-800">Все категории</option>
+              <option value="none" className="bg-slate-800">Без категории</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
+              ))}
+            </select>
+
+            <div className="flex gap-2">
+              {['all', 'week', 'month', 'year'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setDateRange(period as any)}
+                  className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
+                    dateRange === period
+                      ? 'bg-green-500 text-white'
+                      : 'bg-white/10 text-gray-300'
+                  }`}
+                >
+                  {period === 'all' && 'Всё'}
+                  {period === 'week' && '7д'}
+                  {period === 'month' && '30д'}
+                  {period === 'year' && 'Год'}
+                </button>
+              ))}
             </div>
-            
-            {/* Date Range Filter */}
-            <div className="relative">
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as any)}
-                className="pl-3 pr-8 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-green-500 transition-all appearance-none cursor-pointer"
-              >
-                <option value="all" className="bg-slate-800">Всё время</option>
-                <option value="today" className="bg-slate-800">Сегодня</option>
-                <option value="week" className="bg-slate-800">Неделя</option>
-                <option value="month" className="bg-slate-800">Месяц</option>
-                <option value="year" className="bg-slate-800">Год</option>
-                <option value="custom" className="bg-slate-800">Свой период</option>
-              </select>
-              <Calendar className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-            
-            {/* Custom Date Range */}
-            {dateRange === 'custom' && (
-              <div className="flex gap-2 items-center animate-fade-in">
-                <DatePicker
-                  value={customDateFrom}
-                  onChange={(date) => setCustomDateFrom(date)}
-                />
-                <span className="text-gray-400">—</span>
-                <DatePicker
-                  value={customDateTo}
-                  onChange={(date) => setCustomDateTo(date)}
-                />
-              </div>
-            )}
-            
-            {/* Sort Menu */}
-            <div className="ml-auto flex gap-2">
+
+            <div className="flex gap-2">
               <button
                 onClick={() => {
                   if (sortBy === 'date') {
@@ -470,16 +382,13 @@ export default function Income() {
                     setSortOrder('desc');
                   }
                 }}
-                className={`px-3 py-2 text-sm rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1 ${
                   sortBy === 'date'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white/10 text-gray-300'
                 }`}
               >
-                📅
-                {sortBy === 'date' && (
-                  <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-                )}
+                Дата {sortBy === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}
               </button>
               
               <button
@@ -491,96 +400,75 @@ export default function Income() {
                     setSortOrder('desc');
                   }
                 }}
-                className={`px-3 py-2 text-sm rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1 ${
                   sortBy === 'amount'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white/10 text-gray-300'
                 }`}
               >
-                💰
-                {sortBy === 'amount' && (
-                  <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-                )}
-              </button>
-              
-              <button
-                onClick={() => {
-                  if (sortBy === 'category') {
-                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                  } else {
-                    setSortBy('category');
-                    setSortOrder('asc');
-                  }
-                }}
-                className={`px-3 py-2 text-sm rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                  sortBy === 'category'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
-                    : 'bg-white/5 text-gray-300 hover:bg-white/10'
-                }`}
-              >
-                🏷️
-                {sortBy === 'category' && (
-                  <span className={`transition-transform duration-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-                )}
+                Сумма {sortBy === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}
               </button>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Transactions List */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white">История ({filteredTransactions.length})</h2>
+          {(selectedCategory !== 'all' || dateRange !== 'all' || searchQuery) && (
+            <button
+              onClick={() => {
+                setSelectedCategory('all');
+                setDateRange('all');
+                setSearchQuery('');
+              }}
+              className="text-xs text-gray-400 flex items-center gap-1"
+            >
+              <X className="w-3 h-3" />
+              Сбросить
+            </button>
+          )}
         </div>
         
-        {/* Transactions List */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white">История ({filteredTransactions.length})</h2>
-            {(selectedCategory !== 'all' || dateRange !== 'all' || searchQuery) && (
-              <button
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setDateRange('all');
-                  setSearchQuery('');
-                  setCustomDateFrom('');
-                  setCustomDateTo('');
-                }}
-                className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1"
-              >
-                <X className="w-4 h-4" />
-                Сбросить фильтры
-              </button>
-            )}
-          </div>
         {filteredTransactions.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredTransactions.map((transaction) => {
               const IconComponent = getIconComponent(transaction.category_icon);
               return (
                 <div
                   key={transaction.id}
-                  className="group relative overflow-hidden bg-white/5 hover:bg-white/10 rounded-2xl p-6 transition-all duration-300"
+                  className="bg-white/10 backdrop-blur-xl rounded-xl p-3 border border-purple-500/20"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-                        <IconComponent className="w-8 h-8 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                        <IconComponent className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-white font-semibold text-lg">{transaction.category_name}</p>
-                        <p className="text-gray-400 text-sm">{transaction.description}</p>
-                        <p className="text-gray-500 text-xs mt-1">{formatDate(transaction.transaction_date)}</p>
+                        <p className="text-white text-sm font-semibold">{transaction.category_name}</p>
+                        <p className="text-gray-400 text-xs">{transaction.description}</p>
+                        <p className="text-gray-500 text-[10px] mt-0.5 flex items-center gap-1">
+                          <Calendar className="w-2.5 h-2.5" />
+                          {new Date(transaction.transaction_date).toLocaleDateString('ru-RU')}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                      <p className="text-green-400 font-bold text-2xl">+{parseFloat(transaction.amount).toFixed(2)} ₽</p>
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-2">
+                      <p className="text-green-400 font-bold text-sm">+{parseFloat(transaction.amount).toFixed(0)} ₽</p>
+                      <div className="flex flex-col gap-1">
                         <button
                           onClick={() => openEditTransaction(transaction)}
-                          className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
+                          className="p-1 text-blue-400 hover:bg-blue-500/20 rounded-lg"
                         >
-                          <Edit2 className="w-5 h-5" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteTransaction(transaction.id)}
-                          className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
+                          className="p-1 text-red-400 hover:bg-red-500/20 rounded-lg"
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -590,14 +478,13 @@ export default function Income() {
             })}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-              <TrendingUp className="w-12 h-12 text-white" />
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 opacity-50">
+              <TrendingUp className="w-8 h-8 text-white" />
             </div>
-            <p className="text-gray-400 text-lg">Нет транзакций</p>
+            <p className="text-gray-400 text-sm">Нет транзакций</p>
           </div>
         )}
-        </div>
       </div>
 
       {/* Transaction Modal */}
@@ -615,43 +502,40 @@ export default function Income() {
         }} 
         title={editingTransaction ? 'Редактировать доход' : 'Новый доход'}
       >
-        <form onSubmit={handleTransactionSubmit} className="space-y-4">
+        <form onSubmit={handleTransactionSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Сумма (₽)</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Сумма (₽)</label>
             <input
               type="number"
               step="0.01"
               required
               value={transactionForm.amount}
               onChange={(e) => setTransactionForm({ ...transactionForm, amount: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500"
               placeholder="0.00"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Категория</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Категория</label>
             <select
               value={transactionForm.category_id}
               onChange={(e) => setTransactionForm({ ...transactionForm, category_id: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500"
             >
               <option value="" className="bg-slate-800">Без категории</option>
-              {categories.map((cat) => {
-                const IconComponent = getIconComponent(cat.icon);
-                return (
-                  <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
-                );
-              })}
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
+              ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Описание</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Описание</label>
             <input
               type="text"
               required
               value={transactionForm.description}
               onChange={(e) => setTransactionForm({ ...transactionForm, description: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500"
               placeholder="Например: Зарплата"
             />
           </div>
@@ -664,7 +548,7 @@ export default function Income() {
           </div>
           <button
             type="submit"
-            className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+            className="w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold text-sm"
           >
             {editingTransaction ? 'Сохранить' : 'Добавить доход'}
           </button>
@@ -679,39 +563,33 @@ export default function Income() {
           setEditingCategory(null);
           setCategoryForm({ name: '', icon: 'DollarSign' });
         }} 
-        title={
-          !editingCategory 
-            ? 'Управление категориями' 
-            : editingCategory.id 
-              ? 'Редактировать категорию' 
-              : 'Создать категорию'
-        }
+        title={!editingCategory ? 'Управление категориями' : editingCategory.id ? 'Редактировать категорию' : 'Создать категорию'}
       >
         {!editingCategory ? (
-          <div className="space-y-4">
-            <div className="space-y-3 max-h-60 overflow-y-auto custom-scrollbar">
+          <div className="space-y-3">
+            <div className="space-y-2 max-h-60 overflow-y-auto">
               {categories.map((cat) => {
                 const IconComponent = getIconComponent(cat.icon);
                 return (
-                  <div key={cat.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                        <IconComponent className="w-6 h-6 text-white" />
+                  <div key={cat.id} className="flex items-center justify-between p-2 bg-white/5 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <IconComponent className="w-4 h-4 text-white" />
                       </div>
-                      <span className="text-white font-medium">{cat.name}</span>
+                      <span className="text-white text-sm font-medium">{cat.name}</span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <button
                         onClick={() => openEditCategory(cat)}
-                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
+                        className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteCategory(cat.id)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                        className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -720,47 +598,48 @@ export default function Income() {
             </div>
             <button
               onClick={() => setEditingCategory({})}
-              className="w-full px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+              className="w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
             >
-              + Создать категорию
+              <Plus className="w-4 h-4" />
+              Создать категорию
             </button>
           </div>
         ) : (
-          <form onSubmit={handleCategorySubmit} className="space-y-4">
+          <form onSubmit={handleCategorySubmit} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Название</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">Название</label>
               <input
                 type="text"
                 required
                 value={categoryForm.name}
                 onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500"
                 placeholder="Например: Зарплата"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Иконка</label>
+              <label className="block text-xs font-medium text-gray-300 mb-1">Иконка</label>
               <IconPicker
                 selectedIcon={categoryForm.icon}
                 onSelectIcon={(icon) => setCategoryForm({ ...categoryForm, icon })}
               />
             </div>
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
-              >
-                {editingCategory.id ? 'Сохранить' : 'Создать'}
-              </button>
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setEditingCategory(null);
                   setCategoryForm({ name: '', icon: 'DollarSign' });
                 }}
-                className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-semibold transition-all"
+                className="flex-1 px-4 py-2.5 bg-white/10 text-white rounded-xl font-semibold text-sm"
               >
                 Назад
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold text-sm"
+              >
+                {editingCategory.id ? 'Сохранить' : 'Создать'}
               </button>
             </div>
           </form>
