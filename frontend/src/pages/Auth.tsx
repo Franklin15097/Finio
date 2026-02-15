@@ -13,6 +13,7 @@ declare global {
 export default function Auth() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [widgetLoaded, setWidgetLoaded] = useState(false);
   const { isTelegram, loginWithTelegram } = useAuth();
 
   // Auto-login for Telegram Mini App users
@@ -24,24 +25,29 @@ export default function Auth() {
 
   // Setup Telegram Login Widget callback and load widget
   useEffect(() => {
-    if (!isTelegram) {
+    if (!isTelegram && !widgetLoaded) {
+      console.log('Setting up Telegram widget...');
+      
       // Create callback function
       window.onTelegramAuth = async (user) => {
-        console.log('Telegram auth callback:', user);
+        console.log('Telegram auth callback received:', user);
         setLoading(true);
         setError('');
         try {
+          console.log('Calling backend API...');
           const data = await api.loginWithTelegramWidget(user);
+          console.log('Backend response:', data);
           
           if (data.token) {
             localStorage.setItem('token', data.token);
-            window.location.reload(); // Reload to trigger auth check
+            console.log('Token saved, reloading...');
+            window.location.reload();
           } else {
             throw new Error(data.error || 'Login failed');
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error('Telegram widget auth failed:', err);
-          setError('Ошибка авторизации через Telegram. Попробуйте еще раз.');
+          setError(err.message || 'Ошибка авторизации через Telegram. Попробуйте еще раз.');
           setLoading(false);
         }
       };
@@ -56,19 +62,31 @@ export default function Auth() {
       script.setAttribute('data-request-access', 'write');
       script.async = true;
       
+      script.onload = () => {
+        console.log('Telegram widget script loaded successfully');
+        setWidgetLoaded(true);
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load Telegram widget script');
+        setError('Не удалось загрузить виджет Telegram');
+      };
+      
       const container = document.getElementById('telegram-login-button-container');
-      if (container && container.children.length === 0) {
+      if (container) {
+        console.log('Appending script to container');
         container.appendChild(script);
+      } else {
+        console.error('Container not found!');
       }
     }
 
     return () => {
-      // Cleanup
       if (window.onTelegramAuth) {
         delete window.onTelegramAuth;
       }
     };
-  }, [isTelegram]);
+  }, [isTelegram, widgetLoaded]);
 
   const handleTelegramLogin = async () => {
     setLoading(true);
@@ -153,13 +171,19 @@ export default function Auth() {
               </p>
 
               {/* Telegram Login Widget Container */}
-              <div id="telegram-login-button-container" className="flex justify-center mb-6"></div>
-
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 border border-blue-500/30 rounded-xl">
-                <p className="text-sm text-gray-300">
-                  💡 Нажмите кнопку выше для входа через Telegram
-                </p>
+              <div id="telegram-login-button-container" className="flex justify-center mb-6 min-h-[50px]">
+                {!widgetLoaded && !error && (
+                  <div className="text-gray-400">Загрузка виджета...</div>
+                )}
               </div>
+
+              {widgetLoaded && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 border border-blue-500/30 rounded-xl">
+                  <p className="text-sm text-gray-300">
+                    💡 Нажмите кнопку выше для входа через Telegram
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
