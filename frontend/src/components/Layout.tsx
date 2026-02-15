@@ -26,16 +26,18 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#c084fc] flex flex-col">
-      {/* Animated purple background */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+      {/* Animated purple background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#a855f7] rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#7c3aed] rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-[#c084fc] rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-6000"></div>
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-8000"></div>
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-slate-900/50 border-b border-white/10">
         <div className="h-20 px-8 flex items-center justify-between">
           <button 
             onClick={() => {
@@ -47,12 +49,12 @@ export default function Layout({ children }: LayoutProps) {
             <img 
               src="/logo.png" 
               alt="Finio" 
-              className="h-14 w-auto drop-shadow-lg"
+              className="h-16 w-auto drop-shadow-2xl"
             />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="text-sm text-white/80 font-medium">
+            <div className="text-sm text-white/70 font-medium">
               Finance Studio
             </div>
           </div>
@@ -60,7 +62,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-20 bottom-0 w-72 backdrop-blur-xl bg-white/10 border-r border-white/20 p-6 flex flex-col">
+      <aside className="fixed left-0 top-20 bottom-0 w-72 backdrop-blur-xl bg-slate-900/50 border-r border-white/10 p-6 flex flex-col">
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -79,7 +81,7 @@ export default function Layout({ children }: LayoutProps) {
                 <div className={`relative flex items-center gap-3 px-5 py-4 ${
                   isActive 
                     ? 'text-white' 
-                    : 'text-white/70 hover:text-white bg-white/5 hover:bg-white/10'
+                    : 'text-white/60 hover:text-white bg-white/5 hover:bg-white/10'
                 }`}>
                   <Icon className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
@@ -91,19 +93,19 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* User Profile in Sidebar */}
         <div className="mt-auto space-y-3 pt-6 border-t border-white/10">
-          <div className="flex items-center gap-3 px-5 py-4 bg-white/5 rounded-3xl">
-            <div className="w-10 h-10 bg-gradient-to-r from-[#7c3aed] to-[#a855f7] rounded-full flex items-center justify-center text-white font-bold text-sm">
+          <div className="flex items-center gap-3 px-5 py-4 bg-white/5 rounded-3xl border border-white/10">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-medium text-sm truncate">{user?.name}</p>
-              <p className="text-xs text-white/60 truncate">{user?.email}</p>
+              <p className="text-xs text-white/50 truncate">{user?.email}</p>
             </div>
           </div>
           
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-5 py-4 bg-white/10 hover:bg-white/20 text-white rounded-3xl transition-all duration-300 font-medium"
+            className="w-full flex items-center justify-center gap-2 px-5 py-4 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-3xl transition-all duration-300 font-medium border border-white/10"
           >
             <LogOut className="w-4 h-4" />
             Выйти
@@ -119,22 +121,22 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="ml-72 relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/10">
+      <footer className="ml-72 relative z-10 backdrop-blur-xl bg-slate-900/50 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
                 src="/logo.png" 
                 alt="Finio" 
-                className="h-8 w-auto opacity-80"
+                className="h-8 w-auto opacity-70"
               />
               <div>
                 <p className="text-white font-semibold text-sm">Finio</p>
-                <p className="text-xs text-white/60">© 2026 Все права защищены</p>
+                <p className="text-xs text-white/50">© 2026 Все права защищены</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-6 text-xs text-white/60">
+            <div className="flex items-center gap-6 text-xs text-white/50">
               <a href="#" className="hover:text-white transition-colors">О проекте</a>
               <a href="#" className="hover:text-white transition-colors">Поддержка</a>
               <a href="#" className="hover:text-white transition-colors">Конфиденциальность</a>

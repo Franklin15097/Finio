@@ -63,8 +63,12 @@ code {
     animation-delay: 2s;
   }
 
-  .animation-delay-4000 {
-    animation-delay: 4s;
+  .animation-delay-6000 {
+    animation-delay: 6s;
+  }
+
+  .animation-delay-8000 {
+    animation-delay: 8s;
   }
 
   @keyframes float {
