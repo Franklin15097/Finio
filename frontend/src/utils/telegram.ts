@@ -83,7 +83,8 @@ declare global {
 export const tg = window.Telegram?.WebApp;
 
 export const isTelegramWebApp = (): boolean => {
-  return !!tg;
+  // Check if we're actually in Telegram Mini App (not just SDK loaded)
+  return !!tg && !!tg.initData && tg.initData.length > 0;
 };
 
 export const getTelegramUser = () => {

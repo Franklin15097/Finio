@@ -16,10 +16,13 @@ export default function Auth() {
   const [widgetLoaded, setWidgetLoaded] = useState(false);
   const { isTelegram, loginWithTelegram } = useAuth();
 
-  // Auto-login for Telegram Mini App users
+  // Auto-login ONLY for Telegram Mini App users (not for web)
   useEffect(() => {
     if (isTelegram) {
+      console.log('Detected Telegram Mini App, auto-login...');
       handleTelegramLogin();
+    } else {
+      console.log('Not in Telegram Mini App, will use widget');
     }
   }, [isTelegram]);
 
