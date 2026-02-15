@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import Modal from '../../components/Modal';
 import IconPicker, { getIconComponent } from '../../components/IconPicker';
-import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, Calendar, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Tag, Calendar, X, ChevronDown } from 'lucide-react';
 
 export default function TelegramIncome() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -20,6 +20,7 @@ export default function TelegramIncome() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [dateRange, setDateRange] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   
   const [transactionForm, setTransactionForm] = useState({
     amount: '',
@@ -107,7 +108,6 @@ export default function TelegramIncome() {
       );
     }
     
-    // Sort
     filtered.sort((a, b) => {
       if (sortBy === 'date') {
         const dateA = new Date(a.transaction_date).getTime();
@@ -217,6 +217,9 @@ export default function TelegramIncome() {
   };
 
   const totalIncome = filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const selectedCategoryName = selectedCategory === 'all' ? 'Все категории' : 
+    selectedCategory === 'none' ? 'Без категории' :
+    categories.find(c => c.id === parseInt(selectedCategory))?.name || 'Категория';
 
   if (loading) {
     return (
@@ -227,192 +230,204 @@ export default function TelegramIncome() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-24">
-      {/* Total Card */}
-      <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-4 border border-green-500/30 mt-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white/60 text-xs mb-1">Всего доходов</p>
-            <p className="text-3xl font-bold text-white">{totalIncome.toFixed(0)} ₽</p>
-          </div>
-          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-white" />
-          </div>
-        </div>
+    <div className="p-4 space-y-3 pb-24">
+      {/* Search */}
+      <div className="relative mt-2">
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Поиск..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-12 pr-4 py-3.5 text-sm bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
       </div>
 
-      {/* Filters */}
-      <div className="space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Поиск..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
+      {/* Category Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+          className="w-full flex items-center justify-between px-4 py-3.5 bg-white/10 border border-white/20 rounded-2xl text-white"
+        >
+          <span className="text-sm">{selectedCategoryName}</span>
+          <ChevronDown className={`w-5 h-5 transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
+        </button>
         
-        <div className="flex gap-2">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500"
-          >
-            <option value="all" className="bg-slate-800">Все категории</option>
-            <option value="none" className="bg-slate-800">Без категории</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
-            ))}
-          </select>
-          
-          <button
-            onClick={() => setShowCategoryModal(true)}
-            className="px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white"
-          >
-            <Tag className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="flex gap-2">
-          {['all', 'week', 'month', 'year'].map((period) => (
-            <button
-              key={period}
-              onClick={() => setDateRange(period as any)}
-              className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all ${
-                dateRange === period
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white/10 text-gray-300'
-              }`}
-            >
-              {period === 'all' && 'Всё'}
-              {period === 'week' && 'Неделя'}
-              {period === 'month' && 'Месяц'}
-              {period === 'year' && 'Год'}
-            </button>
-          ))}
-        </div>
-
-        {/* Sort buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              if (sortBy === 'date') {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-              } else {
-                setSortBy('date');
-                setSortOrder('desc');
-              }
-            }}
-            className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all flex items-center justify-center gap-1 ${
-              sortBy === 'date'
-                ? 'bg-green-500 text-white'
-                : 'bg-white/10 text-gray-300'
-            }`}
-          >
-            📅 Дата
-            {sortBy === 'date' && (
-              <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-            )}
-          </button>
-          
-          <button
-            onClick={() => {
-              if (sortBy === 'amount') {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-              } else {
-                setSortBy('amount');
-                setSortOrder('desc');
-              }
-            }}
-            className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all flex items-center justify-center gap-1 ${
-              sortBy === 'amount'
-                ? 'bg-green-500 text-white'
-                : 'bg-white/10 text-gray-300'
-            }`}
-          >
-            💰 Сумма
-            {sortBy === 'amount' && (
-              <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Transactions List */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">История ({filteredTransactions.length})</h2>
-          {(selectedCategory !== 'all' || dateRange !== 'all' || searchQuery) && (
+        {showCategoryDropdown && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-white/20 rounded-2xl overflow-hidden z-50 shadow-2xl">
             <button
               onClick={() => {
                 setSelectedCategory('all');
-                setDateRange('all');
-                setSearchQuery('');
+                setShowCategoryDropdown(false);
               }}
-              className="text-xs text-gray-400 flex items-center gap-1"
+              className="w-full px-4 py-3 text-left text-sm text-white hover:bg-white/10 transition-colors"
             >
-              <X className="w-3 h-3" />
-              Сбросить
+              Все категории
             </button>
-          )}
-        </div>
-        
-        {filteredTransactions.length > 0 ? (
-          <div className="space-y-2">
-            {filteredTransactions.map((transaction) => {
-              const IconComponent = getIconComponent(transaction.category_icon);
-              return (
-                <div
-                  key={transaction.id}
-                  className="bg-white/10 backdrop-blur-xl rounded-xl p-3 border border-purple-500/20"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                        <IconComponent className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-white text-sm font-semibold">{transaction.category_name}</p>
-                        <p className="text-gray-400 text-xs">{transaction.description}</p>
-                        <p className="text-gray-500 text-[10px] mt-0.5 flex items-center gap-1">
-                          <Calendar className="w-2.5 h-2.5" />
-                          {new Date(transaction.transaction_date).toLocaleDateString('ru-RU')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-green-400 font-bold text-sm">+{parseFloat(transaction.amount).toFixed(0)} ₽</p>
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => openEditTransaction(transaction)}
-                          className="p-1 text-blue-400 hover:bg-blue-500/20 rounded-lg"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTransaction(transaction.id)}
-                          className="p-1 text-red-400 hover:bg-red-500/20 rounded-lg"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 opacity-50">
-              <TrendingUp className="w-8 h-8 text-white" />
-            </div>
-            <p className="text-gray-400 text-sm">Нет транзакций</p>
+            <button
+              onClick={() => {
+                setSelectedCategory('none');
+                setShowCategoryDropdown(false);
+              }}
+              className="w-full px-4 py-3 text-left text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10"
+            >
+              Без категории
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setSelectedCategory(cat.id.toString());
+                  setShowCategoryDropdown(false);
+                }}
+                className="w-full px-4 py-3 text-left text-sm text-white hover:bg-white/10 transition-colors border-t border-white/10"
+              >
+                {cat.name}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setShowCategoryModal(true);
+                setShowCategoryDropdown(false);
+              }}
+              className="w-full px-4 py-3 text-left text-sm text-green-400 hover:bg-white/10 transition-colors border-t border-white/10 flex items-center gap-2"
+            >
+              <Tag className="w-4 h-4" />
+              Управление категориями
+            </button>
           </div>
         )}
       </div>
+
+      {/* Period Filters */}
+      <div className="flex gap-2">
+        {[
+          { value: 'all', label: 'Всё' },
+          { value: 'week', label: 'Неделя' },
+          { value: 'month', label: 'Месяц' },
+          { value: 'year', label: 'Год' }
+        ].map((period) => (
+          <button
+            key={period.value}
+            onClick={() => setDateRange(period.value as any)}
+            className={`flex-1 px-3 py-2.5 text-xs font-medium rounded-2xl transition-all ${
+              dateRange === period.value
+                ? 'bg-green-500 text-white'
+                : 'bg-white/10 text-gray-300'
+            }`}
+          >
+            {period.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Sort Buttons */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            if (sortBy === 'date') {
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+            } else {
+              setSortBy('date');
+              setSortOrder('desc');
+            }
+          }}
+          className={`flex-1 px-4 py-2.5 text-xs font-medium rounded-2xl transition-all flex items-center justify-center gap-2 ${
+            sortBy === 'date'
+              ? 'bg-green-500 text-white'
+              : 'bg-white/10 text-gray-300'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          Дата
+          {sortBy === 'date' && (
+            <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+          )}
+        </button>
+        
+        <button
+          onClick={() => {
+            if (sortBy === 'amount') {
+              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+            } else {
+              setSortBy('amount');
+              setSortOrder('desc');
+            }
+          }}
+          className={`flex-1 px-4 py-2.5 text-xs font-medium rounded-2xl transition-all flex items-center justify-center gap-2 ${
+            sortBy === 'amount'
+              ? 'bg-green-500 text-white'
+              : 'bg-white/10 text-gray-300'
+          }`}
+        >
+          💰 Сумма
+          {sortBy === 'amount' && (
+            <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+          )}
+        </button>
+      </div>
+
+      {/* Total */}
+      <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-4 border border-green-500/30">
+        <p className="text-white/60 text-xs mb-1">Всего доходов</p>
+        <p className="text-3xl font-bold text-white">{totalIncome.toFixed(0)} ₽</p>
+        <p className="text-green-400 text-xs mt-1">{filteredTransactions.length} транзакций</p>
+      </div>
+
+      {/* Transactions List */}
+      {filteredTransactions.length > 0 ? (
+        <div className="space-y-2">
+          {filteredTransactions.map((transaction) => {
+            const IconComponent = getIconComponent(transaction.category_icon);
+            return (
+              <div
+                key={transaction.id}
+                className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-semibold truncate">{transaction.category_name}</p>
+                      <p className="text-gray-400 text-xs truncate">{transaction.description}</p>
+                    </div>
+                  </div>
+                  <p className="text-green-400 font-bold text-lg ml-2">+{parseFloat(transaction.amount).toFixed(0)} ₽</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-gray-500 text-xs flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {new Date(transaction.transaction_date).toLocaleDateString('ru-RU')}
+                  </p>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => openEditTransaction(transaction)}
+                      className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTransaction(transaction.id)}
+                      className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 opacity-50">
+            <Plus className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-gray-400 text-sm">Нет транзакций</p>
+        </div>
+      )}
 
       {/* Transaction Modal */}
       <Modal 
