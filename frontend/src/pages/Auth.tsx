@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles } from 'lucide-react';
+import { api } from '../services/api';
 
 // Telegram Login Widget types
 declare global {
@@ -13,7 +14,6 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { isTelegram, loginWithTelegram } = useAuth();
-  const [telegramWidgetLoaded, setTelegramWidgetLoaded] = useState(false);
 
   // Auto-login for Telegram Mini App users
   useEffect(() => {
@@ -22,15 +22,15 @@ export default function Auth() {
     }
   }, [isTelegram]);
 
-  // Load Telegram Login Widget for web users
+  // Setup Telegram Login Widget callback
   useEffect(() => {
-    if (!isTelegram && !telegramWidgetLoaded) {
+    if (!isTelegram) {
       // Create callback function
       window.onTelegramAuth = async (user) => {
         console.log('Telegram auth callback:', user);
         setLoading(true);
+        setError('');
         try {
-          const { api } = await import('../services/api');
           const data = await api.loginWithTelegramWidget(user);
           
           if (data.token) {
@@ -41,26 +41,10 @@ export default function Auth() {
           }
         } catch (err) {
           console.error('Telegram widget auth failed:', err);
-          setError('Ошибка авторизации через Telegram');
+          setError('Ошибка авторизации через Telegram. Попробуйте еще раз.');
           setLoading(false);
         }
       };
-
-      // Load Telegram Widget script
-      const script = document.createElement('script');
-      script.src = 'https://telegram.org/js/telegram-widget.js?22';
-      script.setAttribute('data-telegram-login', 'FinanceStudio_bot');
-      script.setAttribute('data-size', 'large');
-      script.setAttribute('data-radius', '10');
-      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-      script.setAttribute('data-request-access', 'write');
-      script.async = true;
-      
-      const container = document.getElementById('telegram-login-container');
-      if (container) {
-        container.appendChild(script);
-        setTelegramWidgetLoaded(true);
-      }
     }
 
     return () => {
@@ -69,7 +53,7 @@ export default function Auth() {
         delete window.onTelegramAuth;
       }
     };
-  }, [isTelegram, telegramWidgetLoaded]);
+  }, [isTelegram]);
 
   const handleTelegramLogin = async () => {
     setLoading(true);
@@ -153,8 +137,18 @@ export default function Auth() {
                 Используйте Telegram для быстрого и безопасного входа
               </p>
 
-              {/* Telegram Login Widget Container */}
-              <div id="telegram-login-container" className="flex justify-center mb-6"></div>
+              {/* Telegram Login Widget - using iframe approach */}
+              <div className="flex justify-center mb-6">
+                <script 
+                  async 
+                  src="https://telegram.org/js/telegram-widget.js?22"
+                  data-telegram-login="FinanceStudio_bot"
+                  data-size="large"
+                  data-radius="10"
+                  data-onauth="onTelegramAuth(user)"
+                  data-request-access="write"
+                ></script>
+              </div>
 
               <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 border border-blue-500/30 rounded-xl">
                 <p className="text-sm text-gray-300">
