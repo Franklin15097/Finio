@@ -77,7 +77,6 @@ async function handleUpdate(update: TelegramUpdate) {
       // Generate auth token
       const authToken = await generateAuthToken(telegramId);
       const authUrl = `${FRONTEND_URL}?auth=${authToken}`;
-      const miniAppUrl = `https://t.me/FinanceStudio_bot/app`;
       
       await sendMessage(
         chatId,
@@ -100,7 +99,7 @@ async function handleUpdate(update: TelegramUpdate) {
             [
               {
                 text: '📱 Открыть Mini App',
-                url: miniAppUrl
+                web_app: { url: FRONTEND_URL }
               }
             ]
           ]
@@ -178,6 +177,35 @@ async function setCommands() {
   }
 }
 
+async function setMenuButton() {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setChatMenuButton`;
+  
+  const menuButton = {
+    type: 'web_app',
+    text: '🚀 Открыть Finio',
+    web_app: {
+      url: FRONTEND_URL
+    }
+  };
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ menu_button: menuButton }),
+    });
+    
+    const data: any = await response.json();
+    if (data.ok) {
+      console.log('✅ Menu button set successfully');
+    } else {
+      console.error('Failed to set menu button:', data);
+    }
+  } catch (error) {
+    console.error('Error setting menu button:', error);
+  }
+}
+
 async function startBot() {
   console.log('🤖 Telegram bot started');
   console.log('Bot token configured:', !!TELEGRAM_BOT_TOKEN);
@@ -186,6 +214,9 @@ async function startBot() {
   
   // Set bot commands
   await setCommands();
+  
+  // Set menu button
+  await setMenuButton();
   
   let offset = 0;
   
