@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { getIconComponent } from '../components/IconPicker';
-import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
+import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import LineChart from '../components/charts/LineChart';
+import ProgressBar from '../components/charts/ProgressBar';
+import SparklineChart from '../components/charts/SparklineChart';
 import { isTelegramWebApp } from '../utils/telegram';
 import TelegramBalance from './telegram/TelegramBalance';
-
-const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#a78bfa', '#f472b6', '#fb923c'];
 
 export default function Balance() {
   // Use Telegram version if in Telegram Mini App
@@ -16,8 +16,7 @@ export default function Balance() {
   const [stats, setStats] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [barChartDateRange, setBarChartDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
-  const [pieChartDateRange, setPieChartDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year'>('all');
+  const [chartPeriod, setChartPeriod] = useState<string>('all');
 
   useEffect(() => {
     loadData();
@@ -51,106 +50,65 @@ export default function Balance() {
   const totalActual = accounts.reduce((sum, acc) => sum + parseFloat(acc.actual_balance || 0), 0);
   const balance = (stats?.totalIncome || 0) - (stats?.totalExpense || 0);
 
-  // Filter function for date ranges
-  const filterTransactionsByDateRange = (transactions: any[], dateRange: string) => {
-    if (dateRange === 'all' || !transactions || transactions.length === 0) return transactions;
+  // Prepare data for balance trend chart
+  const allTransactions = stats?.allTransactions || [];
+  
+  // Filter by period
+  const filterByPeriod = (transactions: any[], period: string) => {
+    if (period === 'all') return transactions;
     
     const now = new Date();
-    now.setHours(23, 59, 59, 999);
+    const startDate = new Date();
     
-    let startDate = new Date();
-    
-    switch (dateRange) {
-      case 'today':
-        startDate = new Date(now);
-        startDate.setHours(0, 0, 0, 0);
+    switch (period) {
+      case 'day':
+        startDate.setDate(now.getDate() - 1);
         break;
       case 'week':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 7);
-        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(now.getDate() - 7);
         break;
       case 'month':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 30);
-        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(now.getDate() - 30);
         break;
       case 'year':
-        startDate = new Date(now);
-        startDate.setDate(startDate.getDate() - 365);
-        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(now.getDate() - 365);
         break;
-      default:
-        return transactions;
     }
     
-    return transactions.filter((item: any) => {
-      const itemDate = new Date(item.transaction_date);
-      itemDate.setHours(0, 0, 0, 0);
-      return itemDate >= startDate && itemDate <= now;
-    });
+    return transactions.filter((t: any) => new Date(t.transaction_date) >= startDate);
   };
 
-  // Prepare monthly trend data with filtering
-  const allTransactions = stats?.allTransactions || [];
-  const filteredBarTransactions = filterTransactionsByDateRange(allTransactions, barChartDateRange);
+  const filteredTransactions = filterByPeriod(allTransactions, chartPeriod);
   
-  // Group by month for bar chart
-  const monthlyDataMap = new Map<string, { income: number; expense: number }>();
+  // Calculate cumulative balance over time
+  const sortedTransactions = [...filteredTransactions].sort(
+    (a, b) => new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
+  );
   
-  filteredBarTransactions.forEach((transaction: any) => {
-    const date = new Date(transaction.transaction_date);
-    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    
-    if (!monthlyDataMap.has(monthKey)) {
-      monthlyDataMap.set(monthKey, { income: 0, expense: 0 });
-    }
-    
-    const data = monthlyDataMap.get(monthKey)!;
-    const amount = parseFloat(transaction.amount);
-    
-    if (transaction.transaction_type === 'income') {
-      data.income += amount;
-    } else if (transaction.transaction_type === 'expense') {
-      data.expense += amount;
-    }
+  let cumulativeBalance = 0;
+  const balanceData = sortedTransactions.map((t: any) => {
+    const amount = parseFloat(t.amount);
+    cumulativeBalance += t.transaction_type === 'income' ? amount : -amount;
+    return { value: cumulativeBalance };
   });
-  
-  // Convert map to array and sort by date
-  const monthlyData = Array.from(monthlyDataMap.entries())
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([key, data]) => {
-      const [year, month] = key.split('-');
-      const date = new Date(parseInt(year), parseInt(month) - 1);
-      return {
-        month: date.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' }),
-        income: data.income,
-        expense: data.expense
-      };
-    });
 
-  // Prepare category expenses data with filtering
-  const expenseTransactions = allTransactions.filter((t: any) => t.transaction_type === 'expense');
-  const filteredPieTransactions = filterTransactionsByDateRange(expenseTransactions, pieChartDateRange);
+  // Add current balance if no data
+  if (balanceData.length === 0) {
+    balanceData.push({ value: balance });
+  }
+
+  // Prepare sparkline data for recent trend (last 30 days)
+  const recentTransactions = filterByPeriod(allTransactions, 'month');
+  const dailyBalances: { [key: string]: number } = {};
   
-  // Group by category for pie chart
-  const categoryDataMap = new Map<string, number>();
-  
-  filteredPieTransactions.forEach((transaction: any) => {
-    const categoryName = transaction.category_name || 'Без категории';
-    const amount = parseFloat(transaction.amount);
-    
-    if (!categoryDataMap.has(categoryName)) {
-      categoryDataMap.set(categoryName, 0);
-    }
-    
-    categoryDataMap.set(categoryName, categoryDataMap.get(categoryName)! + amount);
+  recentTransactions.forEach((t: any) => {
+    const date = new Date(t.transaction_date).toISOString().split('T')[0];
+    if (!dailyBalances[date]) dailyBalances[date] = 0;
+    const amount = parseFloat(t.amount);
+    dailyBalances[date] += t.transaction_type === 'income' ? amount : -amount;
   });
   
-  const categoryData = Array.from(categoryDataMap.entries())
-    .map(([name, value]) => ({ name, value }))
-    .filter(item => item.value > 0)
-    .sort((a, b) => b.value - a.value);
+  const sparklineData = Object.values(dailyBalances).slice(-30);
 
   return (
     <div className="space-y-6">
@@ -179,9 +137,19 @@ export default function Balance() {
               </div>
             </div>
             <p className="text-white/80 text-sm font-medium mb-1">Баланс</p>
-            <p className={`text-3xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {balance >= 0 ? '+' : ''}{balance.toFixed(2)} ₽
-            </p>
+            <div className="flex items-end justify-between">
+              <p className={`text-3xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {balance >= 0 ? '+' : ''}{balance.toFixed(2)} ₽
+              </p>
+              {sparklineData.length > 0 && (
+                <SparklineChart
+                  data={sparklineData}
+                  color={balance >= 0 ? '#10b981' : '#ef4444'}
+                  width={80}
+                  height={40}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -224,179 +192,43 @@ export default function Balance() {
 
       {/* Charts Row */}
       <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Income vs Expenses Chart */}
+        {/* Balance Trend Chart */}
         <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 hover:scale-[1.01] transition-all duration-300 border border-purple-500/20">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-              Доходы vs Расходы
+              Динамика баланса
             </h2>
-            <div className="flex gap-2">
-              {['all', 'week', 'month', 'year'].map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setBarChartDateRange(period as any)}
-                  className={`px-4 py-2 text-xs font-medium rounded-full transition-all ${
-                    barChartDateRange === period
-                      ? 'bg-white text-gray-900 shadow-lg'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
-                >
-                  {period === 'all' && 'Всё время'}
-                  {period === 'week' && '7 дней'}
-                  {period === 'month' && '30 дней'}
-                  {period === 'year' && '365 дней'}
-                </button>
-              ))}
-            </div>
           </div>
-          {monthlyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={monthlyData} barGap={8}>
-                <defs>
-                  <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#34d399" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.8}/>
-                  </linearGradient>
-                  <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#fb7185" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.8}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="#9ca3af" 
-                  style={{ fontSize: '13px', fontWeight: '500' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  stroke="#9ca3af" 
-                  style={{ fontSize: '13px', fontWeight: '500' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
-                    border: 'none',
-                    borderRadius: '16px',
-                    color: '#1f2937',
-                    padding: '12px 16px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                    fontWeight: '600'
-                  }}
-                  formatter={(value: any) => [`${parseFloat(value).toFixed(2)} ₽`, '']}
-                  labelStyle={{ color: '#6b7280', fontWeight: '500', marginBottom: '4px' }}
-                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 8 }}
-                />
-                <Bar 
-                  dataKey="income" 
-                  fill="url(#incomeGradient)" 
-                  radius={[16, 16, 0, 0]} 
-                  name="Доходы"
-                  animationDuration={800}
-                  animationBegin={0}
-                  maxBarSize={60}
-                />
-                <Bar 
-                  dataKey="expense" 
-                  fill="url(#expenseGradient)" 
-                  radius={[16, 16, 0, 0]} 
-                  name="Расходы"
-                  animationDuration={800}
-                  animationBegin={100}
-                  maxBarSize={60}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          {balanceData.length > 0 ? (
+            <LineChart
+              data={balanceData}
+              color={balance >= 0 ? '#10b981' : '#ef4444'}
+              height={300}
+              showPeriods={true}
+              currentPeriod={chartPeriod}
+              onPeriodChange={setChartPeriod}
+            />
           ) : (
-            <div className="flex items-center justify-center h-[320px]">
+            <div className="flex items-center justify-center h-[300px]">
               <p className="text-gray-400 text-sm">Нет данных для отображения</p>
             </div>
           )}
         </div>
 
-        {/* Category Expenses Pie Chart */}
+        {/* Income vs Expenses Progress Bar */}
         <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 hover:scale-[1.01] transition-all duration-300 border border-purple-500/20">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-3">
-              Расходы по категориям
-            </h2>
-            <div className="flex gap-2">
-              {['all', 'week', 'month', 'year'].map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setPieChartDateRange(period as any)}
-                  className={`px-4 py-2 text-xs font-medium rounded-full transition-all ${
-                    pieChartDateRange === period
-                      ? 'bg-white text-gray-900 shadow-lg'
-                      : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
-                >
-                  {period === 'all' && 'Всё время'}
-                  {period === 'week' && '7 дней'}
-                  {period === 'month' && '30 дней'}
-                  {period === 'year' && '365 дней'}
-                </button>
-              ))}
-            </div>
-          </div>
-          {categoryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={320}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={80}
-                  outerRadius={120}
-                  paddingAngle={3}
-                  dataKey="value"
-                  animationDuration={800}
-                  animationBegin={0}
-                >
-                  {categoryData.map((entry: any, index: number) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]}
-                      stroke="rgba(255,255,255,0.2)"
-                      strokeWidth={2}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
-                    border: 'none',
-                    borderRadius: '16px',
-                    color: '#1f2937',
-                    padding: '12px 16px',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                    fontWeight: '600'
-                  }}
-                  formatter={(value: any) => [`${parseFloat(value).toFixed(2)} ₽`, '']}
-                  labelStyle={{ color: '#6b7280', fontWeight: '500', marginBottom: '4px' }}
-                />
-                <Legend 
-                  wrapperStyle={{ 
-                    color: '#fff', 
-                    fontSize: '13px',
-                    fontWeight: '500'
-                  }}
-                  iconType="circle"
-                  iconSize={10}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[320px]">
-              <p className="text-gray-400 text-sm">Нет данных для отображения</p>
-            </div>
-          )}
+          <h2 className="text-xl font-semibold text-white mb-6">Доходы vs Расходы</h2>
+          <ProgressBar
+            leftValue={stats?.totalIncome || 0}
+            rightValue={stats?.totalExpense || 0}
+            leftLabel="Доходы"
+            rightLabel="Расходы"
+            leftColor="#10b981"
+            rightColor="#ef4444"
+            totalLabel="Общий оборот"
+            totalValue={(stats?.totalIncome || 0) + (stats?.totalExpense || 0)}
+          />
         </div>
-      </div>
       </div>
 
       {/* Accounts Section */}
@@ -465,10 +297,15 @@ export default function Balance() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold text-lg ${
+                    <p className={`font-bold text-lg flex items-center gap-1 justify-end ${
                       transaction.transaction_type === 'income' ? 'text-green-400' : 'text-red-400'
                     }`}>
-                      {transaction.transaction_type === 'income' ? '+' : '-'}{parseFloat(transaction.amount).toFixed(2)} ₽
+                      {transaction.transaction_type === 'income' ? (
+                        <ArrowUpRight className="w-4 h-4" />
+                      ) : (
+                        <ArrowDownRight className="w-4 h-4" />
+                      )}
+                      {parseFloat(transaction.amount).toFixed(2)} ₽
                     </p>
                     <p className="text-gray-400 text-sm flex items-center gap-1 justify-end">
                       <Calendar className="w-3 h-3" />
