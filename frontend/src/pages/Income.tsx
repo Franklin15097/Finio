@@ -308,7 +308,7 @@ export default function Income() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl flex items-center justify-center shadow-xl">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl flex items-center justify-center shadow-xl">
             <TrendingUp className="w-8 h-8 text-white" />
           </div>
           <div>
@@ -328,7 +328,7 @@ export default function Income() {
           </button>
           <button
             onClick={() => setShowTransactionModal(true)}
-            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl"
+            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-600 to-emerald-600 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
             <div className="relative flex items-center gap-2 text-white font-semibold">

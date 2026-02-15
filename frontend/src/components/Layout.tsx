@@ -19,10 +19,10 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-blue-500 to-cyan-500' },
-    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-green-500 to-emerald-500' },
-    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-red-500 to-pink-500' },
-    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-purple-500 to-fuchsia-500' },
+    { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-purple-500 to-purple-600' },
+    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-purple-600 to-purple-700' },
+    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-purple-700 to-purple-800' },
+    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-purple-500 to-fuchsia-600' },
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-slate-900/50 border-b border-white/10">
-        <div className="h-20 px-8 flex items-center justify-between">
+        <div className="h-16 px-6 flex items-center justify-between">
           <button 
             onClick={() => {
               navigate('/');
@@ -49,21 +49,19 @@ export default function Layout({ children }: LayoutProps) {
             <img 
               src="/logo.png" 
               alt="Finio" 
-              className="h-16 w-auto drop-shadow-2xl"
+              className="h-12 w-auto drop-shadow-2xl"
             />
           </button>
 
-          <div className="flex items-center gap-3">
-            <div className="text-sm text-white/70 font-medium">
-              Finance Studio
-            </div>
+          <div className="text-xs text-white/50 font-medium">
+            Finance Studio
           </div>
         </div>
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-20 bottom-0 w-72 backdrop-blur-xl bg-slate-900/50 border-r border-white/10 p-6 flex flex-col">
-        <nav className="space-y-2 flex-1">
+      <aside className="fixed left-0 top-16 bottom-0 w-60 backdrop-blur-xl bg-slate-900/50 border-r border-white/10 p-4 flex flex-col">
+        <nav className="space-y-1 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -71,20 +69,20 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full group relative overflow-hidden rounded-3xl transition-all duration-300 ${
+                className={`w-full group relative overflow-hidden rounded-2xl transition-all duration-300 ${
                   isActive ? 'scale-105' : 'hover:scale-105'
                 }`}
               >
                 {isActive && (
                   <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} opacity-100`}></div>
                 )}
-                <div className={`relative flex items-center gap-3 px-5 py-4 ${
+                <div className={`relative flex items-center gap-3 px-4 py-3 ${
                   isActive 
                     ? 'text-white' 
                     : 'text-white/60 hover:text-white bg-white/5 hover:bg-white/10'
                 }`}>
                   <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium text-sm">{item.label}</span>
                 </div>
               </button>
             );
@@ -92,20 +90,20 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* User Profile in Sidebar */}
-        <div className="mt-auto space-y-3 pt-6 border-t border-white/10">
-          <div className="flex items-center gap-3 px-5 py-4 bg-white/5 rounded-3xl border border-white/10">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+        <div className="mt-auto space-y-2 pt-4 border-t border-white/10">
+          <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-2xl border border-white/10">
+            <div className="w-9 h-9 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium text-sm truncate">{user?.name}</p>
-              <p className="text-xs text-white/50 truncate">{user?.email}</p>
+              <p className="text-white font-medium text-xs truncate">{user?.name}</p>
+              <p className="text-[10px] text-white/50 truncate">{user?.email}</p>
             </div>
           </div>
           
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-5 py-4 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-3xl transition-all duration-300 font-medium border border-white/10"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white rounded-2xl transition-all duration-300 font-medium text-sm border border-white/10"
           >
             <LogOut className="w-4 h-4" />
             Выйти
@@ -114,29 +112,29 @@ export default function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-72 mt-20 p-8 relative z-10 flex-1">
+      <main className="ml-60 mt-16 p-6 relative z-10 flex-1">
         <div className="max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="ml-72 relative z-10 backdrop-blur-xl bg-slate-900/50 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-8 py-6">
+      <footer className="ml-60 relative z-10 backdrop-blur-xl bg-slate-900/50 border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <img 
                 src="/logo.png" 
                 alt="Finio" 
-                className="h-8 w-auto opacity-70"
+                className="h-6 w-auto opacity-70"
               />
               <div>
-                <p className="text-white font-semibold text-sm">Finio</p>
-                <p className="text-xs text-white/50">© 2026 Все права защищены</p>
+                <p className="text-white font-semibold text-xs">Finio</p>
+                <p className="text-[10px] text-white/50">© 2026 Все права защищены</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-6 text-xs text-white/50">
+            <div className="flex items-center gap-4 text-[10px] text-white/50">
               <a href="#" className="hover:text-white transition-colors">О проекте</a>
               <a href="#" className="hover:text-white transition-colors">Поддержка</a>
               <a href="#" className="hover:text-white transition-colors">Конфиденциальность</a>

@@ -308,7 +308,7 @@ export default function Expenses() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-xl">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-700 to-purple-800 rounded-3xl flex items-center justify-center shadow-xl">
             <TrendingDown className="w-8 h-8 text-white" />
           </div>
           <div>
@@ -328,7 +328,7 @@ export default function Expenses() {
           </button>
           <button
             onClick={() => setShowTransactionModal(true)}
-            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl"
+            className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-700 to-pink-600 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
             <div className="relative flex items-center gap-2 text-white font-semibold">
