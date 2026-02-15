@@ -3,8 +3,14 @@ import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
 import { Plus, Wallet, Edit2, Trash2, TrendingUp, PiggyBank } from 'lucide-react';
+import { isTelegramWebApp } from '../utils/telegram';
+import TelegramAccounts from './telegram/TelegramAccounts';
 
 export default function Accounts() {
+  // Use Telegram version if in Telegram Mini App
+  if (isTelegramWebApp()) {
+    return <TelegramAccounts />;
+  }
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);

@@ -3,10 +3,16 @@ import { api } from '../services/api';
 import { getIconComponent } from '../components/IconPicker';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts';
+import { isTelegramWebApp } from '../utils/telegram';
+import TelegramBalance from './telegram/TelegramBalance';
 
 const COLORS = ['#60a5fa', '#34d399', '#fbbf24', '#a78bfa', '#f472b6', '#fb923c'];
 
 export default function Balance() {
+  // Use Telegram version if in Telegram Mini App
+  if (isTelegramWebApp()) {
+    return <TelegramBalance />;
+  }
   const [stats, setStats] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { User, Percent, Save, Sparkles } from 'lucide-react';
+import { isTelegramWebApp } from '../utils/telegram';
+import TelegramSettings from './telegram/TelegramSettings';
 
 export default function Settings() {
+  // Use Telegram version if in Telegram Mini App
+  if (isTelegramWebApp()) {
+    return <TelegramSettings />;
+  }
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('distribution');
   const [accounts, setAccounts] = useState<any[]>([]);

@@ -8,6 +8,8 @@ import {
   LogOut,
   User
 } from 'lucide-react';
+import TelegramLayout from './TelegramLayout';
+import { isTelegramWebApp } from '../utils/telegram';
 
 interface LayoutProps {
   children: ReactNode;
@@ -17,6 +19,11 @@ export default function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Use Telegram layout if in Telegram Mini App
+  if (isTelegramWebApp()) {
+    return <TelegramLayout>{children}</TelegramLayout>;
+  }
 
   const navItems = [
     { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-purple-500 to-purple-600' },

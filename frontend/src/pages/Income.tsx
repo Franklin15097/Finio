@@ -3,8 +3,15 @@ import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
 import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, DollarSign, Filter, Calendar, X } from 'lucide-react';
+import { isTelegramWebApp } from '../utils/telegram';
+import TelegramIncome from './telegram/TelegramIncome';
 
 export default function Income() {
+  // Use Telegram version if in Telegram Mini App
+  if (isTelegramWebApp()) {
+    return <TelegramIncome />;
+  }
+
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
