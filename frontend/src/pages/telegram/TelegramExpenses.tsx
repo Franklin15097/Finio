@@ -16,6 +16,8 @@ export default function TelegramExpenses() {
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [dateRange, setDateRange] = useState<'all' | 'week' | 'month' | 'year'>('all');
   
@@ -37,7 +39,7 @@ export default function TelegramExpenses() {
 
   useEffect(() => {
     filterTransactions();
-  }, [transactions, searchQuery, selectedCategory, dateRange]);
+  }, [transactions, searchQuery, selectedCategory, dateRange, sortBy, sortOrder]);
 
   const loadData = async () => {
     try {
@@ -105,7 +107,18 @@ export default function TelegramExpenses() {
       );
     }
     
-    filtered.sort((a, b) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime());
+    // Sort
+    filtered.sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.transaction_date).getTime();
+        const dateB = new Date(b.transaction_date).getTime();
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+      } else {
+        const amountA = parseFloat(a.amount);
+        const amountB = parseFloat(b.amount);
+        return sortOrder === 'asc' ? amountA - amountB : amountB - amountA;
+      }
+    });
     
     setFilteredTransactions(filtered);
   };
@@ -214,36 +227,20 @@ export default function TelegramExpenses() {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <TrendingDown className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Расходы</h1>
-            <p className="text-white/60 text-xs">Управление расходами</p>
-          </div>
-        </div>
-        <button
-          onClick={() => setShowTransactionModal(true)}
-          className="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg"
-        >
-          <Plus className="w-5 h-5 text-white" />
-        </button>
-      </div>
-
+    <div className="p-4 space-y-4 pb-24">
       {/* Total Card */}
-      <div className="bg-gradient-to-r from-red-500/20 to-pink-600/20 backdrop-blur-xl rounded-2xl p-4 border border-red-500/30">
+      <div className="bg-gradient-to-r from-red-500/20 to-pink-600/20 backdrop-blur-xl rounded-2xl p-4 border border-red-500/30 mt-2">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-white/60 text-xs mb-1">Всего расходов</p>
             <p className="text-3xl font-bold text-white">{totalExpense.toFixed(0)} ₽</p>
           </div>
-          <div className="w-14 h-14 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
-            <TrendingDown className="w-7 h-7 text-white" />
-          </div>
+          <button
+            onClick={() => setShowTransactionModal(true)}
+            className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg"
+          >
+            <Plus className="w-6 h-6 text-white" />
+          </button>
         </div>
       </div>
 
@@ -298,6 +295,51 @@ export default function TelegramExpenses() {
               {period === 'year' && 'Год'}
             </button>
           ))}
+        </div>
+
+        {/* Sort buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              if (sortBy === 'date') {
+                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+              } else {
+                setSortBy('date');
+                setSortOrder('desc');
+              }
+            }}
+            className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all flex items-center justify-center gap-1 ${
+              sortBy === 'date'
+                ? 'bg-red-500 text-white'
+                : 'bg-white/10 text-gray-300'
+            }`}
+          >
+            📅 Дата
+            {sortBy === 'date' && (
+              <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+            )}
+          </button>
+          
+          <button
+            onClick={() => {
+              if (sortBy === 'amount') {
+                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+              } else {
+                setSortBy('amount');
+                setSortOrder('desc');
+              }
+            }}
+            className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all flex items-center justify-center gap-1 ${
+              sortBy === 'amount'
+                ? 'bg-red-500 text-white'
+                : 'bg-white/10 text-gray-300'
+            }`}
+          >
+            💰 Сумма
+            {sortBy === 'amount' && (
+              <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
+            )}
+          </button>
         </div>
       </div>
 

@@ -143,20 +143,9 @@ export default function TelegramBalance() {
     .sort((a, b) => b.value - a.value);
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3 pt-2">
-        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <Wallet className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Баланс</h1>
-          <p className="text-white/60 text-xs">Обзор финансов</p>
-        </div>
-      </div>
-
+    <div className="p-4 space-y-4 pb-24">
       {/* Main Stats */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 pt-2">
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -223,8 +212,8 @@ export default function TelegramBalance() {
           </div>
         </div>
         {monthlyData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={monthlyData} barGap={4}>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={monthlyData} barGap={2} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
               <XAxis 
                 dataKey="month" 
@@ -238,6 +227,7 @@ export default function TelegramBalance() {
                 style={{ fontSize: '10px' }}
                 axisLine={false}
                 tickLine={false}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -249,12 +239,12 @@ export default function TelegramBalance() {
                 }}
                 formatter={(value: any) => [`${parseFloat(value).toFixed(0)} ₽`, '']}
               />
-              <Bar dataKey="income" fill="#10b981" radius={[8, 8, 0, 0]} maxBarSize={40} />
-              <Bar dataKey="expense" fill="#ef4444" radius={[8, 8, 0, 0]} maxBarSize={40} />
+              <Bar dataKey="income" fill="#10b981" radius={[8, 8, 0, 0]} maxBarSize={30} />
+              <Bar dataKey="expense" fill="#ef4444" radius={[8, 8, 0, 0]} maxBarSize={30} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-[200px]">
+          <div className="flex items-center justify-center h-[180px]">
             <p className="text-gray-400 text-xs">Нет данных</p>
           </div>
         )}
@@ -283,14 +273,14 @@ export default function TelegramBalance() {
           </div>
         </div>
         {categoryData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie
                 data={categoryData}
                 cx="50%"
                 cy="50%"
-                innerRadius={50}
-                outerRadius={80}
+                innerRadius={40}
+                outerRadius={70}
                 paddingAngle={2}
                 dataKey="value"
               >
@@ -311,7 +301,7 @@ export default function TelegramBalance() {
             </PieChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex items-center justify-center h-[200px]">
+          <div className="flex items-center justify-center h-[180px]">
             <p className="text-gray-400 text-xs">Нет данных</p>
           </div>
         )}

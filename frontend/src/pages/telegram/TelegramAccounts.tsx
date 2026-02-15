@@ -92,28 +92,9 @@ export default function TelegramAccounts() {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Wallet className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Счета</h1>
-            <p className="text-white/60 text-xs">Управление счетами</p>
-          </div>
-        </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg"
-        >
-          <Plus className="w-5 h-5 text-white" />
-        </button>
-      </div>
-
+    <div className="p-4 space-y-4 pb-24">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3 pt-2">
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-2">
             <TrendingUp className="w-4 h-4 text-white" />
@@ -141,7 +122,15 @@ export default function TelegramAccounts() {
 
       {/* Accounts List */}
       <div className="space-y-2">
-        <h2 className="text-sm font-bold text-white">Мои счета ({accounts.length})</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold text-white">Мои счета ({accounts.length})</h2>
+          <button
+            onClick={() => setShowModal(true)}
+            className="w-8 h-8 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-lg flex items-center justify-center shadow-lg"
+          >
+            <Plus className="w-4 h-4 text-white" />
+          </button>
+        </div>
         {accounts.length > 0 ? (
           <div className="space-y-2">
             {accounts.map((account) => {

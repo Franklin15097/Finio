@@ -5,20 +5,9 @@ export default function TelegramSettings() {
   const { user, logout } = useAuth();
 
   return (
-    <div className="p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center gap-3 pt-2">
-        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg">
-          <User className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Настройки</h1>
-          <p className="text-white/60 text-xs">Профиль и параметры</p>
-        </div>
-      </div>
-
+    <div className="p-4 space-y-4 pb-24">
       {/* User Profile Card */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20 mt-2">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg">
             {user?.name?.charAt(0).toUpperCase()}
