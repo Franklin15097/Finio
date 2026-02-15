@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import Modal from '../../components/Modal';
 import IconPicker, { getIconComponent } from '../../components/IconPicker';
 import DatePicker from '../../components/DatePicker';
-import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, Calendar, X } from 'lucide-react';
+import SparklineChart from '../../components/charts/SparklineChart';
+import { Plus, TrendingUp, Search, Edit2, Trash2, Tag, Calendar, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 export default function TelegramIncome() {
+  const navigate = useNavigate();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -20,7 +23,8 @@ export default function TelegramIncome() {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<'all' | 'week' | 'month' | 'year'>('all');
+  const [dateRange, setDateRange] = useState<'all' | 'week' | 'month' | 'year'>('month');
+  const [showFilters, setShowFilters] = useState(false);
   
   const [transactionForm, setTransactionForm] = useState({
     amount: '',
@@ -219,6 +223,25 @@ export default function TelegramIncome() {
 
   const totalIncome = filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
+  // Prepare chart data (last 30 days)
+  const getChartData = () => {
+    const days = 30;
+    const data = new Array(days).fill(0);
+    const now = new Date();
+    
+    filteredTransactions.forEach(t => {
+      const transactionDate = new Date(t.transaction_date);
+      const diffTime = now.getTime() - transactionDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays >= 0 && diffDays < days) {
+        data[days - 1 - diffDays] += parseFloat(t.amount);
+      }
+    });
+    
+    return data;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -228,45 +251,60 @@ export default function TelegramIncome() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-24">
-      {/* Total Card */}
+    <div className="p-4 space-y-3 pb-24">
+      {/* Total Card with Chart */}
       <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-4 border border-green-500/30 mt-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-white/60 text-xs mb-1">Всего доходов</p>
+            <p className="text-white/60 text-xs mb-1">Доходы за период</p>
             <p className="text-3xl font-bold text-white">{totalIncome.toFixed(0)} ₽</p>
           </div>
-          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-white" />
           </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <SparklineChart 
+              data={getChartData()} 
+              color="#10b981" 
+              width={180} 
+              height={40}
+            />
+          </div>
+          <button
+            onClick={() => navigate('/telegram/balance')}
+            className="ml-3 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-white flex items-center gap-1 transition-colors"
+          >
+            Подробнее
+            <ChevronRight className="w-3 h-3" />
+          </button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Compact Filters */}
       <div className="space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Поиск..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-        </div>
-        
         <div className="flex gap-2">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500"
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Поиск..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+          
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-2 rounded-xl text-white transition-all ${
+              showFilters ? 'bg-green-500' : 'bg-white/10'
+            }`}
           >
-            <option value="all" className="bg-slate-800">Все категории</option>
-            <option value="none" className="bg-slate-800">Без категории</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
-            ))}
-          </select>
+            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
           
           <button
             onClick={() => setShowCategoryModal(true)}
@@ -276,69 +314,78 @@ export default function TelegramIncome() {
           </button>
         </div>
 
-        <div className="flex gap-2">
-          {['all', 'week', 'month', 'year'].map((period) => (
-            <button
-              key={period}
-              onClick={() => setDateRange(period as any)}
-              className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all ${
-                dateRange === period
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white/10 text-gray-300'
-              }`}
+        {showFilters && (
+          <div className="space-y-2 animate-slide-up">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500"
             >
-              {period === 'all' && 'Всё'}
-              {period === 'week' && 'Неделя'}
-              {period === 'month' && 'Месяц'}
-              {period === 'year' && 'Год'}
-            </button>
-          ))}
-        </div>
+              <option value="all" className="bg-slate-800">Все категории</option>
+              <option value="none" className="bg-slate-800">Без категории</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
+              ))}
+            </select>
 
-        {/* Sort buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              if (sortBy === 'date') {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-              } else {
-                setSortBy('date');
-                setSortOrder('desc');
-              }
-            }}
-            className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all flex items-center justify-center gap-1 ${
-              sortBy === 'date'
-                ? 'bg-green-500 text-white'
-                : 'bg-white/10 text-gray-300'
-            }`}
-          >
-            📅 Дата
-            {sortBy === 'date' && (
-              <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-            )}
-          </button>
-          
-          <button
-            onClick={() => {
-              if (sortBy === 'amount') {
-                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-              } else {
-                setSortBy('amount');
-                setSortOrder('desc');
-              }
-            }}
-            className={`flex-1 px-3 py-2 text-xs rounded-xl transition-all flex items-center justify-center gap-1 ${
-              sortBy === 'amount'
-                ? 'bg-green-500 text-white'
-                : 'bg-white/10 text-gray-300'
-            }`}
-          >
-            💰 Сумма
-            {sortBy === 'amount' && (
-              <span className={`transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`}>↑</span>
-            )}
-          </button>
-        </div>
+            <div className="flex gap-2">
+              {['all', 'week', 'month', 'year'].map((period) => (
+                <button
+                  key={period}
+                  onClick={() => setDateRange(period as any)}
+                  className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
+                    dateRange === period
+                      ? 'bg-green-500 text-white'
+                      : 'bg-white/10 text-gray-300'
+                  }`}
+                >
+                  {period === 'all' && 'Всё'}
+                  {period === 'week' && '7д'}
+                  {period === 'month' && '30д'}
+                  {period === 'year' && 'Год'}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (sortBy === 'date') {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy('date');
+                    setSortOrder('desc');
+                  }
+                }}
+                className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1 ${
+                  sortBy === 'date'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white/10 text-gray-300'
+                }`}
+              >
+                Дата {sortBy === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (sortBy === 'amount') {
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy('amount');
+                    setSortOrder('desc');
+                  }
+                }}
+                className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1 ${
+                  sortBy === 'amount'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white/10 text-gray-300'
+                }`}
+              >
+                Сумма {sortBy === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Transactions List */}

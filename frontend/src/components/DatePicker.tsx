@@ -95,42 +95,41 @@ export default function DatePicker({ value, onChange, label }: DatePickerProps) 
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-white/20 rounded-2xl p-4 shadow-2xl z-50 animate-slide-up">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-white/20 rounded-xl p-3 shadow-2xl z-50 animate-slide-up max-w-[280px]">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-1 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <ChevronLeft className="w-5 h-5 text-white" />
+              <ChevronLeft className="w-4 h-4 text-white" />
             </button>
             
             <div className="text-center">
-              <p className="text-white font-semibold">{monthNames[month]}</p>
-              <p className="text-gray-400 text-xs">{year}</p>
+              <p className="text-white font-semibold text-xs">{monthNames[month]} {year}</p>
             </div>
             
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-1 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <ChevronRight className="w-5 h-5 text-white" />
+              <ChevronRight className="w-4 h-4 text-white" />
             </button>
           </div>
 
           {/* Day names */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
+          <div className="grid grid-cols-7 gap-0.5 mb-1">
             {dayNames.map((day) => (
-              <div key={day} className="text-center text-xs text-gray-400 font-medium py-1">
+              <div key={day} className="text-center text-[10px] text-gray-400 font-medium py-0.5">
                 {day}
               </div>
             ))}
           </div>
 
           {/* Days */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5">
             {Array.from({ length: startingDayOfWeek }).map((_, i) => (
               <div key={`empty-${i}`} />
             ))}
@@ -153,7 +152,7 @@ export default function DatePicker({ value, onChange, label }: DatePickerProps) 
                   type="button"
                   onClick={() => handleDateClick(day)}
                   className={`
-                    aspect-square flex items-center justify-center text-sm rounded-lg transition-all
+                    aspect-square flex items-center justify-center text-[11px] rounded-md transition-all
                     ${isSelected 
                       ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold' 
                       : isToday
@@ -169,11 +168,11 @@ export default function DatePicker({ value, onChange, label }: DatePickerProps) 
           </div>
 
           {/* Footer */}
-          <div className="mt-4 pt-3 border-t border-white/10">
+          <div className="mt-2 pt-2 border-t border-white/10">
             <button
               type="button"
               onClick={handleToday}
-              className="w-full px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-sm font-medium transition-colors"
+              className="w-full px-2 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-lg text-xs font-medium transition-colors"
             >
               Сегодня
             </button>
