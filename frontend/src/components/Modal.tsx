@@ -1,5 +1,6 @@
 import { ReactNode, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { isTelegramWebApp } from '../utils/telegram';
 
 interface ModalProps {
   isOpen: boolean;
@@ -9,6 +10,8 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+  const isTelegram = isTelegramWebApp();
+  
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -31,7 +34,9 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
       ></div>
       
       {/* Modal */}
-      <div className="relative bg-slate-800 rounded-t-3xl sm:rounded-3xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto border border-slate-700/50 shadow-2xl animate-slide-up">
+      <div className={`relative bg-slate-800 rounded-t-3xl sm:rounded-3xl p-6 max-w-md w-full overflow-y-auto border border-slate-700/50 shadow-2xl animate-slide-up ${
+        isTelegram ? 'max-h-[75vh] mb-20' : 'max-h-[85vh]'
+      }`}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">{title}</h2>
           <button

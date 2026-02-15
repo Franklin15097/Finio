@@ -235,12 +235,9 @@ export default function TelegramExpenses() {
             <p className="text-white/60 text-xs mb-1">Всего расходов</p>
             <p className="text-3xl font-bold text-white">{totalExpense.toFixed(0)} ₽</p>
           </div>
-          <button
-            onClick={() => setShowTransactionModal(true)}
-            className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg"
-          >
-            <Plus className="w-6 h-6 text-white" />
-          </button>
+          <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+            <TrendingDown className="w-6 h-6 text-white" />
+          </div>
         </div>
       </div>
 
@@ -578,6 +575,14 @@ export default function TelegramExpenses() {
           </form>
         )}
       </Modal>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setShowTransactionModal(true)}
+        className="fixed right-4 bottom-24 w-14 h-14 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-2xl z-40 hover:scale-110 transition-transform"
+      >
+        <Plus className="w-7 h-7 text-white" />
+      </button>
     </div>
   );
 }

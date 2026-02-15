@@ -122,15 +122,7 @@ export default function TelegramAccounts() {
 
       {/* Accounts List */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">Мои счета ({accounts.length})</h2>
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-8 h-8 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-lg flex items-center justify-center shadow-lg"
-          >
-            <Plus className="w-4 h-4 text-white" />
-          </button>
-        </div>
+        <h2 className="text-sm font-bold text-white">Мои счета ({accounts.length})</h2>
         {accounts.length > 0 ? (
           <div className="space-y-2">
             {accounts.map((account) => {
@@ -276,6 +268,14 @@ export default function TelegramAccounts() {
           </button>
         </form>
       </Modal>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setShowModal(true)}
+        className="fixed right-4 bottom-24 w-14 h-14 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-full flex items-center justify-center shadow-2xl z-40 hover:scale-110 transition-transform"
+      >
+        <Plus className="w-7 h-7 text-white" />
+      </button>
     </div>
   );
 }
