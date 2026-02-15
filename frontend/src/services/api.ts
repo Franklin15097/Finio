@@ -28,8 +28,17 @@ export const api = {
   },
 
   getMe: async () => {
+    console.log('api.getMe() called');
+    console.log('Token:', getToken());
+    console.log('Headers:', headers());
+    
     const res = await fetch(`${API_URL}/auth/me`, { headers: headers() });
-    return res.json();
+    console.log('Response status:', res.status);
+    
+    const data = await res.json();
+    console.log('Response data:', data);
+    
+    return data;
   },
 
   // Dashboard

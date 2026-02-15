@@ -30,30 +30,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const checkAuth = async () => {
+    console.log('=== checkAuth started ===');
+    console.log('isTelegram:', isTelegram);
+    
     // Try Telegram auth first if in Telegram
     if (isTelegram) {
       try {
+        console.log('Attempting Telegram auth...');
         await loginWithTelegram();
         setLoading(false);
+        console.log('Telegram auth successful');
         return;
       } catch (error) {
-        console.log('Telegram auth failed, trying token auth');
+        console.log('Telegram auth failed, trying token auth:', error);
       }
     }
 
     // Fallback to token auth
     const token = localStorage.getItem('token');
+    console.log('Token from localStorage:', token ? 'exists' : 'not found');
+    
     if (token) {
       try {
+        console.log('Calling api.getMe()...');
         const data = await api.getMe();
+        console.log('api.getMe() response:', data);
+        
         if (data.user) {
+          console.log('User found:', data.user);
           setUser(data.user);
+        } else {
+          console.log('No user in response');
+          localStorage.removeItem('token');
         }
       } catch (error) {
+        console.error('Token auth failed:', error);
         localStorage.removeItem('token');
       }
     }
     setLoading(false);
+    console.log('=== checkAuth finished ===');
   };
 
   const loginWithTelegram = async () => {
