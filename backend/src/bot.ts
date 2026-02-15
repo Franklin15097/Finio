@@ -114,20 +114,85 @@ async function handleUpdate(update: TelegramUpdate) {
         '❌ Произошла ошибка. Попробуйте позже.'
       );
     }
+  } else if (text === '/app') {
+    // Open Mini App
+    await sendMessage(
+      chatId,
+      `📱 <b>Открыть Finio Mini App</b>\n\n` +
+      `Нажмите кнопку ниже, чтобы открыть приложение прямо в Telegram:`,
+      {
+        inline_keyboard: [
+          [
+            {
+              text: '📱 Открыть Mini App',
+              web_app: { url: FRONTEND_URL }
+            }
+          ]
+        ]
+      }
+    );
+  } else if (text === '/site') {
+    // Open website with auth
+    try {
+      const authToken = await generateAuthToken(telegramId);
+      const authUrl = `${FRONTEND_URL}?auth=${authToken}`;
+      
+      await sendMessage(
+        chatId,
+        `🌐 <b>Открыть Finio в браузере</b>\n\n` +
+        `Нажмите кнопку ниже, чтобы открыть сайт с автоматической авторизацией:`,
+        {
+          inline_keyboard: [
+            [
+              {
+                text: '🌐 Открыть Сайт',
+                url: authUrl
+              }
+            ]
+          ]
+        }
+      );
+    } catch (error) {
+      console.error('Error generating auth token:', error);
+      await sendMessage(chatId, '❌ Произошла ошибка. Попробуйте позже.');
+    }
   } else if (text === '/help') {
     await sendMessage(
       chatId,
       `📖 <b>Помощь по Finio</b>\n\n` +
       `<b>Доступные команды:</b>\n\n` +
       `/start - Начать работу с Finio\n` +
-      `/help - Показать эту справку\n\n` +
+      `/app - Открыть Mini App в Telegram\n` +
+      `/site - Открыть сайт в браузере\n` +
+      `/help - Показать эту справку\n` +
+      `/about - О приложении\n\n` +
       `<b>Возможности Finio:</b>\n\n` +
       `• Учёт доходов и расходов\n` +
       `• Категории транзакций\n` +
       `• Несколько счетов\n` +
       `• Графики и аналитика\n` +
       `• Бюджеты и цели\n\n` +
-      `Используйте /start чтобы открыть приложение!`
+      `💡 <b>Совет:</b> Используйте кнопку Menu (☰) для быстрого доступа к командам!`
+    );
+  } else if (text === '/about') {
+    await sendMessage(
+      chatId,
+      `ℹ️ <b>О Finio</b>\n\n` +
+      `<b>Finio</b> — современный финансовый помощник для управления личными финансами.\n\n` +
+      `<b>Версия:</b> 1.0.0\n` +
+      `<b>Платформа:</b> Web + Telegram Mini App\n\n` +
+      `<b>Основные функции:</b>\n\n` +
+      `💰 <b>Учёт финансов</b>\n` +
+      `Отслеживайте все доходы и расходы в одном месте\n\n` +
+      `📊 <b>Аналитика</b>\n` +
+      `Красивые графики и статистика по вашим финансам\n\n` +
+      `💳 <b>Счета</b>\n` +
+      `Управляйте несколькими счетами и картами\n\n` +
+      `🎯 <b>Цели</b>\n` +
+      `Ставьте финансовые цели и достигайте их\n\n` +
+      `🔒 <b>Безопасность</b>\n` +
+      `Все данные защищены и хранятся надёжно\n\n` +
+      `Используйте /start чтобы начать!`
     );
   }
 }
@@ -156,7 +221,10 @@ async function setCommands() {
   
   const commands = [
     { command: 'start', description: '🚀 Начать работу с Finio' },
-    { command: 'help', description: '📖 Помощь и информация' }
+    { command: 'app', description: '📱 Открыть приложение' },
+    { command: 'site', description: '🌐 Открыть сайт' },
+    { command: 'help', description: '📖 Помощь и информация' },
+    { command: 'about', description: 'ℹ️ О приложении' }
   ];
   
   try {
@@ -180,12 +248,9 @@ async function setCommands() {
 async function setMenuButton() {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setChatMenuButton`;
   
+  // Set default menu button (shows commands)
   const menuButton = {
-    type: 'web_app',
-    text: '🚀 Открыть Finio',
-    web_app: {
-      url: FRONTEND_URL
-    }
+    type: 'commands'
   };
   
   try {
@@ -197,7 +262,7 @@ async function setMenuButton() {
     
     const data: any = await response.json();
     if (data.ok) {
-      console.log('✅ Menu button set successfully');
+      console.log('✅ Menu button set to commands');
     } else {
       console.error('Failed to set menu button:', data);
     }
