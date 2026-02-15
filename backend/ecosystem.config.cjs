@@ -5,9 +5,15 @@ module.exports = {
     cwd: '/var/www/studiofinance/backend',
     env: {
       NODE_ENV: 'production',
-      PORT: 5000
+      PORT: 5000,
+      DB_HOST: 'localhost',
+      DB_PORT: 3306,
+      DB_USER: 'app_user',
+      DB_PASSWORD: 'app_password',
+      DB_NAME: 'financial_db',
+      JWT_SECRET: 'finio-secret-key-production-18653dc238ae00fe89f8b607575114a2b1a7c3dbe2150080cda70503a928db02',
+      TELEGRAM_BOT_TOKEN: '8388539678:AAH1t-XurvydCG-cZBGme0suPUt4RwMqm34'
     },
-    env_file: '.env',
     instances: 1,
     autorestart: true,
     watch: false,
