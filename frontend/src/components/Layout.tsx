@@ -48,7 +48,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-card/90 border-b border-border shadow-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/95 border-b border-border/50 shadow-lg">
         <div className="h-16 px-6 flex items-center justify-between">
           <button 
             onClick={() => {
@@ -80,7 +80,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-16 bottom-0 w-64 backdrop-blur-xl bg-card/90 border-r border-border p-4 flex flex-col shadow-xl">
+      <aside className="fixed left-0 top-16 bottom-0 w-64 backdrop-blur-xl bg-black/95 border-r border-border/50 p-4 flex flex-col shadow-xl">
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -143,7 +143,7 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="ml-64 relative z-0 backdrop-blur-xl bg-card/90 border-t border-border shadow-lg">
+      <footer className="ml-64 relative z-0 backdrop-blur-xl bg-black/95 border-t border-border/50 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

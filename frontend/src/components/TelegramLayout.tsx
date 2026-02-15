@@ -40,7 +40,7 @@ export default function TelegramLayout({ children }: TelegramLayoutProps) {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900/98 backdrop-blur-xl border-t border-purple-500/30 safe-area-bottom z-50 shadow-2xl shadow-purple-900/50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-black/98 backdrop-blur-xl border-t border-white/10 safe-area-bottom z-50 shadow-2xl">
         <div className="flex items-center justify-around px-2 py-3">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -63,12 +63,12 @@ export default function TelegramLayout({ children }: TelegramLayoutProps) {
         </div>
         
         {/* Legal Links */}
-        <div className="px-4 py-2.5 border-t border-purple-500/20 bg-slate-900/70">
-          <div className="flex items-center justify-center gap-3 text-[10px] text-slate-400">
+        <div className="px-4 py-2.5 border-t border-white/5 bg-black/70">
+          <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500">
             <a href="/terms.html" target="_blank" className="hover:text-purple-300 transition-colors font-medium">Соглашение</a>
-            <span className="text-slate-600">•</span>
+            <span className="text-slate-700">•</span>
             <a href="/privacy.html" target="_blank" className="hover:text-purple-300 transition-colors font-medium">Конфиденциальность</a>
-            <span className="text-slate-600">•</span>
+            <span className="text-slate-700">•</span>
             <span className="font-semibold">© 2026 Finio</span>
           </div>
         </div>
