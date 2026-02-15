@@ -171,35 +171,43 @@ export default function Auth() {
           ) : (
             <>
               <p className="text-gray-300 mb-6">
-                Нажмите кнопку ниже для входа через Telegram
+                Выберите способ входа через Telegram
               </p>
 
-              {/* Telegram Login Widget Container */}
+              {/* Primary: Open Telegram Bot */}
+              <a
+                href="https://t.me/FinanceStudio_bot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-4 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 mb-4"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.155.232.171.326.016.094.036.308.02.475z"/>
+                  </svg>
+                  <span className="text-white font-bold text-lg">Войти через Telegram</span>
+                </div>
+              </a>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-slate-900 text-gray-400">или через браузер</span>
+                </div>
+              </div>
+
+              {/* Secondary: Telegram Login Widget */}
               <div id="telegram-login-button-container" className="flex justify-center mb-6 min-h-[50px]">
                 {!widgetLoaded && !error && (
                   <div className="text-gray-400 text-sm">Загрузка виджета Telegram...</div>
                 )}
               </div>
 
-              {error && error.includes('Bot domain invalid') && (
-                <div className="mt-6 p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-xl">
-                  <p className="text-yellow-300 font-semibold mb-2">⚠️ Требуется настройка домена</p>
-                  <p className="text-sm text-gray-300 mb-3">
-                    Чтобы виджет работал, нужно добавить домен в настройках бота:
-                  </p>
-                  <ol className="text-sm text-gray-300 space-y-1 list-decimal list-inside">
-                    <li>Откройте @BotFather в Telegram</li>
-                    <li>Отправьте /mybots</li>
-                    <li>Выберите FinanceStudio_bot</li>
-                    <li>Bot Settings → Domain</li>
-                    <li>Введите: <code className="bg-gray-800 px-2 py-1 rounded">studiofinance.ru</code></li>
-                  </ol>
-                </div>
-              )}
-
               <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 border border-blue-500/30 rounded-xl">
                 <p className="text-sm text-gray-300">
-                  🔒 Безопасный вход через Telegram без паролей
+                  💡 <b>Рекомендуем:</b> Нажмите "Войти через Telegram" для быстрого входа
                 </p>
               </div>
             </>

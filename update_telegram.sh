@@ -40,6 +40,9 @@ npm run build
 echo "🔄 Restarting backend..."
 pm2 restart finio-backend
 
+echo "🤖 Starting/restarting bot..."
+pm2 restart finio-bot || pm2 start ecosystem.config.cjs --only finio-bot
+
 echo "📦 Installing frontend dependencies..."
 cd ../frontend
 npm install

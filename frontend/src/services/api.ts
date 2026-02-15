@@ -27,6 +27,15 @@ export const api = {
     return res.json();
   },
 
+  exchangeAuthToken: async (authToken: string) => {
+    const res = await fetch(`${API_URL}/auth/exchange-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ authToken }),
+    });
+    return res.json();
+  },
+
   getMe: async () => {
     console.log('api.getMe() called');
     console.log('Token:', getToken());

@@ -9,6 +9,19 @@ const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
+// Store for one-time auth tokens (in production use Redis)
+const authTokens = new Map<string, { telegramId: number; expiresAt: number }>();
+
+// Clean expired tokens every minute
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, data] of authTokens.entries()) {
+    if (data.expiresAt < now) {
+      authTokens.delete(token);
+    }
+  }
+}, 60000);
+
 // Validate Telegram Web App data
 function validateTelegramWebAppData(initData: string): any {
   console.log('=== Telegram Validation Start ===');
@@ -71,6 +84,115 @@ function validateTelegramWebAppData(initData: string): any {
   
   return user;
 }
+
+// Generate one-time auth token for Telegram bot
+router.post('/generate-auth-token', async (req, res) => {
+  const { telegramId } = req.body;
+  
+  if (!telegramId) {
+    return res.status(400).json({ error: 'Telegram ID required' });
+  }
+  
+  // Generate random token
+  const authToken = crypto.randomBytes(32).toString('hex');
+  
+  // Store token with 5 minute expiration
+  authTokens.set(authToken, {
+    telegramId: parseInt(telegramId),
+    expiresAt: Date.now() + 5 * 60 * 1000
+  });
+  
+  console.log('Generated auth token for telegram ID:', telegramId);
+  
+  res.json({ authToken });
+});
+
+// Exchange one-time token for JWT
+router.post('/exchange-token', async (req, res) => {
+  const { authToken } = req.body;
+  
+  if (!authToken) {
+    return res.status(400).json({ error: 'Auth token required' });
+  }
+  
+  const tokenData = authTokens.get(authToken);
+  
+  if (!tokenData) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+  
+  if (tokenData.expiresAt < Date.now()) {
+    authTokens.delete(authToken);
+    return res.status(401).json({ error: 'Token expired' });
+  }
+  
+  // Delete token (one-time use)
+  authTokens.delete(authToken);
+  
+  const telegramId = tokenData.telegramId;
+  
+  try {
+    // Check if user exists
+    let [users]: any = await pool.query('SELECT * FROM users WHERE telegram_id = ?', [telegramId]);
+    
+    let userId;
+    if (users.length > 0) {
+      userId = users[0].id;
+    } else {
+      // Create new user
+      const [result]: any = await pool.query(
+        'INSERT INTO users (telegram_id, name, email) VALUES (?, ?, ?)',
+        [telegramId, `User${telegramId}`, `tg${telegramId}@telegram.user`]
+      );
+      userId = result.insertId;
+      
+      // Create default accounts
+      const defaultAccounts = [
+        ['Основной счёт', 'checking', 70, 'wallet'],
+        ['Подушка безопасности', 'emergency', 20, 'savings'],
+        ['Накопления', 'savings', 10, 'bank'],
+      ];
+      
+      for (const [name, type, percentage, icon] of defaultAccounts) {
+        await pool.query(
+          'INSERT INTO accounts (user_id, name, type, percentage, icon) VALUES (?, ?, ?, ?, ?)',
+          [userId, name, type, percentage, icon]
+        );
+      }
+      
+      // Create default categories
+      const defaultCategories = [
+        ['Salary', 'income', '💰', '#10b981'],
+        ['Freelance', 'income', '💼', '#3b82f6'],
+        ['Groceries', 'expense', '🛒', '#ef4444'],
+        ['Utilities', 'expense', '⚡', '#f59e0b'],
+        ['Entertainment', 'expense', '🎬', '#8b5cf6'],
+        ['Transportation', 'expense', '🚗', '#06b6d4'],
+        ['Healthcare', 'expense', '🏥', '#ec4899'],
+      ];
+      
+      for (const [name, type, icon, color] of defaultCategories) {
+        await pool.query(
+          'INSERT INTO categories (user_id, name, type, icon, color) VALUES (?, ?, ?, ?, ?)',
+          [userId, name, type, icon, color]
+        );
+      }
+    }
+    
+    // Get user
+    [users] = await pool.query('SELECT id, email, name, telegram_id, telegram_username FROM users WHERE id = ?', [userId]);
+    const user = users[0];
+    
+    // Generate JWT
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+    
+    console.log('Token exchanged successfully for user:', userId);
+    res.json({ token, user });
+  } catch (error) {
+    console.error('Token exchange error:', error);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
 
 // Telegram Login Widget (for website)
 router.post('/telegram-widget', async (req, res) => {
