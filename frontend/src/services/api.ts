@@ -28,12 +28,22 @@ export const api = {
   },
 
   exchangeAuthToken: async (authToken: string) => {
+    console.log('Exchanging auth token:', authToken.substring(0, 10) + '...');
     const res = await fetch(`${API_URL}/auth/exchange-token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ authToken }),
     });
-    return res.json();
+    
+    const data = await res.json();
+    console.log('Exchange token response status:', res.status);
+    console.log('Exchange token response data:', data);
+    
+    if (!res.ok) {
+      throw new Error(data.error || 'Token exchange failed');
+    }
+    
+    return data;
   },
 
   getMe: async () => {

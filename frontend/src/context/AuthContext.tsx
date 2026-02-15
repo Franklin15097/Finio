@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('=== checkAuth started ===');
     console.log('isTelegram:', isTelegram);
     
-    // Check for auth token in URL
+    // Check for auth token in URL (from Telegram bot)
     const urlParams = new URLSearchParams(window.location.search);
     const authToken = urlParams.get('auth');
     
@@ -41,17 +41,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('Found auth token in URL, exchanging...');
       try {
         const data = await api.exchangeAuthToken(authToken);
+        console.log('Exchange token response:', data);
+        
         if (data.token && data.user) {
           localStorage.setItem('token', data.token);
           setUser(data.user);
           // Remove token from URL
           window.history.replaceState({}, document.title, window.location.pathname);
           setLoading(false);
-          console.log('Auth token exchanged successfully');
+          console.log('Auth token exchanged successfully, user:', data.user);
           return;
+        } else {
+          console.error('Invalid response from exchange-token:', data);
+          // Remove invalid token from URL
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       } catch (error) {
         console.error('Failed to exchange auth token:', error);
+        // Remove token from URL on error
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
     
