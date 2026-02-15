@@ -111,91 +111,73 @@ export default function Balance() {
   const sparklineData = Object.values(dailyBalances).slice(-30);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-xl">
-            <Wallet className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-5xl font-bold text-white mb-2">
-              Баланс
-            </h1>
-            <p className="text-white/80 text-lg">Обзор финансов в реальном времени</p>
-          </div>
+      <div className="flex items-center gap-3 pt-2">
+        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <Wallet className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">
+            Баланс
+          </h1>
+          <p className="text-white/60 text-sm">Обзор финансов</p>
         </div>
       </div>
 
       {/* Main Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="relative group">
-          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-purple-500/20 hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-2xl flex items-center justify-center shadow-lg">
-                <Wallet className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <p className="text-white/80 text-sm font-medium mb-1">Баланс</p>
-            <div className="flex items-end justify-between">
-              <p className={`text-3xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {balance >= 0 ? '+' : ''}{balance.toFixed(2)} ₽
-              </p>
-              {sparklineData.length > 0 && (
-                <SparklineChart
-                  data={sparklineData}
-                  color={balance >= 0 ? '#10b981' : '#ef4444'}
-                  width={80}
-                  height={40}
-                />
-              )}
-            </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-xl flex items-center justify-center mb-2">
+            <Wallet className="w-4 h-4 text-white" />
+          </div>
+          <p className="text-white/60 text-xs mb-1">Баланс</p>
+          <div className="flex items-end justify-between">
+            <p className={`text-xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {balance >= 0 ? '+' : ''}{balance.toFixed(0)} ₽
+            </p>
+            {sparklineData.length > 0 && (
+              <SparklineChart
+                data={sparklineData}
+                color={balance >= 0 ? '#10b981' : '#ef4444'}
+                width={60}
+                height={30}
+              />
+            )}
           </div>
         </div>
 
-        <div className="relative group">
-          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-purple-500/20 hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <p className="text-purple-200 text-sm font-medium mb-1">Доходы</p>
-            <p className="text-3xl font-bold text-white">{(stats?.totalIncome || 0).toFixed(2)} ₽</p>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center mb-2">
+            <TrendingUp className="w-4 h-4 text-white" />
           </div>
+          <p className="text-white/60 text-xs mb-1">Доходы</p>
+          <p className="text-xl font-bold text-white">{(stats?.totalIncome || 0).toFixed(0)} ₽</p>
         </div>
 
-        <div className="relative group">
-          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-purple-500/20 hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <TrendingDown className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <p className="text-purple-200 text-sm font-medium mb-1">Расходы</p>
-            <p className="text-3xl font-bold text-white">{(stats?.totalExpense || 0).toFixed(2)} ₽</p>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-600 rounded-xl flex items-center justify-center mb-2">
+            <TrendingDown className="w-4 h-4 text-white" />
           </div>
+          <p className="text-white/60 text-xs mb-1">Расходы</p>
+          <p className="text-xl font-bold text-white">{(stats?.totalExpense || 0).toFixed(0)} ₽</p>
         </div>
 
-        <div className="relative group">
-          <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-purple-500/20 hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <PiggyBank className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <p className="text-purple-200 text-sm font-medium mb-1">На счетах</p>
-            <p className="text-3xl font-bold text-white">{totalActual.toFixed(2)} ₽</p>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center mb-2">
+            <PiggyBank className="w-4 h-4 text-white" />
           </div>
+          <p className="text-white/60 text-xs mb-1">На счетах</p>
+          <p className="text-xl font-bold text-white">{totalActual.toFixed(0)} ₽</p>
         </div>
       </div>
 
       {/* Charts Row */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Balance Trend Chart */}
-        <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 hover:scale-[1.01] transition-all duration-300 border border-purple-500/20">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white">
               Динамика баланса
             </h2>
           </div>
@@ -203,21 +185,21 @@ export default function Balance() {
             <LineChart
               data={balanceData}
               color={balance >= 0 ? '#10b981' : '#ef4444'}
-              height={300}
+              height={200}
               showPeriods={true}
               currentPeriod={chartPeriod}
               onPeriodChange={setChartPeriod}
             />
           ) : (
-            <div className="flex items-center justify-center h-[300px]">
-              <p className="text-gray-400 text-sm">Нет данных для отображения</p>
+            <div className="flex items-center justify-center h-[200px]">
+              <p className="text-gray-400 text-xs">Нет данных</p>
             </div>
           )}
         </div>
 
         {/* Income vs Expenses Progress Bar */}
-        <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 hover:scale-[1.01] transition-all duration-300 border border-purple-500/20">
-          <h2 className="text-xl font-semibold text-white mb-6">Доходы vs Расходы</h2>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+          <h2 className="text-sm font-semibold text-white mb-4">Доходы vs Расходы</h2>
           <ProgressBar
             leftValue={stats?.totalIncome || 0}
             rightValue={stats?.totalExpense || 0}
@@ -232,84 +214,84 @@ export default function Balance() {
       </div>
 
       {/* Accounts Section */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 border border-purple-500/20">
-        <h2 className="text-xl font-semibold text-white mb-6">Счета</h2>
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+        <h2 className="text-sm font-semibold text-white mb-3">Счета</h2>
         {accounts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-2">
             {accounts.map((account) => (
               <div
                 key={account.id}
-                className="bg-white/5 hover:bg-white/10 rounded-[24px] p-6 transition-all duration-300 hover:scale-[1.02] border border-purple-500/20"
+                className="bg-white/5 rounded-xl p-3 border border-purple-500/10"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-3xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-xl">
                     {account.icon === 'wallet' && '💳'}
                     {account.icon === 'card' && '💳'}
                     {account.icon === 'bank' && '🏦'}
                     {account.icon === 'savings' && '🐷'}
                   </div>
-                  <div>
-                    <p className="text-lg font-bold text-white">{account.name}</p>
-                    <p className="text-sm text-gray-400">{account.percentage}%</p>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-white">{account.name}</p>
+                    <p className="text-xs text-gray-400">{account.percentage}%</p>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">План:</span>
-                    <span className="text-white font-semibold">{parseFloat(account.planned_balance || 0).toFixed(2)} ₽</span>
+                <div className="flex justify-between text-xs">
+                  <div>
+                    <span className="text-gray-400">План: </span>
+                    <span className="text-white font-semibold">{parseFloat(account.planned_balance || 0).toFixed(0)} ₽</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Факт:</span>
-                    <span className="text-green-400 font-semibold">{parseFloat(account.actual_balance || 0).toFixed(2)} ₽</span>
+                  <div>
+                    <span className="text-gray-400">Факт: </span>
+                    <span className="text-green-400 font-semibold">{parseFloat(account.actual_balance || 0).toFixed(0)} ₽</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-center py-8">Нет счетов</p>
+          <p className="text-gray-400 text-center py-4 text-xs">Нет счетов</p>
         )}
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-[32px] p-8 border border-purple-500/20">
-        <h2 className="text-xl font-semibold text-white mb-6">Последние транзакции</h2>
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20">
+        <h2 className="text-sm font-semibold text-white mb-3">Последние транзакции</h2>
         {stats?.recentTransactions?.length > 0 ? (
-          <div className="space-y-3">
-            {stats.recentTransactions.map((transaction: any) => {
+          <div className="space-y-2">
+            {stats.recentTransactions.slice(0, 5).map((transaction: any) => {
               const IconComponent = getIconComponent(transaction.category_icon);
               return (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-[20px] p-5 transition-all border border-purple-500/20"
+                  className="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-purple-500/10"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                       transaction.transaction_type === 'income' 
                         ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
                         : 'bg-gradient-to-r from-red-500 to-pink-600'
                     }`}>
-                      <IconComponent className="w-6 h-6 text-white" />
+                      <IconComponent className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold">{transaction.category_name}</p>
-                      <p className="text-gray-400 text-sm">{transaction.description}</p>
+                      <p className="text-white text-xs font-semibold">{transaction.category_name}</p>
+                      <p className="text-gray-400 text-[10px]">{transaction.description}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold text-lg flex items-center gap-1 justify-end ${
+                    <p className={`font-bold text-sm flex items-center gap-1 ${
                       transaction.transaction_type === 'income' ? 'text-green-400' : 'text-red-400'
                     }`}>
                       {transaction.transaction_type === 'income' ? (
-                        <ArrowUpRight className="w-4 h-4" />
+                        <ArrowUpRight className="w-3 h-3" />
                       ) : (
-                        <ArrowDownRight className="w-4 h-4" />
+                        <ArrowDownRight className="w-3 h-3" />
                       )}
-                      {parseFloat(transaction.amount).toFixed(2)} ₽
+                      {parseFloat(transaction.amount).toFixed(0)} ₽
                     </p>
-                    <p className="text-gray-400 text-sm flex items-center gap-1 justify-end">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(transaction.transaction_date).toLocaleDateString('ru-RU')}
+                    <p className="text-gray-400 text-[10px] flex items-center gap-1 justify-end">
+                      <Calendar className="w-2.5 h-2.5" />
+                      {new Date(transaction.transaction_date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
                     </p>
                   </div>
                 </div>
@@ -317,7 +299,7 @@ export default function Balance() {
             })}
           </div>
         ) : (
-          <p className="text-gray-400 text-center py-8">Нет транзакций</p>
+          <p className="text-gray-400 text-center py-4 text-xs">Нет транзакций</p>
         )}
       </div>
     </div>

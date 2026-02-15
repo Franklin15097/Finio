@@ -98,89 +98,64 @@ export default function Accounts() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-3xl flex items-center justify-center shadow-xl">
-            <Wallet className="w-8 h-8 text-white" />
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Wallet className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-5xl font-bold text-white mb-2">
+            <h1 className="text-2xl font-bold text-white">
               Счета
             </h1>
-            <p className="text-white/80 text-lg">Управление счетами и распределением доходов</p>
+            <p className="text-white/60 text-sm">Управление счетами</p>
           </div>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-purple-600/90 to-fuchsia-600/90 rounded-3xl transition-all duration-300 hover:scale-105 shadow-xl shadow-purple-500/50 backdrop-blur-sm border border-purple-400/20"
+          className="px-4 py-2 bg-gradient-to-r from-purple-600/90 to-fuchsia-600/90 rounded-xl text-white font-semibold text-sm flex items-center gap-2 shadow-lg"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-          <div className="relative flex items-center gap-2 text-white font-semibold">
-            <Plus className="w-5 h-5" />
-            Добавить счёт
-          </div>
+          <Plus className="w-4 h-4" />
+          Добавить
         </button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 gap-3">
         {/* Total Percentage */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Распределено</p>
-                <p className="text-4xl font-bold text-white">{totalPercentage.toFixed(1)}%</p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-            </div>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-2">
+            <TrendingUp className="w-4 h-4 text-white" />
           </div>
+          <p className="text-white/60 text-[10px] mb-1">Распределено</p>
+          <p className="text-lg font-bold text-white">{totalPercentage.toFixed(1)}%</p>
         </div>
 
         {/* Total Planned */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Планируется</p>
-                <p className="text-4xl font-bold text-white">{totalPlanned.toFixed(2)} ₽</p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
-                <Wallet className="w-8 h-8 text-white" />
-              </div>
-            </div>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-2">
+            <Wallet className="w-4 h-4 text-white" />
           </div>
+          <p className="text-white/60 text-[10px] mb-1">План</p>
+          <p className="text-lg font-bold text-white">{totalPlanned.toFixed(0)} ₽</p>
         </div>
 
         {/* Total Actual */}
-        <div className="relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <div className="relative glass-card rounded-3xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">По факту</p>
-                <p className="text-4xl font-bold text-white">{totalActual.toFixed(2)} ₽</p>
-              </div>
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center">
-                <PiggyBank className="w-8 h-8 text-white" />
-              </div>
-            </div>
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-2">
+            <PiggyBank className="w-4 h-4 text-white" />
           </div>
+          <p className="text-white/60 text-[10px] mb-1">Факт</p>
+          <p className="text-lg font-bold text-white">{totalActual.toFixed(0)} ₽</p>
         </div>
       </div>
 
       {/* Accounts List */}
-      <div className="glass-card rounded-3xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">Мои счета ({accounts.length})</h2>
+      <div className="space-y-2">
+        <h2 className="text-sm font-bold text-white">Мои счета ({accounts.length})</h2>
         {accounts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-2">
             {accounts.map((account) => {
               const IconComponent = getIconComponent(account.icon);
               const difference = parseFloat(account.actual_balance) - parseFloat(account.planned_balance);
@@ -189,61 +164,59 @@ export default function Accounts() {
               return (
                 <div
                   key={account.id}
-                  className="group relative overflow-hidden bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-[28px] p-6 transition-all duration-300 hover:scale-[1.02] border border-white/20"
+                  className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20"
                 >
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                      <IconComponent className="w-8 h-8 text-white" />
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white">{account.name}</h3>
+                        <p className="text-xs text-gray-400">{account.percentage}%</p>
+                      </div>
                     </div>
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1">
                       <button
                         onClick={() => openEdit(account)}
-                        className="p-2 text-blue-400 hover:bg-blue-500/20 rounded-xl transition-all"
+                        className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(account.id)}
-                        className="p-2 text-red-400 hover:bg-red-500/20 rounded-xl transition-all"
+                        className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  {/* Account Name */}
-                  <h3 className="text-xl font-bold text-white mb-4">{account.name}</h3>
-
                   {/* Stats */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Процент</span>
-                      <span className="text-sm font-semibold text-blue-400">{account.percentage}%</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">План</span>
-                      <span className="text-sm font-semibold text-green-400">
-                        {parseFloat(account.planned_balance).toFixed(2)} ₽
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">План</span>
+                      <span className="text-green-400 font-semibold">
+                        {parseFloat(account.planned_balance).toFixed(0)} ₽
                       </span>
                     </div>
                     
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-400">Факт</span>
-                      <span className="text-sm font-semibold text-purple-400">
-                        {parseFloat(account.actual_balance).toFixed(2)} ₽
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Факт</span>
+                      <span className="text-purple-400 font-semibold">
+                        {parseFloat(account.actual_balance).toFixed(0)} ₽
                       </span>
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t border-white/10 my-3"></div>
+                    <div className="border-t border-white/10 my-2"></div>
 
                     {/* Difference */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">Разница</span>
-                      <span className={`text-lg font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}{difference.toFixed(2)} ₽
+                      <span className="text-[10px] text-gray-500">Разница</span>
+                      <span className={`text-base font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{difference.toFixed(0)} ₽
                       </span>
                     </div>
                   </div>
@@ -252,12 +225,12 @@ export default function Accounts() {
             })}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-              <Wallet className="w-12 h-12 text-white" />
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-3 opacity-50">
+              <Wallet className="w-8 h-8 text-white" />
             </div>
-            <p className="text-gray-400 text-lg">Нет счетов</p>
-            <p className="text-gray-500 text-sm mt-2">Создайте первый счёт для управления финансами</p>
+            <p className="text-gray-400 text-sm">Нет счетов</p>
+            <p className="text-gray-500 text-xs mt-1">Создайте первый счёт</p>
           </div>
         )}
       </div>
@@ -272,27 +245,27 @@ export default function Accounts() {
         }} 
         title={editingAccount ? 'Редактировать счёт' : 'Новый счёт'}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Название</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Название</label>
             <input
               type="text"
               required
               value={accountForm.name}
               onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500"
               placeholder="Например: Основной счёт"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Иконка</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Иконка</label>
             <IconPicker
               selectedIcon={accountForm.icon}
               onSelectIcon={(icon) => setAccountForm({ ...accountForm, icon })}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Процент от дохода (%)</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Процент от дохода (%)</label>
             <input
               type="number"
               step="0.1"
@@ -301,12 +274,12 @@ export default function Accounts() {
               required
               value={accountForm.percentage}
               onChange={(e) => setAccountForm({ ...accountForm, percentage: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500"
               placeholder="0.0"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Фактический баланс (₽)</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Фактический баланс (₽)</label>
             <input
               type="number"
               step="0.01"
@@ -314,13 +287,13 @@ export default function Accounts() {
               required
               value={accountForm.actual_balance}
               onChange={(e) => setAccountForm({ ...accountForm, actual_balance: e.target.value })}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500"
               placeholder="0.00"
             />
           </div>
           <button
             type="submit"
-            className="w-full px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl font-semibold hover:scale-105 transition-transform duration-300"
+            className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl font-semibold text-sm"
           >
             {editingAccount ? 'Сохранить' : 'Создать счёт'}
           </button>

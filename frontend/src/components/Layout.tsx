@@ -45,18 +45,18 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-gradient-to-r from-purple-900/80 via-purple-800/80 to-purple-900/80 border-b border-purple-500/20 shadow-lg shadow-purple-900/50">
-        <div className="h-16 px-6 flex items-center justify-between">
+        <div className="h-14 px-4 flex items-center justify-between">
           <button 
             onClick={() => {
               navigate('/');
               window.location.reload();
             }}
-            className="flex items-center gap-3 hover:opacity-80 transition-all duration-300 hover:scale-105"
+            className="flex items-center gap-2 hover:opacity-80 transition-all duration-300"
           >
             <img 
               src="/logo.png" 
               alt="Finio" 
-              className="h-12 w-auto drop-shadow-2xl"
+              className="h-10 w-auto drop-shadow-2xl"
             />
           </button>
 
@@ -67,8 +67,8 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-16 bottom-0 w-60 backdrop-blur-xl bg-gradient-to-b from-purple-900/80 via-purple-800/80 to-purple-900/80 border-r border-purple-500/20 p-4 flex flex-col shadow-xl shadow-purple-900/50">
-        <nav className="space-y-2 flex-1">
+      <aside className="fixed left-0 top-14 bottom-0 w-52 backdrop-blur-xl bg-gradient-to-b from-purple-900/80 via-purple-800/80 to-purple-900/80 border-r border-purple-500/20 p-3 flex flex-col shadow-xl shadow-purple-900/50">
+        <nav className="space-y-1.5 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -76,7 +76,7 @@ export default function Layout({ children }: LayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full group relative overflow-hidden rounded-2xl transition-all duration-300 ${
+                className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 ${
                   isActive ? 'scale-105 shadow-lg shadow-purple-500/50' : 'hover:scale-105'
                 }`}
               >
@@ -86,13 +86,13 @@ export default function Layout({ children }: LayoutProps) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                   </>
                 )}
-                <div className={`relative flex items-center gap-3 px-4 py-3 ${
+                <div className={`relative flex items-center gap-2.5 px-3 py-2.5 ${
                   isActive 
                     ? 'text-white' 
                     : 'text-purple-200/70 hover:text-white bg-white/5 hover:bg-white/10'
                 }`}>
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
+                  <Icon className="w-4 h-4" />
+                  <span className="font-medium text-xs">{item.label}</span>
                 </div>
               </button>
             );
@@ -100,54 +100,54 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* User Profile in Sidebar */}
-        <div className="mt-auto space-y-2 pt-4 border-t border-purple-500/20">
-          <div className="relative overflow-hidden flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-purple-600/30 to-fuchsia-600/30 rounded-2xl border border-purple-400/20 backdrop-blur-sm">
+        <div className="mt-auto space-y-1.5 pt-3 border-t border-purple-500/20">
+          <div className="relative overflow-hidden flex items-center gap-2.5 px-3 py-2.5 bg-gradient-to-r from-purple-600/30 to-fuchsia-600/30 rounded-xl border border-purple-400/20 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="relative w-9 h-9 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+            <div className="relative w-8 h-8 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="relative flex-1 min-w-0">
               <p className="text-white font-medium text-xs truncate">{user?.name}</p>
-              <p className="text-[10px] text-purple-200/60 truncate">{user?.email}</p>
+              <p className="text-[9px] text-purple-200/60 truncate">{user?.email}</p>
             </div>
           </div>
           
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600/20 to-pink-600/20 hover:from-red-600/30 hover:to-pink-600/30 text-red-200 hover:text-white rounded-2xl transition-all duration-300 font-medium text-sm border border-red-400/20 backdrop-blur-sm"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-red-600/20 to-pink-600/20 hover:from-red-600/30 hover:to-pink-600/30 text-red-200 hover:text-white rounded-xl transition-all duration-300 font-medium text-xs border border-red-400/20 backdrop-blur-sm"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5" />
             Выйти
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-60 mt-16 p-6 relative z-10 flex-1 animate-fade-in">
+      <main className="ml-52 mt-14 p-4 relative z-10 flex-1 animate-fade-in">
         <div className="max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="ml-60 relative z-10 backdrop-blur-xl bg-gradient-to-r from-purple-900/80 via-purple-800/80 to-purple-900/80 border-t border-purple-500/20 shadow-lg shadow-purple-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <footer className="ml-52 relative z-10 backdrop-blur-xl bg-gradient-to-r from-purple-900/80 via-purple-800/80 to-purple-900/80 border-t border-purple-500/20 shadow-lg shadow-purple-900/50">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img 
                 src="/logo.png" 
                 alt="Finio" 
-                className="h-6 w-auto opacity-80"
+                className="h-5 w-auto opacity-80"
               />
               <div>
                 <p className="text-white font-semibold text-xs">Finio</p>
-                <p className="text-[10px] text-purple-200/60">© 2026 Все права защищены</p>
+                <p className="text-[9px] text-purple-200/60">© 2026 Все права защищены</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4 text-[10px] text-purple-200/60">
-              <a href="/terms.html" target="_blank" className="hover:text-white transition-colors">Пользовательское соглашение</a>
-              <a href="/privacy.html" target="_blank" className="hover:text-white transition-colors">Политика конфиденциальности</a>
+            <div className="flex items-center gap-3 text-[9px] text-purple-200/60">
+              <a href="/terms.html" target="_blank" className="hover:text-white transition-colors">Соглашение</a>
+              <a href="/privacy.html" target="_blank" className="hover:text-white transition-colors">Конфиденциальность</a>
               <a href="mailto:support@studiofinance.ru" className="hover:text-white transition-colors">Поддержка</a>
             </div>
           </div>
