@@ -145,38 +145,6 @@ router.post('/exchange-token', async (req, res) => {
         [telegramId, `User${telegramId}`, `tg${telegramId}@telegram.user`]
       );
       userId = result.insertId;
-      
-      // Create default accounts
-      const defaultAccounts = [
-        ['Основной счёт', 'checking', 70, 'wallet'],
-        ['Подушка безопасности', 'emergency', 20, 'savings'],
-        ['Накопления', 'savings', 10, 'bank'],
-      ];
-      
-      for (const [name, type, percentage, icon] of defaultAccounts) {
-        await pool.query(
-          'INSERT INTO accounts (user_id, name, type, percentage, icon) VALUES (?, ?, ?, ?, ?)',
-          [userId, name, type, percentage, icon]
-        );
-      }
-      
-      // Create default categories
-      const defaultCategories = [
-        ['Salary', 'income', '💰', '#10b981'],
-        ['Freelance', 'income', '💼', '#3b82f6'],
-        ['Groceries', 'expense', '🛒', '#ef4444'],
-        ['Utilities', 'expense', '⚡', '#f59e0b'],
-        ['Entertainment', 'expense', '🎬', '#8b5cf6'],
-        ['Transportation', 'expense', '🚗', '#06b6d4'],
-        ['Healthcare', 'expense', '🏥', '#ec4899'],
-      ];
-      
-      for (const [name, type, icon, color] of defaultCategories) {
-        await pool.query(
-          'INSERT INTO categories (user_id, name, type, icon, color) VALUES (?, ?, ?, ?, ?)',
-          [userId, name, type, icon, color]
-        );
-      }
     }
     
     // Get user
@@ -250,38 +218,6 @@ router.post('/telegram-widget', async (req, res) => {
         [telegramId, username || '', name, `tg${telegramId}@telegram.user`]
       );
       userId = result.insertId;
-      
-      // Create default accounts
-      const defaultAccounts = [
-        ['Основной счёт', 'checking', 70, 'wallet'],
-        ['Подушка безопасности', 'emergency', 20, 'savings'],
-        ['Накопления', 'savings', 10, 'bank'],
-      ];
-      
-      for (const [name, type, percentage, icon] of defaultAccounts) {
-        await pool.query(
-          'INSERT INTO accounts (user_id, name, type, percentage, icon) VALUES (?, ?, ?, ?, ?)',
-          [userId, name, type, percentage, icon]
-        );
-      }
-      
-      // Create default categories
-      const defaultCategories = [
-        ['Salary', 'income', '💰', '#10b981'],
-        ['Freelance', 'income', '💼', '#3b82f6'],
-        ['Groceries', 'expense', '🛒', '#ef4444'],
-        ['Utilities', 'expense', '⚡', '#f59e0b'],
-        ['Entertainment', 'expense', '🎬', '#8b5cf6'],
-        ['Transportation', 'expense', '🚗', '#06b6d4'],
-        ['Healthcare', 'expense', '🏥', '#ec4899'],
-      ];
-      
-      for (const [name, type, icon, color] of defaultCategories) {
-        await pool.query(
-          'INSERT INTO categories (user_id, name, type, icon, color) VALUES (?, ?, ?, ?, ?)',
-          [userId, name, type, icon, color]
-        );
-      }
     }
     
     // Get user
@@ -341,38 +277,6 @@ router.post('/telegram', async (req, res) => {
       );
       userId = result.insertId;
       console.log('New Telegram user created:', userId);
-      
-      // Create default accounts
-      const defaultAccounts = [
-        ['Основной счёт', 'checking', 70, 'wallet'],
-        ['Подушка безопасности', 'emergency', 20, 'savings'],
-        ['Накопления', 'savings', 10, 'bank'],
-      ];
-      
-      for (const [name, type, percentage, icon] of defaultAccounts) {
-        await pool.query(
-          'INSERT INTO accounts (user_id, name, type, percentage, icon) VALUES (?, ?, ?, ?, ?)',
-          [userId, name, type, percentage, icon]
-        );
-      }
-      
-      // Create default categories
-      const defaultCategories = [
-        ['Salary', 'income', '💰', '#10b981'],
-        ['Freelance', 'income', '💼', '#3b82f6'],
-        ['Groceries', 'expense', '🛒', '#ef4444'],
-        ['Utilities', 'expense', '⚡', '#f59e0b'],
-        ['Entertainment', 'expense', '🎬', '#8b5cf6'],
-        ['Transportation', 'expense', '🚗', '#06b6d4'],
-        ['Healthcare', 'expense', '🏥', '#ec4899'],
-      ];
-      
-      for (const [name, type, icon, color] of defaultCategories) {
-        await pool.query(
-          'INSERT INTO categories (user_id, name, type, icon, color) VALUES (?, ?, ?, ?, ?)',
-          [userId, name, type, icon, color]
-        );
-      }
     }
     
     // Get updated user

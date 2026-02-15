@@ -12,6 +12,7 @@ export default function TelegramAccounts() {
   
   const [accountForm, setAccountForm] = useState({
     name: '',
+    type: 'checking',
     icon: 'Wallet',
     percentage: '',
     actual_balance: ''
@@ -50,7 +51,7 @@ export default function TelegramAccounts() {
       }
       setShowModal(false);
       setEditingAccount(null);
-      setAccountForm({ name: '', icon: 'Wallet', percentage: '', actual_balance: '' });
+      setAccountForm({ name: '', type: 'checking', icon: 'Wallet', percentage: '', actual_balance: '' });
       loadAccounts();
     } catch (error) {
       console.error('Failed to save account:', error);
@@ -72,6 +73,7 @@ export default function TelegramAccounts() {
     setEditingAccount(account);
     setAccountForm({
       name: account.name,
+      type: account.type || 'checking',
       icon: account.icon,
       percentage: account.percentage.toString(),
       actual_balance: account.actual_balance.toString()
@@ -210,7 +212,7 @@ export default function TelegramAccounts() {
         onClose={() => {
           setShowModal(false);
           setEditingAccount(null);
-          setAccountForm({ name: '', icon: 'Wallet', percentage: '', actual_balance: '' });
+          setAccountForm({ name: '', type: 'checking', icon: 'Wallet', percentage: '', actual_balance: '' });
         }} 
         title={editingAccount ? 'Редактировать счёт' : 'Новый счёт'}
       >
