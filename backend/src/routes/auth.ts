@@ -11,6 +11,10 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
 // Validate Telegram Web App data
 function validateTelegramWebAppData(initData: string): any {
+  console.log('=== Telegram Validation Start ===');
+  console.log('Bot Token configured:', !!TELEGRAM_BOT_TOKEN && TELEGRAM_BOT_TOKEN !== 'YOUR_BOT_TOKEN_HERE');
+  console.log('Init Data length:', initData.length);
+  
   // Skip validation in development if no token
   if (!TELEGRAM_BOT_TOKEN || TELEGRAM_BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE') {
     console.warn('⚠️  Telegram validation skipped - no bot token configured');
@@ -18,13 +22,18 @@ function validateTelegramWebAppData(initData: string): any {
     const urlParams = new URLSearchParams(initData);
     const userParam = urlParams.get('user');
     if (userParam) {
-      return JSON.parse(userParam);
+      const user = JSON.parse(userParam);
+      console.log('Development mode - user:', user);
+      return user;
     }
     throw new Error('No user data in initData');
   }
 
   const urlParams = new URLSearchParams(initData);
   const hash = urlParams.get('hash');
+  
+  console.log('Hash present:', !!hash);
+  console.log('URL params:', Array.from(urlParams.keys()));
   
   if (!hash) {
     throw new Error('No hash in initData');
@@ -37,11 +46,17 @@ function validateTelegramWebAppData(initData: string): any {
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
   
+  console.log('Data check string:', dataCheckString.substring(0, 100) + '...');
+  
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(TELEGRAM_BOT_TOKEN).digest();
   const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
   
+  console.log('Calculated hash:', calculatedHash);
+  console.log('Received hash:', hash);
+  console.log('Hashes match:', calculatedHash === hash);
+  
   if (calculatedHash !== hash) {
-    console.error('Hash mismatch:', { calculated: calculatedHash, received: hash });
+    console.error('Hash mismatch!');
     throw new Error('Invalid hash');
   }
   
@@ -50,7 +65,11 @@ function validateTelegramWebAppData(initData: string): any {
     throw new Error('No user data');
   }
   
-  return JSON.parse(userParam);
+  const user = JSON.parse(userParam);
+  console.log('Validated user:', user);
+  console.log('=== Telegram Validation End ===');
+  
+  return user;
 }
 
 // Telegram Login (ONLY auth method)
@@ -163,6 +182,15 @@ router.get('/me', async (req, res) => {
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
   }
+});
+
+// Test endpoint to check if backend is working
+router.get('/test', async (req, res) => {
+  res.json({ 
+    status: 'ok',
+    telegram_bot_configured: !!TELEGRAM_BOT_TOKEN && TELEGRAM_BOT_TOKEN !== 'YOUR_BOT_TOKEN_HERE',
+    timestamp: new Date().toISOString()
+  });
 });
 
 export default router;
