@@ -146,9 +146,9 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             
             <div className="flex items-center gap-4 text-[10px] text-purple-200/60">
-              <a href="#" className="hover:text-white transition-colors">О проекте</a>
-              <a href="#" className="hover:text-white transition-colors">Поддержка</a>
-              <a href="#" className="hover:text-white transition-colors">Конфиденциальность</a>
+              <a href="/terms.html" target="_blank" className="hover:text-white transition-colors">Пользовательское соглашение</a>
+              <a href="/privacy.html" target="_blank" className="hover:text-white transition-colors">Политика конфиденциальности</a>
+              <a href="mailto:support@studiofinance.ru" className="hover:text-white transition-colors">Поддержка</a>
             </div>
           </div>
         </div>

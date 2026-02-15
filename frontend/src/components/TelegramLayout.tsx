@@ -60,6 +60,17 @@ export default function TelegramLayout({ children }: TelegramLayoutProps) {
             );
           })}
         </div>
+        
+        {/* Legal Links */}
+        <div className="px-4 py-2 border-t border-purple-500/10 bg-slate-900/50">
+          <div className="flex items-center justify-center gap-3 text-[9px] text-slate-400">
+            <a href="/terms.html" target="_blank" className="hover:text-purple-300 transition-colors">Соглашение</a>
+            <span>•</span>
+            <a href="/privacy.html" target="_blank" className="hover:text-purple-300 transition-colors">Конфиденциальность</a>
+            <span>•</span>
+            <span>© 2026 Finio</span>
+          </div>
+        </div>
       </nav>
     </div>
   );
