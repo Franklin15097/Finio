@@ -3,9 +3,9 @@ import { api } from '../../services/api';
 import Modal from '../../components/Modal';
 import IconPicker, { getIconComponent } from '../../components/IconPicker';
 import { AnimatedChart } from '../../components/AnimatedChart';
-import { Plus, TrendingDown, Search, Edit2, Trash2, X, Tag, Calendar, ArrowUpDown } from 'lucide-react';
+import { Plus, TrendingUp, Search, Edit2, Trash2, X, Tag, Calendar, ArrowUpDown } from 'lucide-react';
 
-export default function TelegramExpenses() {
+export default function TelegramIncome() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
