@@ -97,7 +97,7 @@ export default function TelegramAccounts() {
     <div className="p-4 space-y-4 pb-24">
       {/* Statistics Cards */}
       <div className="grid grid-cols-3 gap-3 pt-2">
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-3 border border-border/30">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-2">
             <TrendingUp className="w-4 h-4 text-white" />
           </div>
@@ -105,7 +105,7 @@ export default function TelegramAccounts() {
           <p className="text-lg font-bold text-white">{totalPercentage.toFixed(1)}%</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-3 border border-border/30">
           <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-2">
             <Wallet className="w-4 h-4 text-white" />
           </div>
@@ -113,7 +113,7 @@ export default function TelegramAccounts() {
           <p className="text-lg font-bold text-white">{totalPlanned.toFixed(0)} ₽</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+        <div className="glass-card rounded-2xl p-3 border border-border/30">
           <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-2">
             <PiggyBank className="w-4 h-4 text-white" />
           </div>
@@ -135,7 +135,7 @@ export default function TelegramAccounts() {
               return (
                 <div
                   key={account.id}
-                  className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20"
+                  className="glass-card rounded-2xl p-4 border border-border/30"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
@@ -274,7 +274,7 @@ export default function TelegramAccounts() {
       {/* Floating Action Button */}
       <button
         onClick={() => setShowModal(true)}
-        className="fixed right-4 bottom-24 w-14 h-14 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-full flex items-center justify-center shadow-2xl z-40 hover:scale-110 transition-transform"
+        className="fixed right-4 bottom-24 w-14 h-14 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-full flex items-center justify-center shadow-2xl z-30 hover:scale-110 transition-transform"
       >
         <Plus className="w-7 h-7 text-white" />
       </button>

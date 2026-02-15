@@ -253,7 +253,7 @@ export default function TelegramIncome() {
   return (
     <div className="p-4 space-y-3 pb-24">
       {/* Total Card with Chart */}
-      <div className="bg-gradient-to-r from-green-500/20 to-emerald-600/20 backdrop-blur-xl rounded-2xl p-4 border border-green-500/30 mt-2">
+      <div className="glass-card rounded-2xl p-4 border border-border/30 mt-2">
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="text-white/60 text-xs mb-1">Доходы за период</p>
@@ -293,14 +293,14 @@ export default function TelegramIncome() {
               placeholder="Поиск..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 text-sm glass-card rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
           
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`px-3 py-2 rounded-xl text-white transition-all ${
-              showFilters ? 'bg-green-500' : 'bg-white/10'
+              showFilters ? 'bg-green-500' : 'glass-card'
             }`}
           >
             <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
@@ -319,7 +319,7 @@ export default function TelegramIncome() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 text-sm glass-card rounded-xl text-white focus:ring-2 focus:ring-green-500"
             >
               <option value="all" className="bg-slate-800">Все категории</option>
               <option value="none" className="bg-slate-800">Без категории</option>
@@ -336,7 +336,7 @@ export default function TelegramIncome() {
                   className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
                     dateRange === period
                       ? 'bg-green-500 text-white'
-                      : 'bg-white/10 text-gray-300'
+                      : 'glass-card text-gray-300'
                   }`}
                 >
                   {period === 'all' && 'Всё'}
@@ -360,7 +360,7 @@ export default function TelegramIncome() {
                 className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1 ${
                   sortBy === 'date'
                     ? 'bg-green-500 text-white'
-                    : 'bg-white/10 text-gray-300'
+                    : 'glass-card text-gray-300'
                 }`}
               >
                 Дата {sortBy === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}
@@ -378,7 +378,7 @@ export default function TelegramIncome() {
                 className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all flex items-center justify-center gap-1 ${
                   sortBy === 'amount'
                     ? 'bg-green-500 text-white'
-                    : 'bg-white/10 text-gray-300'
+                    : 'glass-card text-gray-300'
                 }`}
               >
                 Сумма {sortBy === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}
@@ -414,7 +414,7 @@ export default function TelegramIncome() {
               return (
                 <div
                   key={transaction.id}
-                  className="bg-white/10 backdrop-blur-xl rounded-xl p-3 border border-purple-500/20"
+                  className="glass-card rounded-xl p-3 border border-border/20"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
