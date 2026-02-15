@@ -2,17 +2,74 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Sparkles } from 'lucide-react';
 
+// Telegram Login Widget types
+declare global {
+  interface Window {
+    onTelegramAuth?: (user: any) => void;
+  }
+}
+
 export default function Auth() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { isTelegram, loginWithTelegram } = useAuth();
+  const [telegramWidgetLoaded, setTelegramWidgetLoaded] = useState(false);
 
-  // Auto-login for Telegram users
+  // Auto-login for Telegram Mini App users
   useEffect(() => {
     if (isTelegram) {
       handleTelegramLogin();
     }
   }, [isTelegram]);
+
+  // Load Telegram Login Widget for web users
+  useEffect(() => {
+    if (!isTelegram && !telegramWidgetLoaded) {
+      // Create callback function
+      window.onTelegramAuth = async (user) => {
+        console.log('Telegram auth callback:', user);
+        setLoading(true);
+        try {
+          const { api } = await import('../services/api');
+          const data = await api.loginWithTelegramWidget(user);
+          
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+            window.location.reload(); // Reload to trigger auth check
+          } else {
+            throw new Error(data.error || 'Login failed');
+          }
+        } catch (err) {
+          console.error('Telegram widget auth failed:', err);
+          setError('Ошибка авторизации через Telegram');
+          setLoading(false);
+        }
+      };
+
+      // Load Telegram Widget script
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.setAttribute('data-telegram-login', 'FinanceStudio_bot');
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-radius', '10');
+      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      script.setAttribute('data-request-access', 'write');
+      script.async = true;
+      
+      const container = document.getElementById('telegram-login-container');
+      if (container) {
+        container.appendChild(script);
+        setTelegramWidgetLoaded(true);
+      }
+    }
+
+    return () => {
+      // Cleanup
+      if (window.onTelegramAuth) {
+        delete window.onTelegramAuth;
+      }
+    };
+  }, [isTelegram, telegramWidgetLoaded]);
 
   const handleTelegramLogin = async () => {
     setLoading(true);
@@ -26,7 +83,7 @@ export default function Auth() {
     }
   };
 
-  // Show loading for Telegram users
+  // Show loading for Telegram Mini App users
   if (isTelegram && loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
@@ -67,7 +124,7 @@ export default function Auth() {
           <p className="text-gray-400">Ваш личный финансовый помощник</p>
         </div>
 
-        {/* Telegram Only Message */}
+        {/* Auth Card */}
         <div className="glass-card rounded-3xl p-8 shadow-2xl text-center">
           <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -76,7 +133,7 @@ export default function Auth() {
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-4">
-            Вход только через Telegram
+            Войти через Telegram
           </h2>
 
           {error && (
@@ -85,30 +142,27 @@ export default function Auth() {
             </div>
           )}
 
-          <p className="text-gray-300 mb-6">
-            Finio работает только в Telegram Mini App. Откройте бота в Telegram для доступа к приложению.
-          </p>
+          {loading ? (
+            <div className="py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
+              <p className="text-gray-400 mt-4">Авторизация...</p>
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-300 mb-6">
+                Используйте Telegram для быстрого и безопасного входа
+              </p>
 
-          <div className="space-y-4">
-            <div className="p-4 bg-white/5 rounded-xl text-left">
-              <p className="text-sm text-gray-400 mb-2">Шаг 1:</p>
-              <p className="text-white font-semibold">Найдите бота в Telegram</p>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl text-left">
-              <p className="text-sm text-gray-400 mb-2">Шаг 2:</p>
-              <p className="text-white font-semibold">Нажмите на кнопку меню</p>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl text-left">
-              <p className="text-sm text-gray-400 mb-2">Шаг 3:</p>
-              <p className="text-white font-semibold">Выберите "Открыть Finio"</p>
-            </div>
-          </div>
+              {/* Telegram Login Widget Container */}
+              <div id="telegram-login-container" className="flex justify-center mb-6"></div>
 
-          <div className="mt-8 p-4 bg-gradient-to-r from-purple-500/20 to-pink-600/20 border border-purple-500/30 rounded-xl">
-            <p className="text-sm text-gray-300">
-              💡 Все ваши данные синхронизируются автоматически через Telegram
-            </p>
-          </div>
+              <div className="mt-6 p-4 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 border border-blue-500/30 rounded-xl">
+                <p className="text-sm text-gray-300">
+                  💡 Нажмите кнопку выше для входа через Telegram
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Features */}

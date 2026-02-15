@@ -18,6 +18,15 @@ export const api = {
     return res.json();
   },
 
+  loginWithTelegramWidget: async (userData: any) => {
+    const res = await fetch(`${API_URL}/auth/telegram-widget`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    return res.json();
+  },
+
   getMe: async () => {
     const res = await fetch(`${API_URL}/auth/me`, { headers: headers() });
     return res.json();
