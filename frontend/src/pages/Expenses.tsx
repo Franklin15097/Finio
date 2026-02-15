@@ -307,11 +307,18 @@ export default function Expenses() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">
-            Расходы
-          </h1>
-          <p className="text-gray-400">Управление расходами и категориями</p>
+        <div className="flex items-center gap-4">
+          <img 
+            src="/logo2.png" 
+            alt="Expenses" 
+            className="h-16 w-auto drop-shadow-lg"
+          />
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Расходы
+            </h1>
+            <p className="text-purple-200">Управление расходами и категориями</p>
+          </div>
         </div>
         <div className="flex gap-3">
           <button

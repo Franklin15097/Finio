@@ -95,11 +95,18 @@ export default function Accounts() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Счета
-          </h1>
-          <p className="text-gray-400">Управление счетами и распределением доходов</p>
+        <div className="flex items-center gap-4">
+          <img 
+            src="/logo2.png" 
+            alt="Accounts" 
+            className="h-16 w-auto drop-shadow-lg"
+          />
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Счета
+            </h1>
+            <p className="text-purple-200">Управление счетами и распределением доходов</p>
+          </div>
         </div>
         <button
           onClick={() => setShowModal(true)}

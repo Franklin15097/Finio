@@ -58,21 +58,15 @@ export default function Auth() {
       <div className="max-w-md w-full relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-block bg-white rounded-[3rem] p-6 mb-6 shadow-2xl">
+          <div className="inline-block mb-6">
             <img 
               src="/logo.png" 
               alt="Finio" 
-              className="w-32 h-32"
-              onError={(e) => {
-                // Fallback if image doesn't load
-                e.currentTarget.style.display = 'none';
-              }}
+              className="w-48 h-48 drop-shadow-2xl mx-auto"
             />
           </div>
-          <h1 className="text-5xl font-bold mb-2 text-white">
-            Finio
-          </h1>
-          <p className="text-purple-100 text-lg">Finance Studio</p>
+          <h1 className="text-4xl font-bold text-white mb-2">Finio</h1>
+          <p className="text-purple-200 text-lg">Finance Studio</p>
         </div>
 
         {/* Auth Card */}

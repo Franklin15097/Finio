@@ -75,11 +75,18 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Настройки
-        </h1>
-        <p className="text-gray-400">Управление аккаунтом и распределением</p>
+      <div className="flex items-center gap-4">
+        <img 
+          src="/logo2.png" 
+          alt="Settings" 
+          className="h-16 w-auto drop-shadow-lg"
+        />
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Настройки
+          </h1>
+          <p className="text-purple-200">Управление аккаунтом и распределением</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
