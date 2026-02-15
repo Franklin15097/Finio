@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import Modal from '../../components/Modal';
-import { getIconComponent } from '../../components/IconPicker';
-import { Plus, TrendingUp, Search, Edit2, Trash2, X, ChevronDown } from 'lucide-react';
+import IconPicker, { getIconComponent } from '../../components/IconPicker';
+import { Plus, TrendingUp, Search, Edit2, Trash2, X, Tag } from 'lucide-react';
 
 export default function TelegramIncome() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   const [transactionForm, setTransactionForm] = useState({
@@ -19,6 +20,11 @@ export default function TelegramIncome() {
     description: '',
     category_id: '',
     transaction_date: new Date().toISOString().split('T')[0]
+  });
+
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    icon: 'DollarSign'
   });
 
   useEffect(() => {
@@ -42,7 +48,7 @@ export default function TelegramIncome() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleTransactionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingTransaction) {
@@ -58,7 +64,7 @@ export default function TelegramIncome() {
           category_id: transactionForm.category_id || null
         });
       }
-      setShowModal(false);
+      setShowTransactionModal(false);
       setEditingTransaction(null);
       setTransactionForm({
         amount: '',
@@ -72,7 +78,31 @@ export default function TelegramIncome() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCategory && editingCategory.id) {
+        await api.updateCategory(editingCategory.id, {
+          ...categoryForm,
+          color: '#10b981'
+        });
+      } else {
+        await api.createCategory({
+          ...categoryForm,
+          type: 'income',
+          color: '#10b981'
+        });
+      }
+      setShowCategoryModal(false);
+      setCategoryForm({ name: '', icon: 'DollarSign' });
+      setEditingCategory(null);
+      loadData();
+    } catch (error) {
+      console.error('Failed to save category:', error);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: number) => {
     if (confirm('Удалить транзакцию?')) {
       try {
         await api.deleteTransaction(id);
@@ -83,7 +113,18 @@ export default function TelegramIncome() {
     }
   };
 
-  const openEdit = (transaction: any) => {
+  const handleDeleteCategory = async (id: number) => {
+    if (confirm('Удалить категорию?')) {
+      try {
+        await api.deleteCategory(id);
+        loadData();
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+      }
+    }
+  };
+
+  const openEditTransaction = (transaction: any) => {
     setEditingTransaction(transaction);
     setTransactionForm({
       amount: transaction.amount,
@@ -91,7 +132,13 @@ export default function TelegramIncome() {
       category_id: transaction.category_id || '',
       transaction_date: transaction.transaction_date.split('T')[0]
     });
-    setShowModal(true);
+    setShowTransactionModal(true);
+  };
+
+  const openEditCategory = (category: any) => {
+    setEditingCategory(category);
+    setCategoryForm({ name: category.name, icon: category.icon });
+    setShowCategoryModal(true);
   };
 
   const filteredTransactions = transactions.filter(t => {
@@ -105,76 +152,76 @@ export default function TelegramIncome() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-slate-900">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color,#f5f5f5)] pb-6">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pb-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white p-6 pb-8 rounded-b-[32px] shadow-lg sticky top-0 z-10">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Доходы</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center active:scale-95 transition-transform"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+      <div className="p-6 pb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-white">Доходы</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setEditingCategory(null);
+                setCategoryForm({ name: '', icon: 'DollarSign' });
+                setShowCategoryModal(true);
+              }}
+              className="w-10 h-10 bg-slate-700/50 backdrop-blur-sm rounded-full flex items-center justify-center active:scale-95 transition-all border border-slate-600/50"
+            >
+              <Tag className="w-5 h-5 text-slate-300" />
+            </button>
+            <button
+              onClick={() => setShowTransactionModal(true)}
+              className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center active:scale-95 transition-all shadow-lg"
+            >
+              <Plus className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
         
         {/* Total */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4">
-          <div className="text-sm text-white/80 mb-1">Всего доходов</div>
-          <div className="text-3xl font-bold">{totalIncome.toFixed(2)} ₽</div>
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 shadow-2xl">
+          <div className="text-sm text-white/90 mb-1">Всего доходов</div>
+          <div className="text-4xl font-bold text-white">{totalIncome.toFixed(2)} ₽</div>
         </div>
       </div>
 
       {/* Search & Filters */}
-      <div className="px-4 -mt-4 mb-4">
-        <div className="bg-white rounded-2xl p-3 shadow-sm">
-          <div className="relative mb-2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div className="px-6 mb-4">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-3 border border-slate-700/50">
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
               placeholder="Поиск..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full pl-10 pr-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
           
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center justify-between w-full px-3 py-2 bg-gray-50 rounded-xl text-sm font-medium text-gray-700"
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <span>Фильтры</span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {showFilters && (
-            <div className="mt-2 pt-2 border-t border-gray-100">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="all">Все категории</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
+            <option value="all">Все категории</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
       {/* Transactions List */}
-      <div className="px-4">
+      <div className="px-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-600">
+          <h2 className="text-sm font-semibold text-slate-400">
             История ({filteredTransactions.length})
           </h2>
           {(searchQuery || selectedCategory !== 'all') && (
@@ -183,7 +230,7 @@ export default function TelegramIncome() {
                 setSearchQuery('');
                 setSelectedCategory('all');
               }}
-              className="text-xs text-green-600 font-medium flex items-center gap-1"
+              className="text-xs text-green-400 font-medium flex items-center gap-1"
             >
               <X className="w-3 h-3" />
               Сбросить
@@ -192,33 +239,33 @@ export default function TelegramIncome() {
         </div>
         
         {filteredTransactions.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {filteredTransactions.map((transaction) => {
               const IconComponent = getIconComponent(transaction.category_icon);
               return (
                 <div
                   key={transaction.id}
-                  className="bg-white rounded-2xl p-4 shadow-sm active:scale-98 transition-transform"
+                  className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50"
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <IconComponent className="w-5 h-5 text-green-600" />
+                      <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <IconComponent className="w-6 h-6 text-green-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-800 text-sm truncate">
+                        <div className="font-semibold text-white text-sm truncate">
                           {transaction.category_name}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-slate-400 truncate">
                           {transaction.description}
                         </div>
                       </div>
                     </div>
                     <div className="text-right ml-2">
-                      <div className="font-bold text-green-600">
+                      <div className="font-bold text-green-400">
                         +{parseFloat(transaction.amount).toFixed(0)} ₽
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-slate-500">
                         {new Date(transaction.transaction_date).toLocaleDateString('ru-RU', { 
                           day: 'numeric', 
                           month: 'short' 
@@ -227,16 +274,16 @@ export default function TelegramIncome() {
                     </div>
                   </div>
                   
-                  <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => openEdit(transaction)}
-                      className="flex-1 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg active:scale-95 transition-transform"
+                      onClick={() => openEditTransaction(transaction)}
+                      className="flex-1 py-2 text-xs font-medium text-blue-400 bg-blue-500/10 rounded-lg active:scale-95 transition-all border border-blue-500/20"
                     >
                       Изменить
                     </button>
                     <button
-                      onClick={() => handleDelete(transaction.id)}
-                      className="flex-1 py-2 text-xs font-medium text-red-600 bg-red-50 rounded-lg active:scale-95 transition-transform"
+                      onClick={() => handleDeleteTransaction(transaction.id)}
+                      className="flex-1 py-2 text-xs font-medium text-red-400 bg-red-500/10 rounded-lg active:scale-95 transition-all border border-red-500/20"
                     >
                       Удалить
                     </button>
@@ -246,18 +293,18 @@ export default function TelegramIncome() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-12 text-center border border-slate-700/50">
             <div className="text-5xl mb-3">💰</div>
-            <p className="text-gray-500 text-sm">Нет доходов</p>
+            <p className="text-slate-400 text-sm">Нет доходов</p>
           </div>
         )}
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Transaction Modal */}
       <Modal 
-        isOpen={showModal} 
+        isOpen={showTransactionModal} 
         onClose={() => {
-          setShowModal(false);
+          setShowTransactionModal(false);
           setEditingTransaction(null);
           setTransactionForm({
             amount: '',
@@ -268,25 +315,25 @@ export default function TelegramIncome() {
         }} 
         title={editingTransaction ? 'Редактировать доход' : 'Новый доход'}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleTransactionSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Сумма (₽)</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Сумма (₽)</label>
             <input
               type="number"
               step="0.01"
               required
               value={transactionForm.amount}
               onChange={(e) => setTransactionForm({ ...transactionForm, amount: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="0.00"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Категория</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Категория</label>
             <select
               value={transactionForm.category_id}
               onChange={(e) => setTransactionForm({ ...transactionForm, category_id: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">Без категории</option>
               {categories.map((cat) => (
@@ -295,33 +342,127 @@ export default function TelegramIncome() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Описание</label>
             <input
               type="text"
               required
               value={transactionForm.description}
               onChange={(e) => setTransactionForm({ ...transactionForm, description: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Например: Зарплата"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Дата</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Дата</label>
             <input
               type="date"
               required
               value={transactionForm.transaction_date}
               onChange={(e) => setTransactionForm({ ...transactionForm, transaction_date: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold active:scale-95 transition-transform"
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold active:scale-95 transition-all shadow-lg"
           >
             {editingTransaction ? 'Сохранить' : 'Добавить доход'}
           </button>
         </form>
+      </Modal>
+
+      {/* Category Modal */}
+      <Modal 
+        isOpen={showCategoryModal} 
+        onClose={() => {
+          setShowCategoryModal(false);
+          setEditingCategory(null);
+          setCategoryForm({ name: '', icon: 'DollarSign' });
+        }} 
+        title={editingCategory?.id ? 'Редактировать категорию' : 'Управление категориями'}
+      >
+        {!editingCategory?.id ? (
+          <div className="space-y-4">
+            {/* Categories List */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {categories.map((cat) => {
+                const IconComponent = getIconComponent(cat.icon);
+                return (
+                  <div key={cat.id} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-xl border border-slate-600/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                        <IconComponent className="w-5 h-5 text-green-400" />
+                      </div>
+                      <span className="text-white font-medium">{cat.name}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openEditCategory(cat)}
+                        className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Add New Button */}
+            <button
+              onClick={() => setEditingCategory({ id: null })}
+              className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Создать категорию
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleCategorySubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Название</label>
+              <input
+                type="text"
+                required
+                value={categoryForm.name}
+                onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Например: Зарплата"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">Иконка</label>
+              <IconPicker
+                selectedIcon={categoryForm.icon}
+                onSelectIcon={(icon) => setCategoryForm({ ...categoryForm, icon })}
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingCategory(null);
+                  setCategoryForm({ name: '', icon: 'DollarSign' });
+                }}
+                className="flex-1 py-3 bg-slate-700/50 text-slate-300 rounded-xl font-semibold active:scale-95 transition-all border border-slate-600/50"
+              >
+                Назад
+              </button>
+              <button
+                type="submit"
+                className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold active:scale-95 transition-all shadow-lg"
+              >
+                {editingCategory?.id ? 'Сохранить' : 'Создать'}
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );
