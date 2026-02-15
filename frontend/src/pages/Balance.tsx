@@ -149,18 +149,11 @@ export default function Balance() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <img 
-          src="/logo2.png" 
-          alt="Balance" 
-          className="h-16 w-auto drop-shadow-lg"
-        />
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Баланс
-          </h1>
-          <p className="text-purple-200">Обзор финансов в реальном времени</p>
-        </div>
+      <div>
+        <h1 className="text-5xl font-bold text-white mb-2">
+          Баланс
+        </h1>
+        <p className="text-white/80 text-lg">Обзор финансов в реальном времени</p>
       </div>
 
       {/* Main Stats */}
@@ -168,11 +161,11 @@ export default function Balance() {
         <div className="relative group">
           <div className="bg-white/10 backdrop-blur-xl rounded-[28px] p-6 border border-purple-500/20 hover:scale-[1.02] transition-all duration-300">
             <div className="flex items-center justify-between mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-2xl flex items-center justify-center shadow-lg">
                 <Wallet className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-purple-200 text-sm font-medium mb-1">Баланс</p>
+            <p className="text-white/80 text-sm font-medium mb-1">Баланс</p>
             <p className={`text-3xl font-bold ${balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {balance >= 0 ? '+' : ''}{balance.toFixed(2)} ₽
             </p>
