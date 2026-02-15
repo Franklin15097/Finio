@@ -85,49 +85,65 @@ export default function TelegramAccounts() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 pb-6">
+    <div className="p-4 space-y-4">
       {/* Header */}
-      <div className="p-6 pb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-white">Счета</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-10 h-10 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-full flex items-center justify-center active:scale-95 transition-all shadow-lg"
-          >
-            <Plus className="w-5 h-5 text-white" />
-          </button>
-        </div>
-        
-        {/* Stats */}
-        <div className="bg-gradient-to-br from-purple-600 to-fuchsia-600 rounded-3xl p-6 shadow-2xl">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <div className="text-xs text-white/90 mb-1">Распределено</div>
-              <div className="text-2xl font-bold text-white">{totalPercentage.toFixed(0)}%</div>
-            </div>
-            <div>
-              <div className="text-xs text-white/90 mb-1">План</div>
-              <div className="text-2xl font-bold text-white">{totalPlanned.toFixed(0)} ₽</div>
-            </div>
-            <div>
-              <div className="text-xs text-white/90 mb-1">Факт</div>
-              <div className="text-2xl font-bold text-white">{totalActual.toFixed(0)} ₽</div>
-            </div>
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Wallet className="w-6 h-6 text-white" />
           </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Счета</h1>
+            <p className="text-white/60 text-xs">Управление счетами</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="w-10 h-10 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg"
+        >
+          <Plus className="w-5 h-5 text-white" />
+        </button>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-2">
+            <TrendingUp className="w-4 h-4 text-white" />
+          </div>
+          <p className="text-white/60 text-[10px] mb-1">Распределено</p>
+          <p className="text-lg font-bold text-white">{totalPercentage.toFixed(1)}%</p>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-2">
+            <Wallet className="w-4 h-4 text-white" />
+          </div>
+          <p className="text-white/60 text-[10px] mb-1">План</p>
+          <p className="text-lg font-bold text-white">{totalPlanned.toFixed(0)} ₽</p>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-3 border border-purple-500/20">
+          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-2">
+            <PiggyBank className="w-4 h-4 text-white" />
+          </div>
+          <p className="text-white/60 text-[10px] mb-1">Факт</p>
+          <p className="text-lg font-bold text-white">{totalActual.toFixed(0)} ₽</p>
         </div>
       </div>
 
       {/* Accounts List */}
-      <div className="px-6">
+      <div className="space-y-2">
+        <h2 className="text-sm font-bold text-white">Мои счета ({accounts.length})</h2>
         {accounts.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {accounts.map((account) => {
               const IconComponent = getIconComponent(account.icon);
               const difference = parseFloat(account.actual_balance) - parseFloat(account.planned_balance);
@@ -136,68 +152,78 @@ export default function TelegramAccounts() {
               return (
                 <div
                   key={account.id}
-                  className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50"
+                  className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-purple-500/20"
                 >
+                  {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
                         <IconComponent className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="font-bold text-white">{account.name}</div>
-                        <div className="text-xs text-slate-400">{account.percentage}% от дохода</div>
+                        <h3 className="text-base font-bold text-white">{account.name}</h3>
+                        <p className="text-xs text-gray-400">{account.percentage}%</p>
                       </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => openEdit(account)}
+                        className="p-1.5 text-blue-400 hover:bg-blue-500/20 rounded-lg"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(account.id)}
+                        className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="space-y-2 mb-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">План:</span>
-                      <span className="font-semibold text-white">
+                  {/* Stats */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">План</span>
+                      <span className="text-green-400 font-semibold">
                         {parseFloat(account.planned_balance).toFixed(0)} ₽
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Факт:</span>
-                      <span className="font-semibold text-purple-400">
+                    
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">Факт</span>
+                      <span className="text-purple-400 font-semibold">
                         {parseFloat(account.actual_balance).toFixed(0)} ₽
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-700/50">
-                      <span className="text-slate-400">Разница:</span>
-                      <span className={`font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+
+                    {/* Divider */}
+                    <div className="border-t border-white/10 my-2"></div>
+
+                    {/* Difference */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-500">Разница</span>
+                      <span className={`text-base font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         {isPositive ? '+' : ''}{difference.toFixed(0)} ₽
                       </span>
                     </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openEdit(account)}
-                      className="flex-1 py-2 text-xs font-medium text-blue-400 bg-blue-500/10 rounded-lg active:scale-95 transition-all border border-blue-500/20"
-                    >
-                      Изменить
-                    </button>
-                    <button
-                      onClick={() => handleDelete(account.id)}
-                      className="flex-1 py-2 text-xs font-medium text-red-400 bg-red-500/10 rounded-lg active:scale-95 transition-all border border-red-500/20"
-                    >
-                      Удалить
-                    </button>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-12 text-center border border-slate-700/50">
-            <div className="text-5xl mb-3">💰</div>
-            <p className="text-slate-400 text-sm">Нет счетов</p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-3 opacity-50">
+              <Wallet className="w-8 h-8 text-white" />
+            </div>
+            <p className="text-gray-400 text-sm">Нет счетов</p>
+            <p className="text-gray-500 text-xs mt-1">Создайте первый счёт</p>
           </div>
         )}
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Modal */}
       <Modal 
         isOpen={showModal} 
         onClose={() => {
@@ -207,27 +233,27 @@ export default function TelegramAccounts() {
         }} 
         title={editingAccount ? 'Редактировать счёт' : 'Новый счёт'}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Название</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Название</label>
             <input
               type="text"
               required
               value={accountForm.name}
               onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500"
               placeholder="Например: Основной счёт"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Иконка</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Иконка</label>
             <IconPicker
               selectedIcon={accountForm.icon}
               onSelectIcon={(icon) => setAccountForm({ ...accountForm, icon })}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Процент от дохода (%)</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Процент от дохода (%)</label>
             <input
               type="number"
               step="0.1"
@@ -236,12 +262,12 @@ export default function TelegramAccounts() {
               required
               value={accountForm.percentage}
               onChange={(e) => setAccountForm({ ...accountForm, percentage: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500"
               placeholder="0.0"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Фактический баланс (₽)</label>
+            <label className="block text-xs font-medium text-gray-300 mb-1">Фактический баланс (₽)</label>
             <input
               type="number"
               step="0.01"
@@ -249,13 +275,13 @@ export default function TelegramAccounts() {
               required
               value={accountForm.actual_balance}
               onChange={(e) => setAccountForm({ ...accountForm, actual_balance: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500"
               placeholder="0.00"
             />
           </div>
           <button
             type="submit"
-            className="w-full py-3 bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white rounded-xl font-semibold active:scale-95 transition-all shadow-lg"
+            className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl font-semibold text-sm"
           >
             {editingAccount ? 'Сохранить' : 'Создать счёт'}
           </button>
