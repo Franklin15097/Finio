@@ -2,23 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 25% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 10%;
+    --primary: 258 90% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 93%;
+    --secondary-foreground: 220 25% 30%;
+    --muted: 220 12% 91%;
+    --muted-foreground: 220 10% 50%;
+    --accent: 258 50% 94%;
+    --accent-foreground: 258 90% 55%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 258 90% 62%;
+
+    --income: 160 84% 39%;
+    --expense: 350 89% 60%;
+    --info: 210 100% 56%;
+    --warning: 36 100% 57%;
+  }
+
+  .dark {
+    --background: 225 25% 7%;
+    --foreground: 0 0% 96%;
+    --card: 225 20% 11%;
+    --card-foreground: 0 0% 96%;
+    --primary: 258 85% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 225 18% 15%;
+    --secondary-foreground: 220 10% 75%;
+    --muted: 225 15% 17%;
+    --muted-foreground: 220 10% 52%;
+    --accent: 258 35% 20%;
+    --accent-foreground: 258 80% 78%;
+    --border: 225 15% 16%;
+    --input: 225 15% 16%;
+    --ring: 258 85% 65%;
+
+    --income: 160 84% 44%;
+    --expense: 350 89% 65%;
+    --info: 210 100% 62%;
+    --warning: 36 100% 60%;
+  }
 }
 
-body {
-  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #0f172a;
-  color: #ffffff;
-  /* Telegram Web App specific */
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    @apply border-border;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground;
+    /* Telegram Web App specific */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Telegram Web App theme variables */
@@ -49,6 +99,49 @@ code {
 }
 
 @layer utilities {
+  /* Glass card effect */
+  .glass-card {
+    @apply bg-card border border-border/60 shadow-sm;
+  }
+  .dark .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border-border/40;
+  }
+
+  /* Gradient utilities */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(258 90% 62%), hsl(280 75% 58%));
+  }
+  .dark .gradient-primary {
+    background: linear-gradient(135deg, hsl(258 85% 65%), hsl(280 70% 60%));
+  }
+  .gradient-income {
+    background: linear-gradient(135deg, hsl(160 84% 39%), hsl(172 70% 42%));
+  }
+  .dark .gradient-income {
+    background: linear-gradient(135deg, hsl(160 84% 44%), hsl(172 70% 46%));
+  }
+  .gradient-expense {
+    background: linear-gradient(135deg, hsl(350 89% 60%), hsl(10 80% 58%));
+  }
+  .dark .gradient-expense {
+    background: linear-gradient(135deg, hsl(350 89% 65%), hsl(10 80% 62%));
+  }
+
+  /* Color utilities */
+  .text-income {
+    color: hsl(var(--income));
+  }
+  .text-expense {
+    color: hsl(var(--expense));
+  }
+  .bg-income {
+    background-color: hsl(var(--income));
+  }
+  .bg-expense {
+    background-color: hsl(var(--expense));
+  }
+
+
   @keyframes blob {
     0% {
       transform: translate(0px, 0px) scale(1);
