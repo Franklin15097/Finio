@@ -1,21 +1,22 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env FIRST before any other imports
+dotenv.config({ path: path.join(__dirname, '../.env') });
+
+import express from 'express';
+import cors from 'cors';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import categoryRoutes from './routes/categories.js';
 import budgetRoutes from './routes/budgets.js';
 import accountRoutes from './routes/accounts.js';
 import dashboardRoutes from './routes/dashboard.js';
-
-// Get __dirname equivalent in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load .env from backend directory
-dotenv.config({ path: path.join(__dirname, '../.env') });
 
 console.log('Environment loaded:');
 console.log('- PORT:', process.env.PORT);
