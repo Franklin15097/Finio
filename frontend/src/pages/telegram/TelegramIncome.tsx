@@ -33,6 +33,10 @@ export default function TelegramIncome() {
     transaction_date: new Date().toISOString().split('T')[0]
   });
   
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryIcon, setNewCategoryIcon] = useState('DollarSign');
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
+  
   const [categoryForm, setCategoryForm] = useState({
     name: '',
     icon: 'DollarSign'
@@ -131,18 +135,19 @@ export default function TelegramIncome() {
   const handleTransactionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const transactionData = {
+        ...transactionForm,
+        amount: parseFloat(transactionForm.amount),
+        category_id: transactionForm.category_id ? parseInt(transactionForm.category_id) : null
+      };
+      
+      console.log('Submitting transaction:', transactionData);
+      
       if (editingTransaction) {
-        await api.updateTransaction(editingTransaction.id, {
-          ...transactionForm,
-          amount: parseFloat(transactionForm.amount),
-          category_id: transactionForm.category_id || null
-        });
+        await api.updateTransaction(editingTransaction.id, transactionData);
       } else {
-        await api.createTransaction({
-          ...transactionForm,
-          amount: parseFloat(transactionForm.amount),
-          category_id: transactionForm.category_id || null
-        });
+        const result = await api.createTransaction(transactionData);
+        console.log('Transaction created:', result);
       }
       setShowTransactionModal(false);
       setEditingTransaction(null);
@@ -152,9 +157,44 @@ export default function TelegramIncome() {
         category_id: '',
         transaction_date: new Date().toISOString().split('T')[0]
       });
+      setShowNewCategoryForm(false);
+      setNewCategoryName('');
+      setNewCategoryIcon('DollarSign');
       loadData();
     } catch (error) {
       console.error('Failed to save transaction:', error);
+      alert('Ошибка при сохранении транзакции');
+    }
+  };
+
+  const handleCreateQuickCategory = async () => {
+    if (!newCategoryName.trim()) {
+      alert('Введите название категории');
+      return;
+    }
+    
+    try {
+      const result = await api.createCategory({
+        name: newCategoryName,
+        type: 'income',
+        icon: newCategoryIcon,
+        color: '#10b981'
+      });
+      
+      // Reload categories
+      const catData = await api.getCategories();
+      setCategories(catData.filter((c: any) => c.type === 'income'));
+      
+      // Select the new category
+      setTransactionForm({ ...transactionForm, category_id: result.id.toString() });
+      
+      // Reset form
+      setShowNewCategoryForm(false);
+      setNewCategoryName('');
+      setNewCategoryIcon('DollarSign');
+    } catch (error) {
+      console.error('Failed to create category:', error);
+      alert('Ошибка при создании категории');
     }
   };
 
@@ -304,13 +344,6 @@ export default function TelegramIncome() {
             }`}
           >
             <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-          </button>
-          
-          <button
-            onClick={() => setShowCategoryModal(true)}
-            className="px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white"
-          >
-            <Tag className="w-4 h-4" />
           </button>
         </div>
 
@@ -474,6 +507,9 @@ export default function TelegramIncome() {
             category_id: '',
             transaction_date: new Date().toISOString().split('T')[0]
           });
+          setShowNewCategoryForm(false);
+          setNewCategoryName('');
+          setNewCategoryIcon('DollarSign');
         }} 
         title={editingTransaction ? 'Редактировать доход' : 'Новый доход'}
       >
@@ -490,19 +526,67 @@ export default function TelegramIncome() {
               placeholder="0.00"
             />
           </div>
+          
           <div>
             <label className="block text-xs font-medium text-gray-300 mb-1">Категория</label>
-            <select
-              value={transactionForm.category_id}
-              onChange={(e) => setTransactionForm({ ...transactionForm, category_id: e.target.value })}
-              className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500"
-            >
-              <option value="" className="bg-slate-800">Без категории</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
-              ))}
-            </select>
+            {!showNewCategoryForm ? (
+              <div className="space-y-2">
+                <select
+                  value={transactionForm.category_id}
+                  onChange={(e) => setTransactionForm({ ...transactionForm, category_id: e.target.value })}
+                  className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="" className="bg-slate-800">Без категории</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id} className="bg-slate-800">{cat.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCategoryForm(true)}
+                  className="w-full px-3 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  Создать новую категорию
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2 p-3 bg-white/5 rounded-xl border border-green-500/20">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Название категории"
+                  className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500"
+                />
+                <IconPicker
+                  selectedIcon={newCategoryIcon}
+                  onSelectIcon={setNewCategoryIcon}
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewCategoryForm(false);
+                      setNewCategoryName('');
+                      setNewCategoryIcon('DollarSign');
+                    }}
+                    className="flex-1 px-3 py-2 bg-white/10 text-white rounded-xl text-xs font-medium"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateQuickCategory}
+                    className="flex-1 px-3 py-2 bg-green-500 text-white rounded-xl text-xs font-medium"
+                  >
+                    Создать
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+          
           <div>
             <label className="block text-xs font-medium text-gray-300 mb-1">Описание</label>
             <input

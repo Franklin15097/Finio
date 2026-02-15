@@ -30,12 +30,28 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 
 router.post('/', authenticate, async (req: AuthRequest, res) => {
   const { category_id, amount, description, transaction_date } = req.body;
+  
+  console.log('Creating transaction:', { category_id, amount, description, transaction_date, userId: req.userId });
+  
   try {
+    // Validate category exists and belongs to user if provided
+    if (category_id) {
+      const [categoryRows]: any = await pool.query(
+        'SELECT id, type FROM categories WHERE id = ? AND user_id = ?',
+        [category_id, req.userId]
+      );
+      
+      if (categoryRows.length === 0) {
+        return res.status(400).json({ error: 'Invalid category' });
+      }
+    }
+    
     const [result]: any = await pool.query(
       'INSERT INTO transactions (user_id, category_id, amount, description, transaction_date) VALUES (?, ?, ?, ?, ?)',
       [req.userId, category_id || null, amount, description, transaction_date]
     );
     
+    console.log('Transaction created successfully:', result.insertId);
     res.status(201).json({ id: result.insertId });
   } catch (error) {
     console.error('Transaction error:', error);

@@ -8,6 +8,7 @@ import Income from './pages/Income';
 import Expenses from './pages/Expenses';
 import Accounts from './pages/Accounts';
 import Settings from './pages/Settings';
+import TelegramCategories from './pages/telegram/TelegramCategories';
 import './App.css';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,7 @@ function AppRoutes() {
         <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
         <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/telegram/categories" element={<PrivateRoute><TelegramCategories /></PrivateRoute>} />
       </Routes>
     </div>
   );

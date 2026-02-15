@@ -1,8 +1,10 @@
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, User, Info, HelpCircle, Shield, Bell } from 'lucide-react';
+import { LogOut, User, Info, HelpCircle, Shield, Bell, Tag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function TelegramSettings() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="p-4 space-y-4 pb-24">
@@ -45,6 +47,25 @@ export default function TelegramSettings() {
             <div className="flex-1 text-left">
               <p className="text-white text-sm font-medium">Безопасность</p>
               <p className="text-gray-400 text-xs">Настройки безопасности</p>
+            </div>
+          </button>
+        </div>
+
+        {/* Finance Section */}
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-purple-500/20 overflow-hidden">
+          <div className="p-3 border-b border-white/10">
+            <h2 className="text-sm font-semibold text-white">Финансы</h2>
+          </div>
+          <button 
+            onClick={() => navigate('/telegram/categories')}
+            className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors"
+          >
+            <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <Tag className="w-4 h-4 text-purple-400" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-white text-sm font-medium">Категории</p>
+              <p className="text-gray-400 text-xs">Управление категориями доходов и расходов</p>
             </div>
           </button>
         </div>
