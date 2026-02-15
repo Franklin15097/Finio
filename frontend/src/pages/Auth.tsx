@@ -41,10 +41,11 @@ export default function Auth() {
           const data = await api.loginWithTelegramWidget(user);
           console.log('Backend response:', data);
           
-          if (data.token) {
+          if (data.token && data.user) {
             localStorage.setItem('token', data.token);
-            console.log('Token saved, reloading...');
-            window.location.reload();
+            console.log('Token saved, redirecting to home...');
+            // Redirect to home page instead of reload
+            window.location.href = '/';
           } else {
             throw new Error(data.error || 'Login failed');
           }

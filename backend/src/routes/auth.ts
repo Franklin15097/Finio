@@ -74,9 +74,13 @@ function validateTelegramWebAppData(initData: string): any {
 
 // Telegram Login Widget (for website)
 router.post('/telegram-widget', async (req, res) => {
+  console.log('=== Telegram Widget Auth Start ===');
+  console.log('Request body:', req.body);
+  
   const { id, first_name, last_name, username, photo_url, auth_date, hash } = req.body;
   
   if (!id || !hash) {
+    console.error('Missing id or hash');
     return res.status(400).json({ error: 'Invalid data' });
   }
   
@@ -88,8 +92,13 @@ router.post('/telegram-widget', async (req, res) => {
       .map(key => `${key}=${req.body[key]}`)
       .join('\n');
     
+    console.log('Check data:', checkData);
+    
     const secretKey = crypto.createHash('sha256').update(TELEGRAM_BOT_TOKEN).digest();
     const calculatedHash = crypto.createHmac('sha256', secretKey).update(checkData).digest('hex');
+    
+    console.log('Calculated hash:', calculatedHash);
+    console.log('Received hash:', hash);
     
     if (calculatedHash !== hash) {
       console.error('Widget hash mismatch');
@@ -157,13 +166,17 @@ router.post('/telegram-widget', async (req, res) => {
     [users] = await pool.query('SELECT id, email, name, telegram_id, telegram_username FROM users WHERE id = ?', [userId]);
     const user = users[0];
     
+    console.log('User retrieved:', user);
+    
     // Generate token
     const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
     
-    console.log('Telegram widget auth successful:', { userId });
+    console.log('Token generated, sending response');
+    console.log('=== Telegram Widget Auth Success ===');
     res.json({ token, user });
   } catch (error) {
     console.error('Telegram widget auth error:', error);
+    console.log('=== Telegram Widget Auth Failed ===');
     res.status(401).json({ error: 'Authentication failed' });
   }
 });
