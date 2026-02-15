@@ -1,303 +1,318 @@
-# Finio - Finance Studio
+# 💰 Finio - Finance Studio
 
-Современное веб-приложение для управления личными финансами с интеграцией Telegram Mini App.
+> Современная платформа для управления личными финансами с интеграцией Telegram Mini App
 
-## 🚀 Особенности
+[![Production](https://img.shields.io/badge/status-production-success)](https://studiofinance.ru)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/Franklin15097/Finio)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
 
-- 💰 Учет доходов и расходов
-- 📊 Визуализация финансовых данных
-- 🏦 Управление счетами
-- 📱 Telegram Mini App с отдельным мобильным дизайном
-- 🌐 Полнофункциональная веб-версия
-- 🔐 Авторизация через Telegram
+## 🎯 О проекте
 
-## 🎨 Два дизайна в одном приложении
+Finio - это инновационное финансовое приложение, которое объединяет мощь веб-технологий и удобство мессенджера Telegram. Проект создан для людей, которые хотят контролировать свои финансы легко и эффективно.
+
+### 🌟 Ключевые преимущества
+
+- **Два интерфейса в одном**: Полноценный веб-сайт и Telegram Mini App
+- **Умное распределение**: Автоматическое распределение доходов по счетам
+- **Визуализация данных**: Интерактивные графики и аналитика
+- **Кросс-платформенность**: Работает везде - на компьютере, телефоне, в Telegram
+- **Безопасность**: JWT авторизация и защищенное хранение данных
+
+## 📊 Функциональность
+
+### Основные возможности
+
+✅ **Учет транзакций**
+- Доходы и расходы с категориями
+- Гибкая фильтрация по датам
+- Поиск и сортировка
+
+✅ **Управление счетами**
+- Множественные счета
+- Процентное распределение доходов
+- Планируемый и фактический баланс
+
+✅ **Аналитика**
+- Динамика баланса
+- Sparkline графики
+- Сравнение доходов и расходов
+- Статистика по периодам
+
+✅ **Telegram интеграция**
+- Авторизация через Telegram
+- Mini App с адаптивным дизайном
+- Telegram бот для быстрого доступа
+
+## 🎨 Дизайн
 
 ### Веб-версия (Desktop)
-- Боковое меню навигации
-- Темная фиолетовая тема с градиентами
-- Анимированный фон
-- Полноэкранные графики и аналитика
+- 🎨 Темная тема с фиолетовыми градиентами
+- 🌊 Анимированный фон с плавающими элементами
+- 📐 Боковая навигация
+- 📊 Полноэкранные графики
 
 ### Telegram Mini App (Mobile)
-- Нижняя навигация (5 разделов)
-- Светлая тема с цветными градиентами
-- Компактные карточки
-- Оптимизация для мобильных устройств
-- Автоматическая адаптация к теме Telegram
+- 🎨 Светлая тема с цветными акцентами
+- 📱 Нижняя навигация (5 разделов)
+- 🎯 Компактные карточки
+- ⚡ Оптимизация для мобильных устройств
 
-## 🛠 Технологии
+## 🛠 Технологический стек
 
 ### Frontend
-- React 18 + TypeScript
-- Vite
-- React Router
-- Tailwind CSS
-- Recharts (графики)
-- Lucide React (иконки)
+```
+React 18 + TypeScript
+Vite (сборка)
+React Router (навигация)
+Tailwind CSS (стилизация)
+Recharts (графики)
+Lucide React (иконки)
+```
 
 ### Backend
-- Node.js + Express
-- TypeScript
-- MySQL
-- JWT авторизация
-- Telegram Bot API
+```
+Node.js + Express
+TypeScript
+MySQL 8
+JWT (авторизация)
+Telegram Bot API
+PM2 (процесс-менеджер)
+```
 
-## 📦 Установка
+### Infrastructure
+```
+Ubuntu 24.04 LTS
+Nginx (веб-сервер)
+Let's Encrypt (SSL)
+GitHub (CI/CD)
+```
+
+## 📈 Метрики проекта
+
+- **Размер бандла**: 317 KB (JS) + 38 KB (CSS)
+- **Время загрузки**: < 2 секунды
+- **Поддержка браузеров**: Chrome, Firefox, Safari, Edge
+- **Мобильная оптимизация**: 100% адаптивный дизайн
+
+## 🚀 Быстрый старт
 
 ### Требования
 - Node.js 18+
 - MySQL 8+
 - PM2 (для продакшена)
 
-### Локальная разработка
+### Установка
 
-1. Клонируйте репозиторий:
 ```bash
-git clone <repository-url>
-cd finio
-```
+# Клонирование репозитория
+git clone https://github.com/Franklin15097/Finio.git
+cd Finio
 
-2. Установите зависимости:
-```bash
 # Backend
 cd backend
 npm install
+cp .env.example .env
+# Настройте .env файл
 
 # Frontend
 cd ../frontend
 npm install
-```
 
-3. Настройте переменные окружения:
-```bash
-# backend/.env
-DB_HOST=localhost
-DB_USER=your_user
-DB_PASSWORD=your_password
-DB_NAME=financial_db
-JWT_SECRET=your_jwt_secret
-TELEGRAM_BOT_TOKEN=your_bot_token
-FRONTEND_URL=http://localhost:5173
-```
-
-4. Создайте базу данных:
-```bash
+# База данных
 mysql -u root -p < backend/database/schema.sql
 mysql -u root -p < backend/database/telegram_migration.sql
 ```
 
-5. Запустите приложение:
-```bash
-# Backend (в одном терминале)
-cd backend
-npm run dev
-
-# Frontend (в другом терминале)
-cd frontend
-npm run dev
-```
-
-## 🚀 Развертывание
-
-### Автоматическое развертывание
+### Запуск
 
 ```bash
-./update_telegram.sh
+# Development
+npm run dev  # в папках backend и frontend
+
+# Production
+./update_server.sh  # автоматический деплой
 ```
 
-### Ручное развертывание
+## 🌐 Демо
 
-```bash
-# На сервере
-cd /var/www/finio
-git pull
-
-# Backend
-cd backend
-npm install
-pm2 restart finio-api
-pm2 restart finio-bot
-
-# Frontend
-cd ../frontend
-npm install
-npm run build
-```
-
-## 🤖 Telegram Bot
-
-### Настройка бота
-
-1. Создайте бота через @BotFather
-2. Получите токен
-3. Настройте Mini App:
-   - Команда: `/newapp`
-   - URL: `https://studiofinance.ru`
-   - Название: `Finio`
-
-### Команды бота
-
-- `/start` - Приветствие и кнопки
-- `/app` - Открыть Mini App
-- `/site` - Получить ссылку с токеном авторизации
-- `/help` - Помощь
-- `/about` - О приложении
+- **Веб-сайт**: [studiofinance.ru](https://studiofinance.ru)
+- **Telegram Bot**: [@FinanceStudio_bot](https://t.me/FinanceStudio_bot)
 
 ## 📱 Использование
 
 ### Веб-версия
-Откройте в браузере: `https://studiofinance.ru`
+1. Откройте [studiofinance.ru](https://studiofinance.ru)
+2. Зарегистрируйтесь или войдите
+3. Начните управлять финансами
 
 ### Telegram Mini App
-1. Найдите бота: `@FinanceStudio_bot`
+1. Найдите [@FinanceStudio_bot](https://t.me/FinanceStudio_bot)
 2. Нажмите `/start`
 3. Выберите "📱 Открыть Mini App"
 
 ## 🏗 Архитектура
 
-### Условный рендеринг
-
-Приложение автоматически определяет платформу и показывает соответствующий дизайн:
-
-```typescript
-// В каждой странице
-if (isTelegramWebApp()) {
-  return <TelegramVersion />;
-}
-return <WebVersion />;
+```
+┌─────────────────────────────────────────────────┐
+│                   Frontend                       │
+│  ┌──────────────┐        ┌──────────────┐      │
+│  │  Web Version │        │ Telegram App │      │
+│  │  (Desktop)   │        │   (Mobile)   │      │
+│  └──────────────┘        └──────────────┘      │
+│         │                        │              │
+│         └────────────┬───────────┘              │
+│                      │                          │
+│              React Router                       │
+│                      │                          │
+└──────────────────────┼──────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────┐
+│                  Backend API                     │
+│  ┌──────────────┐        ┌──────────────┐      │
+│  │   Express    │◄──────►│ Telegram Bot │      │
+│  │   REST API   │        │              │      │
+│  └──────────────┘        └──────────────┘      │
+│         │                                       │
+│         ▼                                       │
+│  ┌──────────────┐                              │
+│  │    MySQL     │                              │
+│  │   Database   │                              │
+│  └──────────────┘                              │
+└─────────────────────────────────────────────────┘
 ```
 
-### Структура проекта
-
-```
-finio/
-├── backend/
-│   ├── src/
-│   │   ├── bot.ts              # Telegram бот
-│   │   ├── index.ts            # Express сервер
-│   │   ├── routes/             # API маршруты
-│   │   └── middleware/         # Middleware
-│   └── database/               # SQL схемы
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Layout.tsx           # Веб layout
-│   │   │   └── TelegramLayout.tsx   # Telegram layout
-│   │   ├── pages/
-│   │   │   ├── Balance.tsx          # Веб-версия
-│   │   │   ├── Income.tsx
-│   │   │   ├── Expenses.tsx
-│   │   │   ├── Accounts.tsx
-│   │   │   ├── Settings.tsx
-│   │   │   └── telegram/            # Telegram-версии
-│   │   │       ├── TelegramBalance.tsx
-│   │   │       ├── TelegramIncome.tsx
-│   │   │       ├── TelegramExpenses.tsx
-│   │   │       ├── TelegramAccounts.tsx
-│   │   │       └── TelegramSettings.tsx
-│   │   └── utils/
-│   │       └── telegram.ts          # Telegram утилиты
-│   └── public/
-└── README.md
-```
-
-## 🎨 Дизайн-система
-
-### Цвета (Telegram)
-- 🔵 Главная: `#3390ec` (Telegram Blue)
-- 🟢 Доходы: `green-500` to `emerald-600`
-- 🔴 Расходы: `red-500` to `pink-600`
-- 🟣 Счета: `purple-500` to `fuchsia-600`
-
-### Цвета (Web)
-- 🟣 Основной: `purple-900` to `slate-900`
-- Градиенты с прозрачностью `/90`, `/80`, `/20`
-- Анимированные фиолетовые шарики на фоне
-
-## 🔧 API Endpoints
+## 📊 API Endpoints
 
 ### Авторизация
-- `POST /api/auth/telegram` - Авторизация через Telegram Mini App
+- `POST /api/auth/telegram` - Telegram Mini App авторизация
 - `POST /api/auth/generate-auth-token` - Генерация токена для бота
 - `POST /api/auth/exchange-token` - Обмен токена на JWT
 
 ### Транзакции
-- `GET /api/transactions` - Получить все транзакции
-- `POST /api/transactions` - Создать транзакцию
-- `PUT /api/transactions/:id` - Обновить транзакцию
-- `DELETE /api/transactions/:id` - Удалить транзакцию
+- `GET /api/transactions` - Список транзакций
+- `POST /api/transactions` - Создание транзакции
+- `PUT /api/transactions/:id` - Обновление
+- `DELETE /api/transactions/:id` - Удаление
 
 ### Счета
-- `GET /api/accounts` - Получить все счета
-- `POST /api/accounts` - Создать счет
-- `PUT /api/accounts/:id` - Обновить счет
-- `DELETE /api/accounts/:id` - Удалить счет
+- `GET /api/accounts` - Список счетов
+- `POST /api/accounts` - Создание счета
+- `PUT /api/accounts/:id` - Обновление
+- `DELETE /api/accounts/:id` - Удаление
 
 ### Категории
-- `GET /api/categories` - Получить все категории
-- `POST /api/categories` - Создать категорию
-- `PUT /api/categories/:id` - Обновить категорию
-- `DELETE /api/categories/:id` - Удалить категорию
+- `GET /api/categories` - Список категорий
+- `POST /api/categories` - Создание категории
+- `PUT /api/categories/:id` - Обновление
+- `DELETE /api/categories/:id` - Удаление
 
-### Статистика
-- `GET /api/dashboard/stats` - Получить статистику
+### Аналитика
+- `GET /api/dashboard/stats` - Статистика и графики
 
-## 🐛 Отладка
+## 🔒 Безопасность
 
-### Логи PM2
+- ✅ JWT токены с истечением срока действия
+- ✅ Хеширование паролей (bcrypt)
+- ✅ HTTPS (Let's Encrypt SSL)
+- ✅ Валидация Telegram данных
+- ✅ SQL injection защита (prepared statements)
+- ✅ XSS защита
+- ✅ CORS настройка
+
+## 📦 Деплой
+
+### Автоматический деплой
 ```bash
-pm2 logs finio-api
-pm2 logs finio-bot
+./update_server.sh
 ```
 
-### Логи Nginx
+### Ручной деплой
 ```bash
-tail -f /var/log/nginx/error.log
-tail -f /var/log/nginx/access.log
+# На сервере
+cd /var/www/studiofinance
+git pull origin main
+
+# Frontend
+cd frontend
+npm install
+npm run build
+
+# Backend
+cd ../backend
+npm install
+npm run build
+pm2 restart finio-backend
+pm2 restart finio-bot
 ```
 
-### Консоль браузера
-Откройте DevTools (F12) и проверьте:
-- Console - ошибки JavaScript
-- Network - API запросы
-- Application - LocalStorage, Cookies
+## 🎯 Roadmap
 
-## 📝 Конфигурация
+### Q1 2026
+- [x] Веб-версия
+- [x] Telegram Mini App
+- [x] Базовая аналитика
+- [x] Управление счетами
 
-### Сервер
-- IP: `85.235.205.99`
-- Domain: `studiofinance.ru`
-- SSL: Let's Encrypt (автообновление)
+### Q2 2026
+- [ ] Экспорт данных (CSV, Excel)
+- [ ] Бюджетирование
+- [ ] Повторяющиеся транзакции
+- [ ] Уведомления о лимитах
 
-### База данных
-- MySQL 8.0
-- Database: `financial_db`
-- User: `app_user`
+### Q3 2026
+- [ ] Мобильное приложение (iOS/Android)
+- [ ] Совместный доступ к счетам
+- [ ] Интеграция с банками
+- [ ] AI-помощник для финансов
 
-### PM2
-- `finio-api` - Backend API (порт 3000)
-- `finio-bot` - Telegram Bot
+### Q4 2026
+- [ ] Инвестиционный портфель
+- [ ] Криптовалюты
+- [ ] Финансовые цели
+- [ ] Премиум подписка
 
-## 🤝 Вклад
+## 📊 Бизнес-модель
 
-1. Fork репозиторий
-2. Создайте ветку: `git checkout -b feature/amazing-feature`
-3. Commit изменения: `git commit -m 'Add amazing feature'`
-4. Push в ветку: `git push origin feature/amazing-feature`
-5. Откройте Pull Request
+### Freemium модель
+- **Free**: Базовый функционал для личного использования
+- **Premium** ($4.99/мес): Расширенная аналитика, экспорт, приоритетная поддержка
+- **Family** ($9.99/мес): До 5 пользователей, совместные счета
+- **Business** ($19.99/мес): Для малого бизнеса, интеграции, API
+
+### Целевая аудитория
+- 🎯 Молодые специалисты (25-35 лет)
+- 💼 Фрилансеры и самозанятые
+- 👨‍👩‍👧‍👦 Семьи, планирующие бюджет
+- 🏢 Малый бизнес
+
+## 📈 Конкурентные преимущества
+
+1. **Telegram интеграция** - уникальное преимущество на рынке
+2. **Два интерфейса** - веб и мобильный в одном приложении
+3. **Простота** - минималистичный дизайн, легкий старт
+4. **Скорость** - быстрая загрузка, мгновенный отклик
+5. **Безопасность** - современные стандарты защиты данных
+
+## 🤝 Команда
+
+- **Максим** - Full-stack разработчик, основатель
+
+## 📞 Контакты
+
+- 🌐 Website: [studiofinance.ru](https://studiofinance.ru)
+- 💬 Telegram: [@FinanceStudio_bot](https://t.me/FinanceStudio_bot)
+- 📧 Email: support@studiofinance.ru
+- 💼 GitHub: [Franklin15097/Finio](https://github.com/Franklin15097/Finio)
 
 ## 📄 Лицензия
 
-Proprietary - Все права защищены
-
-## 👥 Контакты
-
-- Telegram Bot: [@FinanceStudio_bot](https://t.me/FinanceStudio_bot)
-- Website: [studiofinance.ru](https://studiofinance.ru)
+Proprietary - Все права защищены © 2026 Finio Finance Studio
 
 ---
 
 **Версия**: 2.0.0  
-**Дата обновления**: 15 февраля 2026  
-**Статус**: ✅ Production Ready
+**Статус**: ✅ Production Ready  
+**Последнее обновление**: 15 февраля 2026
+
+Made with ❤️ for better financial management
