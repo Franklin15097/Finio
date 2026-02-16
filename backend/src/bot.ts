@@ -167,7 +167,7 @@ async function getCategories(token: string, type: string): Promise<any[]> {
       },
     });
     
-    const categories = await response.json();
+    const categories: any[] = await response.json();
     return categories.filter((c: any) => c.type === type);
   } catch (error) {
     console.error('Error getting categories:', error);
@@ -212,7 +212,7 @@ async function handleUpdate(update: TelegramUpdate) {
       const amount = parseFloat(parts[3]);
       const description = parts.slice(4).join('_');
       
-      const result = await addTransaction(token, type, amount, description, categoryId);
+      const result: any = await addTransaction(token, type, amount, description, categoryId);
       
       if (result && result.id) {
         await editMessage(
@@ -236,7 +236,7 @@ async function handleUpdate(update: TelegramUpdate) {
   
   const message = update.message;
   const chatId = message.chat.id;
-  const text = message.text;
+  const text: string = message.text;
   const telegramId = message.from.id;
   const firstName = message.from.first_name;
   
@@ -319,7 +319,7 @@ async function handleUpdate(update: TelegramUpdate) {
     
     if (categories.length === 0) {
       // Add without category
-      const result = await addTransaction(token, type, amount, description);
+      const result: any = await addTransaction(token, type, amount, description);
       
       if (result && result.id) {
         await sendMessage(
