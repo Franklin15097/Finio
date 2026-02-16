@@ -9,6 +9,7 @@ import Expenses from './pages/Expenses';
 import Accounts from './pages/Accounts';
 import Settings from './pages/Settings';
 import TelegramCategories from './pages/telegram/TelegramCategories';
+import TelegramAnalytics from './pages/telegram/TelegramAnalytics';
 import './App.css';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="/telegram/categories" element={<PrivateRoute><TelegramCategories /></PrivateRoute>} />
+        <Route path="/telegram/analytics" element={<PrivateRoute><TelegramAnalytics /></PrivateRoute>} />
       </Routes>
     </div>
   );

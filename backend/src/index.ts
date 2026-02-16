@@ -17,6 +17,7 @@ import categoryRoutes from './routes/categories.js';
 import budgetRoutes from './routes/budgets.js';
 import accountRoutes from './routes/accounts.js';
 import dashboardRoutes from './routes/dashboard.js';
+import analyticsRoutes from './routes/analytics.js';
 
 console.log('Environment loaded:');
 console.log('- PORT:', process.env.PORT);
@@ -36,6 +37,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

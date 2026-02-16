@@ -176,4 +176,53 @@ export const api = {
     });
     return res.json();
   },
+
+  // Analytics
+  getCategoryAnalytics: async (params?: { startDate?: string; endDate?: string; type?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    const res = await fetch(`${API_URL}/analytics/categories?${query}`, { headers: headers() });
+    return res.json();
+  },
+
+  getHeatmapData: async (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    const res = await fetch(`${API_URL}/analytics/heatmap?${query}`, { headers: headers() });
+    return res.json();
+  },
+
+  comparePeriods: async (period1Start: string, period1End: string, period2Start: string, period2End: string) => {
+    const query = new URLSearchParams({ period1Start, period1End, period2Start, period2End }).toString();
+    const res = await fetch(`${API_URL}/analytics/compare-periods?${query}`, { headers: headers() });
+    return res.json();
+  },
+
+  getForecast: async (days: number = 30) => {
+    const res = await fetch(`${API_URL}/analytics/forecast?days=${days}`, { headers: headers() });
+    return res.json();
+  },
+
+  getTopExpenses: async (params?: { limit?: number; startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    const res = await fetch(`${API_URL}/analytics/top-expenses?${query}`, { headers: headers() });
+    return res.json();
+  },
+
+  getTrends: async (period: 'day' | 'week' | 'month' = 'month') => {
+    const res = await fetch(`${API_URL}/analytics/trends?period=${period}`, { headers: headers() });
+    return res.json();
+  },
+
+  exportCSV: async (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    const res = await fetch(`${API_URL}/analytics/export/csv?${query}`, { headers: headers() });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${Date.now()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
 };

@@ -1,5 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, User, Info, HelpCircle, Shield, Bell, Tag } from 'lucide-react';
+import { LogOut, User, Info, HelpCircle, Shield, Bell, Tag, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function TelegramSettings() {
@@ -57,8 +57,20 @@ export default function TelegramSettings() {
             <h2 className="text-sm font-semibold text-white">Финансы</h2>
           </div>
           <button 
-            onClick={() => navigate('/telegram/categories')}
+            onClick={() => navigate('/telegram/analytics')}
             className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors"
+          >
+            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-white text-sm font-medium">Аналитика</p>
+              <p className="text-gray-400 text-xs">Отчёты, прогнозы и экспорт данных</p>
+            </div>
+          </button>
+          <button 
+            onClick={() => navigate('/telegram/categories')}
+            className="w-full flex items-center gap-3 p-3 hover:bg-white/5 transition-colors border-t border-white/10"
           >
             <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
               <Tag className="w-4 h-4 text-purple-400" />
