@@ -167,7 +167,7 @@ async function getCategories(token: string, type: string): Promise<any[]> {
       },
     });
     
-    const categories: any[] = await response.json();
+    const categories = await response.json() as any[];
     return categories.filter((c: any) => c.type === type);
   } catch (error) {
     console.error('Error getting categories:', error);
@@ -236,7 +236,7 @@ async function handleUpdate(update: TelegramUpdate) {
   
   const message = update.message;
   const chatId = message.chat.id;
-  const text: string = message.text;
+  const text = message.text as string;
   const telegramId = message.from.id;
   const firstName = message.from.first_name;
   
