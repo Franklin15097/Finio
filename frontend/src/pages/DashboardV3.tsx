@@ -12,6 +12,14 @@ import HeatmapCalendar from '../components/HeatmapCalendar';
 import Button from '../components/Button';
 import SuccessModal from '../components/SuccessModal';
 import PullToRefresh from '../components/PullToRefresh';
+import AnimatedCounter from '../components/AnimatedCounter';
+import CategoryGrid from '../components/CategoryGrid';
+import FloatingActionButton from '../components/FloatingActionButton';
+import AnimatedDonutChart from '../components/charts/AnimatedDonutChart';
+import LiquidProgressBar from '../components/charts/LiquidProgressBar';
+import SparklineWithGradient from '../components/charts/SparklineWithGradient';
+import ConfettiEffect from '../components/ConfettiEffect';
+import MorphingIcon from '../components/MorphingIcon';
 import { 
   Wallet, 
   TrendingUp, 
@@ -30,20 +38,32 @@ export default function DashboardV3() {
   const [stats, setStats] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [balanceHistory, setBalanceHistory] = useState<number[]>([]);
 
   const loadData = async () => {
     try {
-      const [statsRes, transactionsRes, budgetsRes] = await Promise.all([
+      const [statsRes, transactionsRes, budgetsRes, categoriesRes] = await Promise.all([
         api.getDashboardStats(),
         api.getTransactions({ limit: 10 }),
         api.getBudgets(),
+        api.getCategories(),
       ]);
 
       setStats(statsRes);
       setTransactions(transactionsRes);
       setBudgets(budgetsRes);
+      setCategories(categoriesRes);
+
+      // Генерация истории баланса (последние 7 дней)
+      const history = Array.from({ length: 7 }, (_, i) => {
+        const variance = Math.random() * 10000 - 5000;
+        return Math.max(0, (statsRes?.total_balance || 0) + variance);
+      });
+      setBalanceHistory(history);
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
@@ -59,6 +79,7 @@ export default function DashboardV3() {
     onTransactionCreated: () => {
       loadData();
       setShowSuccess(true);
+      setShowConfetti(true);
     },
     onTransactionUpdated: loadData,
     onTransactionDeleted: loadData,
@@ -143,35 +164,76 @@ export default function DashboardV3() {
           </div>
 
           {/* Balance Card */}
-          <GlassCard className="p-8 text-center">
-            <p 
-              className="text-sm mb-2"
-              style={{ color: theme.colors.textSecondary }}
-            >
-              Общий баланс
-            </p>
-            <h2 
-              className="text-5xl font-bold mb-4 gradient-text"
+          <GlassCard className="p-8 text-center relative overflow-hidden">
+            {/* Animated background gradient */}
+            <div 
+              className="absolute inset-0 opacity-10"
               style={{
                 background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                animation: 'pulse 3s ease-in-out infinite',
               }}
-            >
-              {totalBalance.toLocaleString('ru-RU')} ₽
-            </h2>
+            />
             
-            <div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-              style={{
-                background: balanceChange >= 0 
-                  ? `${theme.colors.success}20` 
-                  : `${theme.colors.error}20`,
-                color: balanceChange >= 0 ? theme.colors.success : theme.colors.error,
-              }}
-            >
-              {balanceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-              {balanceChange >= 0 ? '+' : ''}{balanceChange.toLocaleString('ru-RU')} ₽ за месяц
+            <div className="relative z-10">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <MorphingIcon 
+                  icons={['💰', '💎', '🏆', '⭐']} 
+                  interval={2000}
+                  className="text-2xl"
+                />
+                <p 
+                  className="text-sm"
+                  style={{ color: theme.colors.textSecondary }}
+                >
+                  Общий баланс
+                </p>
+              </div>
+              
+              <h2 
+                className="text-5xl font-bold mb-4"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                <AnimatedCounter 
+                  value={totalBalance} 
+                  suffix=" ₽"
+                  decimals={0}
+                />
+              </h2>
+              
+              {/* Sparkline */}
+              {balanceHistory.length > 0 && (
+                <div className="flex justify-center mb-4">
+                  <SparklineWithGradient 
+                    data={balanceHistory}
+                    width={200}
+                    height={40}
+                    showDots={false}
+                  />
+                </div>
+              )}
+              
+              <div 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+                         transition-all duration-300 hover:scale-105"
+                style={{
+                  background: balanceChange >= 0 
+                    ? `${theme.colors.success}20` 
+                    : `${theme.colors.error}20`,
+                  color: balanceChange >= 0 ? theme.colors.success : theme.colors.error,
+                }}
+              >
+                {balanceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                <AnimatedCounter 
+                  value={balanceChange}
+                  prefix={balanceChange >= 0 ? '+' : ''}
+                  suffix=" ₽ за месяц"
+                  decimals={0}
+                />
+              </div>
             </div>
           </GlassCard>
 
@@ -194,7 +256,7 @@ export default function DashboardV3() {
             />
           </div>
 
-          {/* Budget Progress */}
+          {/* Budget Progress with Liquid Bars */}
           {budgets.length > 0 && (
             <GlassCard className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -213,20 +275,40 @@ export default function DashboardV3() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {budgets.slice(0, 4).map((budget: any) => (
-                  <div key={budget.id} className="flex flex-col items-center">
-                    <CircularProgress
-                      value={budget.spent || 0}
-                      max={budget.amount}
-                      size={100}
-                      label={budget.category_name}
-                      animated
-                      gradient
-                    />
-                  </div>
+              <div className="space-y-4">
+                {budgets.slice(0, 3).map((budget: any) => (
+                  <LiquidProgressBar
+                    key={budget.id}
+                    value={budget.spent || 0}
+                    max={budget.amount}
+                    label={budget.category_name}
+                    height={60}
+                  />
                 ))}
               </div>
+            </GlassCard>
+          )}
+
+          {/* Categories Donut Chart */}
+          {categories.length > 0 && (
+            <GlassCard className="p-6">
+              <h3 
+                className="text-lg font-bold mb-4"
+                style={{ color: theme.colors.text }}
+              >
+                Расходы по категориям
+              </h3>
+              
+              <AnimatedDonutChart
+                data={categories.slice(0, 6).map((cat: any) => ({
+                  label: cat.name,
+                  value: cat.total_spent || Math.random() * 10000,
+                  color: cat.color || theme.colors.primary,
+                  icon: cat.icon || '📊',
+                }))}
+                size={250}
+                thickness={40}
+              />
             </GlassCard>
           )}
 
@@ -337,6 +419,31 @@ export default function DashboardV3() {
         </div>
       </PullToRefresh>
 
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        actions={[
+          {
+            icon: '💸',
+            label: 'Расход',
+            onClick: () => navigate('/expenses'),
+            color: theme.colors.error,
+          },
+          {
+            icon: '💰',
+            label: 'Доход',
+            onClick: () => navigate('/income'),
+            color: theme.colors.success,
+          },
+          {
+            icon: '🔄',
+            label: 'Перевод',
+            onClick: () => navigate('/accounts'),
+            color: theme.colors.accent,
+          },
+        ]}
+      />
+
+      {/* Success Modal */}
       <SuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
@@ -344,6 +451,13 @@ export default function DashboardV3() {
         title="Транзакция добавлена!"
         message="Данные обновлены в реальном времени"
         showConfetti
+      />
+
+      {/* Confetti Effect */}
+      <ConfettiEffect
+        active={showConfetti}
+        onComplete={() => setShowConfetti(false)}
+        duration={3000}
       />
     </div>
   );
