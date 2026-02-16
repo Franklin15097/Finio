@@ -319,6 +319,31 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// Get user token by telegram_id (for bot commands)
+router.post('/telegram-user-token', async (req, res) => {
+  const { telegramId } = req.body;
+  
+  if (!telegramId) {
+    return res.status(400).json({ error: 'Telegram ID required' });
+  }
+  
+  try {
+    const [users]: any = await pool.query('SELECT id FROM users WHERE telegram_id = ?', [telegramId]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const userId = users[0].id;
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
+    
+    res.json({ token });
+  } catch (error) {
+    console.error('Error getting user token:', error);
+    res.status(500).json({ error: 'Failed to get token' });
+  }
+});
+
 // Test endpoint to check if backend is working
 router.get('/test', async (req, res) => {
   res.json({ 

@@ -26,6 +26,20 @@ interface TelegramUpdate {
     };
     text?: string;
   };
+  callback_query?: {
+    id: string;
+    from: {
+      id: number;
+      first_name: string;
+    };
+    message: {
+      message_id: number;
+      chat: {
+        id: number;
+      };
+    };
+    data: string;
+  };
 }
 
 async function sendMessage(chatId: number, text: string, replyMarkup?: any) {
@@ -50,6 +64,117 @@ async function sendMessage(chatId: number, text: string, replyMarkup?: any) {
   return response.json();
 }
 
+async function editMessage(chatId: number, messageId: number, text: string, replyMarkup?: any) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/editMessageText`;
+  
+  const body: any = {
+    chat_id: chatId,
+    message_id: messageId,
+    text: text,
+    parse_mode: 'HTML',
+  };
+  
+  if (replyMarkup) {
+    body.reply_markup = replyMarkup;
+  }
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  
+  return response.json();
+}
+
+async function answerCallbackQuery(callbackQueryId: string, text?: string) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      callback_query_id: callbackQueryId,
+      text: text,
+    }),
+  });
+  
+  return response.json();
+}
+
+async function getUserToken(telegramId: number): Promise<string | null> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/auth/telegram-user-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegramId }),
+    });
+    
+    const data: any = await response.json();
+    return data.token || null;
+  } catch (error) {
+    console.error('Error getting user token:', error);
+    return null;
+  }
+}
+
+async function getUserBalance(token: string): Promise<any> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/dashboard/stats`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting balance:', error);
+    return null;
+  }
+}
+
+async function addTransaction(token: string, type: string, amount: number, description: string, categoryId?: number) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/transactions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type,
+        amount,
+        description,
+        category_id: categoryId,
+        transaction_date: new Date().toISOString().split('T')[0],
+      }),
+    });
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding transaction:', error);
+    return null;
+  }
+}
+
+async function getCategories(token: string, type: string): Promise<any[]> {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/categories`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    const categories = await response.json();
+    return categories.filter((c: any) => c.type === type);
+  } catch (error) {
+    console.error('Error getting categories:', error);
+    return [];
+  }
+}
+
 async function generateAuthToken(telegramId: number): Promise<string> {
   const response = await fetch(`${BACKEND_URL}/api/auth/generate-auth-token`, {
     method: 'POST',
@@ -62,6 +187,51 @@ async function generateAuthToken(telegramId: number): Promise<string> {
 }
 
 async function handleUpdate(update: TelegramUpdate) {
+  // Handle callback queries (button clicks)
+  if (update.callback_query) {
+    const callbackQuery = update.callback_query;
+    const chatId = callbackQuery.message.chat.id;
+    const messageId = callbackQuery.message.message_id;
+    const data = callbackQuery.data;
+    const telegramId = callbackQuery.from.id;
+    
+    console.log(`Received callback from ${telegramId}: ${data}`);
+    
+    const token = await getUserToken(telegramId);
+    
+    if (!token) {
+      await answerCallbackQuery(callbackQuery.id, 'Ошибка авторизации');
+      return;
+    }
+    
+    // Handle category selection for adding transaction
+    if (data.startsWith('add_expense_') || data.startsWith('add_income_')) {
+      const parts = data.split('_');
+      const type = parts[1]; // expense or income
+      const categoryId = parseInt(parts[2]);
+      const amount = parseFloat(parts[3]);
+      const description = parts.slice(4).join('_');
+      
+      const result = await addTransaction(token, type, amount, description, categoryId);
+      
+      if (result && result.id) {
+        await editMessage(
+          chatId,
+          messageId,
+          `✅ <b>Транзакция добавлена!</b>\n\n` +
+          `${type === 'income' ? '💰 Доход' : '💸 Расход'}: <b>${amount} ₽</b>\n` +
+          `📝 ${description}\n\n` +
+          `Используйте /balance для просмотра баланса`
+        );
+        await answerCallbackQuery(callbackQuery.id, '✅ Добавлено!');
+      } else {
+        await answerCallbackQuery(callbackQuery.id, '❌ Ошибка при добавлении');
+      }
+    }
+    
+    return;
+  }
+  
   if (!update.message || !update.message.text) return;
   
   const message = update.message;
@@ -71,6 +241,164 @@ async function handleUpdate(update: TelegramUpdate) {
   const firstName = message.from.first_name;
   
   console.log(`Received message from ${firstName} (${telegramId}): ${text}`);
+  
+  // Handle /add command: /add 500 продукты
+  if (text.startsWith('/add ')) {
+    const token = await getUserToken(telegramId);
+    
+    if (!token) {
+      await sendMessage(chatId, '❌ Сначала авторизуйтесь через /start');
+      return;
+    }
+    
+    const parts = text.slice(5).trim().split(' ');
+    
+    if (parts.length < 2) {
+      await sendMessage(
+        chatId,
+        `❌ <b>Неверный формат команды</b>\n\n` +
+        `<b>Использование:</b>\n` +
+        `/add [сумма] [описание]\n\n` +
+        `<b>Примеры:</b>\n` +
+        `/add 500 продукты\n` +
+        `/add 1000 зарплата\n` +
+        `/add 150 кофе`
+      );
+      return;
+    }
+    
+    const amount = parseFloat(parts[0]);
+    const description = parts.slice(1).join(' ');
+    
+    if (isNaN(amount) || amount <= 0) {
+      await sendMessage(chatId, '❌ Неверная сумма. Укажите положительное число.');
+      return;
+    }
+    
+    // Ask user to choose type and category
+    await sendMessage(
+      chatId,
+      `💰 <b>Добавление транзакции</b>\n\n` +
+      `<b>Сумма:</b> ${amount} ₽\n` +
+      `<b>Описание:</b> ${description}\n\n` +
+      `Выберите тип транзакции:`,
+      {
+        inline_keyboard: [
+          [
+            {
+              text: '💸 Расход',
+              callback_data: `choose_expense_${amount}_${description}`
+            },
+            {
+              text: '💰 Доход',
+              callback_data: `choose_income_${amount}_${description}`
+            }
+          ]
+        ]
+      }
+    );
+    
+    return;
+  }
+  
+  // Handle category selection
+  if (text.startsWith('choose_expense_') || text.startsWith('choose_income_')) {
+    const token = await getUserToken(telegramId);
+    
+    if (!token) {
+      await sendMessage(chatId, '❌ Ошибка авторизации');
+      return;
+    }
+    
+    const parts = text.split('_');
+    const type = parts[1]; // expense or income
+    const amount = parseFloat(parts[2]);
+    const description = parts.slice(3).join('_');
+    
+    const categories = await getCategories(token, type);
+    
+    if (categories.length === 0) {
+      // Add without category
+      const result = await addTransaction(token, type, amount, description);
+      
+      if (result && result.id) {
+        await sendMessage(
+          chatId,
+          `✅ <b>Транзакция добавлена!</b>\n\n` +
+          `${type === 'income' ? '💰 Доход' : '💸 Расход'}: <b>${amount} ₽</b>\n` +
+          `📝 ${description}`
+        );
+      } else {
+        await sendMessage(chatId, '❌ Ошибка при добавлении транзакции');
+      }
+      
+      return;
+    }
+    
+    // Show categories
+    const keyboard = categories.slice(0, 10).map(cat => [{
+      text: `${cat.icon} ${cat.name}`,
+      callback_data: `add_${type}_${cat.id}_${amount}_${description}`
+    }]);
+    
+    // Add "Without category" button
+    keyboard.push([{
+      text: '📝 Без категории',
+      callback_data: `add_${type}_0_${amount}_${description}`
+    }]);
+    
+    await sendMessage(
+      chatId,
+      `📂 <b>Выберите категорию</b>\n\n` +
+      `${type === 'income' ? '💰 Доход' : '💸 Расход'}: <b>${amount} ₽</b>\n` +
+      `📝 ${description}`,
+      { inline_keyboard: keyboard }
+    );
+    
+    return;
+  }
+  
+  // Handle /balance command
+  if (text === '/balance') {
+    const token = await getUserToken(telegramId);
+    
+    if (!token) {
+      await sendMessage(chatId, '❌ Сначала авторизуйтесь через /start');
+      return;
+    }
+    
+    const stats = await getUserBalance(token);
+    
+    if (!stats) {
+      await sendMessage(chatId, '❌ Ошибка при получении баланса');
+      return;
+    }
+    
+    const balance = parseFloat(stats.balance || 0);
+    const income = parseFloat(stats.totalIncome || 0);
+    const expense = parseFloat(stats.totalExpense || 0);
+    
+    await sendMessage(
+      chatId,
+      `💰 <b>Ваш баланс</b>\n\n` +
+      `<b>Текущий баланс:</b> ${balance.toFixed(0)} ₽\n\n` +
+      `📈 <b>Доходы:</b> ${income.toFixed(0)} ₽\n` +
+      `📉 <b>Расходы:</b> ${expense.toFixed(0)} ₽\n\n` +
+      `💡 Используйте /add для быстрого добавления транзакции`,
+      {
+        inline_keyboard: [
+          [
+            {
+              text: '📱 Открыть приложение',
+              web_app: { url: FRONTEND_URL }
+            }
+          ]
+        ]
+      }
+    );
+    
+    return;
+  }
   
   if (text === '/start') {
     try {
@@ -87,19 +415,22 @@ async function handleUpdate(update: TelegramUpdate) {
         `📊 Анализировать финансы с помощью графиков\n` +
         `🎯 Достигать финансовых целей\n` +
         `💳 Управлять несколькими счетами\n\n` +
+        `<b>Быстрые команды:</b>\n` +
+        `/add 500 продукты - добавить транзакцию\n` +
+        `/balance - посмотреть баланс\n\n` +
         `<b>Выберите, как хотите использовать Finio:</b>`,
         {
           inline_keyboard: [
             [
               {
-                text: '🌐 Открыть Сайт',
-                url: authUrl
+                text: '📱 Открыть Mini App',
+                web_app: { url: FRONTEND_URL }
               }
             ],
             [
               {
-                text: '📱 Открыть Mini App',
-                web_app: { url: FRONTEND_URL }
+                text: '🌐 Открыть Сайт',
+                url: authUrl
               }
             ]
           ]
@@ -162,10 +493,16 @@ async function handleUpdate(update: TelegramUpdate) {
       `📖 <b>Помощь по Finio</b>\n\n` +
       `<b>Доступные команды:</b>\n\n` +
       `/start - Начать работу с Finio\n` +
+      `/add [сумма] [описание] - Добавить транзакцию\n` +
+      `/balance - Посмотреть баланс\n` +
       `/app - Открыть Mini App в Telegram\n` +
       `/site - Открыть сайт в браузере\n` +
       `/help - Показать эту справку\n` +
       `/about - О приложении\n\n` +
+      `<b>Примеры использования:</b>\n\n` +
+      `/add 500 продукты\n` +
+      `/add 1000 зарплата\n` +
+      `/add 150 кофе\n\n` +
       `<b>Возможности Finio:</b>\n\n` +
       `• Учёт доходов и расходов\n` +
       `• Категории транзакций\n` +
@@ -221,6 +558,8 @@ async function setCommands() {
   
   const commands = [
     { command: 'start', description: '🚀 Начать работу с Finio' },
+    { command: 'add', description: '💰 Добавить транзакцию' },
+    { command: 'balance', description: '💳 Посмотреть баланс' },
     { command: 'app', description: '📱 Открыть приложение' },
     { command: 'site', description: '🌐 Открыть сайт' },
     { command: 'help', description: '📖 Помощь и информация' },

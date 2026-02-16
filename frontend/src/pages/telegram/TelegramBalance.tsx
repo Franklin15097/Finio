@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import { getIconComponent } from '../../components/IconPicker';
-import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, PiggyBank, Calendar, ArrowUpRight, ArrowDownRight, Target } from 'lucide-react';
 import { BalanceChart } from '../../components/charts/BalanceChart';
 import ProgressBar from '../../components/charts/ProgressBar';
 import SparklineChart from '../../components/charts/SparklineChart';
+import CircularProgress from '../../components/CircularProgress';
 
 export default function TelegramBalance() {
   const [stats, setStats] = useState<any>(null);
@@ -69,8 +70,45 @@ export default function TelegramBalance() {
 
   return (
     <div className="p-4 space-y-4 pb-24">
+      {/* Circular Progress Indicators */}
+      <div className="glass-card rounded-2xl p-4 border border-border/30">
+        <h2 className="text-sm font-semibold text-white mb-4">Финансовое здоровье</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-col items-center">
+            <CircularProgress
+              value={stats?.totalIncome || 0}
+              max={(stats?.totalIncome || 0) + (stats?.totalExpense || 0)}
+              size={90}
+              strokeWidth={6}
+              color="#10b981"
+              label="Доходы"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <CircularProgress
+              value={Math.abs(balance)}
+              max={(stats?.totalIncome || 0) + (stats?.totalExpense || 0)}
+              size={90}
+              strokeWidth={6}
+              color={balance >= 0 ? '#8b5cf6' : '#ef4444'}
+              label="Баланс"
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <CircularProgress
+              value={totalActual}
+              max={totalPlanned > 0 ? totalPlanned : totalActual}
+              size={90}
+              strokeWidth={6}
+              color="#3b82f6"
+              label="Счета"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Main Stats */}
-      <div className="grid grid-cols-2 gap-3 pt-2">
+      <div className="grid grid-cols-2 gap-3">
         <div className="glass-card rounded-2xl p-4 border border-border/30">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
