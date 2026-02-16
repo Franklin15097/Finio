@@ -1,1 +1,34 @@
-{"name":"financial-literacy-app","version":"1.0.0","description":"Financial literacy web application","private":true,"workspaces":["frontend","backend"],"scripts":{"dev":"concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"","build":"npm run build -w frontend && npm run build -w backend","docker:up":"docker-compose up -d","docker:down":"docker-compose down"},"devDependencies":{"concurrently":"^8.2.0"}}
+{
+  "name": "finio",
+  "version": "1.0.0",
+  "description": "Personal Finance Management App - Web & Telegram Mini App",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"",
+    "build": "npm run build -w frontend && npm run build -w backend",
+    "deploy": "./scripts/deploy.sh full",
+    "deploy:frontend": "./scripts/deploy.sh frontend",
+    "deploy:backend": "./scripts/deploy.sh backend",
+    "deploy:bot": "./scripts/deploy.sh bot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Franklin15097/Finio.git"
+  },
+  "keywords": [
+    "finance",
+    "telegram",
+    "mini-app",
+    "analytics",
+    "budget"
+  ],
+  "author": "Franklin",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
