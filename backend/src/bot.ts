@@ -158,7 +158,7 @@ async function addTransaction(token: string, type: string, amount: number, descr
   }
 }
 
-async function getCategories(token: string, type: string): Promise<any[]> {
+async function getCategories(token: string, type: string = 'all'): Promise<any[]> {
   try {
     const response = await fetch(`${BACKEND_URL}/api/categories`, {
       headers: {
@@ -168,6 +168,9 @@ async function getCategories(token: string, type: string): Promise<any[]> {
     });
     
     const categories = await response.json() as any[];
+    if (type === 'all') {
+      return categories;
+    }
     return categories.filter((c: any) => c.type === type);
   } catch (error) {
     console.error('Error getting categories:', error);
@@ -516,7 +519,7 @@ async function handleUpdate(update: TelegramUpdate) {
       chatId,
       `ℹ️ <b>О Finio</b>\n\n` +
       `<b>Finio</b> — современный финансовый помощник для управления личными финансами.\n\n` +
-      `<b>Версия:</b> 1.0.0\n` +
+      `<b>Версия:</b> 2.0.0\n` +
       `<b>Платформа:</b> Web + Telegram Mini App\n\n` +
       `<b>Основные функции:</b>\n\n` +
       `💰 <b>Учёт финансов</b>\n` +
@@ -531,6 +534,100 @@ async function handleUpdate(update: TelegramUpdate) {
       `Все данные защищены и хранятся надёжно\n\n` +
       `Используйте /start чтобы начать!`
     );
+  } else if (text === '/stats') {
+    const token = await getUserToken(telegramId);
+    
+    if (!token) {
+      await sendMessage(chatId, '❌ Сначала авторизуйтесь через /start');
+      return;
+    }
+    
+    const stats = await getUserBalance(token);
+    
+    if (!stats) {
+      await sendMessage(chatId, '❌ Ошибка при получении статистики');
+      return;
+    }
+    
+    const balance = parseFloat(stats.balance || 0);
+    const income = parseFloat(stats.totalIncome || 0);
+    const expense = parseFloat(stats.totalExpense || 0);
+    const transactionCount = parseInt(stats.transactionCount || 0);
+    const averageIncome = parseFloat(stats.averageIncome || 0);
+    const averageExpense = parseFloat(stats.averageExpense || 0);
+    
+    // Получаем аналитику по категориям
+    const categoriesResponse = await fetch(`${BACKEND_URL}/api/analytics/categories`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    let categoriesStats = '';
+    if (categoriesResponse.ok) {
+      const categoriesData = await categoriesResponse.json();
+      if (categoriesData.length > 0) {
+        const topCategories = categoriesData.slice(0, 3);
+        categoriesStats = `\n<b>Топ категории:</b>\n`;
+        topCategories.forEach((cat: any, index: number) => {
+          categoriesStats += `${index + 1}. ${cat.name}: ${cat.total_amount.toFixed(0)} ₽\n`;
+        });
+      }
+    }
+    
+    await sendMessage(
+      chatId,
+      `📊 <b>Статистика Finio</b>\n\n` +
+      `<b>Общая статистика:</b>\n` +
+      `💰 Баланс: <b>${balance.toFixed(0)} ₽</b>\n` +
+      `📈 Доходы: <b>${income.toFixed(0)} ₽</b>\n` +
+      `📉 Расходы: <b>${expense.toFixed(0)} ₽</b>\n` +
+      `📝 Транзакций: <b>${transactionCount}</b>\n` +
+      `📊 Средний доход: <b>${averageIncome.toFixed(0)} ₽</b>\n` +
+      `📊 Средний расход: <b>${averageExpense.toFixed(0)} ₽</b>\n` +
+      `${categoriesStats}\n` +
+      `💡 Используйте /categories для просмотра всех категорий`
+    );
+  } else if (text === '/categories') {
+    const token = await getUserToken(telegramId);
+    
+    if (!token) {
+      await sendMessage(chatId, '❌ Сначала авторизуйтесь через /start');
+      return;
+    }
+    
+    const categories = await getCategories(token, 'all');
+    
+    if (categories.length === 0) {
+      await sendMessage(chatId, '📂 У вас пока нет категорий. Используйте /add чтобы добавить транзакцию и создать категории.');
+      return;
+    }
+    
+    // Группируем категории по типу
+    const incomeCategories = categories.filter((c: any) => c.type === 'income');
+    const expenseCategories = categories.filter((c: any) => c.type === 'expense');
+    
+    let message = `📂 <b>Ваши категории</b>\n\n`;
+    
+    if (incomeCategories.length > 0) {
+      message += `<b>💰 Категории доходов:</b>\n`;
+      incomeCategories.forEach((cat: any, index: number) => {
+        message += `${index + 1}. ${cat.icon} ${cat.name}\n`;
+      });
+      message += `\n`;
+    }
+    
+    if (expenseCategories.length > 0) {
+      message += `<b>💸 Категории расходов:</b>\n`;
+      expenseCategories.forEach((cat: any, index: number) => {
+        message += `${index + 1}. ${cat.icon} ${cat.name}\n`;
+      });
+    }
+    
+    message += `\n💡 Используйте /add [сумма] [описание] для добавления транзакции`;
+    
+    await sendMessage(chatId, message);
   }
 }
 
@@ -560,6 +657,8 @@ async function setCommands() {
     { command: 'start', description: '🚀 Начать работу с Finio' },
     { command: 'add', description: '💰 Добавить транзакцию' },
     { command: 'balance', description: '💳 Посмотреть баланс' },
+    { command: 'stats', description: '📊 Подробная статистика' },
+    { command: 'categories', description: '📂 Показать категории' },
     { command: 'app', description: '📱 Открыть приложение' },
     { command: 'site', description: '🌐 Открыть сайт' },
     { command: 'help', description: '📖 Помощь и информация' },

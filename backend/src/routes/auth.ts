@@ -4,23 +4,15 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import pool from '../db.js';
+import { tokenStore } from '../redis.js';
+import { authLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 
-// Store for one-time auth tokens (in production use Redis)
-const authTokens = new Map<string, { telegramId: number; expiresAt: number }>();
-
-// Clean expired tokens every minute
-setInterval(() => {
-  const now = Date.now();
-  for (const [token, data] of authTokens.entries()) {
-    if (data.expiresAt < now) {
-      authTokens.delete(token);
-    }
-  }
-}, 60000);
+// Применяем rate limiting к auth endpoints
+router.use(authLimiter);
 
 // Validate Telegram Web App data
 function validateTelegramWebAppData(initData: string): any {
@@ -96,11 +88,10 @@ router.post('/generate-auth-token', async (req, res) => {
   // Generate random token
   const authToken = crypto.randomBytes(32).toString('hex');
   
-  // Store token with 5 minute expiration
-  authTokens.set(authToken, {
-    telegramId: parseInt(telegramId),
-    expiresAt: Date.now() + 5 * 60 * 1000
-  });
+  // Store token in Redis with 5 minute expiration
+  await tokenStore.set(authToken, {
+    telegramId: parseInt(telegramId)
+  }, 300); // 5 minutes TTL
   
   console.log('Generated auth token for telegram ID:', telegramId);
   
@@ -115,19 +106,15 @@ router.post('/exchange-token', async (req, res) => {
     return res.status(400).json({ error: 'Auth token required' });
   }
   
-  const tokenData = authTokens.get(authToken);
+  // Get token from Redis
+  const tokenData = await tokenStore.get(authToken);
   
   if (!tokenData) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
   
-  if (tokenData.expiresAt < Date.now()) {
-    authTokens.delete(authToken);
-    return res.status(401).json({ error: 'Token expired' });
-  }
-  
-  // Delete token (one-time use)
-  authTokens.delete(authToken);
+  // Delete token from Redis (one-time use)
+  await tokenStore.delete(authToken);
   
   const telegramId = tokenData.telegramId;
   

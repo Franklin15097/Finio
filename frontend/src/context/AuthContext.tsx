@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../services/api';
 import { isTelegramWebApp, getTelegramInitData } from '../utils/telegram';
+import { socketService } from '../services/socket';
 
 interface User {
   id: number;
@@ -28,6 +29,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  // Подключаем WebSocket при авторизации
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (user && token) {
+      console.log('Connecting to WebSocket...');
+      socketService.connect(token);
+    }
+    
+    return () => {
+      socketService.offAll();
+    };
+  }, [user]);
 
   const checkAuth = async () => {
     console.log('=== checkAuth started ===');
@@ -128,6 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    socketService.disconnect();
   };
 
   return (

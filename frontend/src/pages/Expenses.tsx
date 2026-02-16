@@ -4,8 +4,19 @@ import { api } from '../services/api';
 import Modal from '../components/Modal';
 import IconPicker, { getIconComponent } from '../components/IconPicker';
 import DatePicker from '../components/DatePicker';
-import SparklineChart from '../components/charts/SparklineChart';
-import { Plus, TrendingDown, Search, Edit2, Trash2, Tag, Calendar, X, ChevronDown, ChevronRight } from 'lucide-react';
+import TransactionFilter, { TransactionFilters } from '../components/TransactionFilter';
+import { 
+  filterTransactions, 
+  sortTransactionsByDate, 
+  groupTransactionsByDate,
+  calculateTransactionStats,
+  formatTransactionDate,
+  formatTransactionAmount
+} from '../utils/filterTransactions';
+import { useRealtimeSync } from '../hooks/useRealtimeSync';
+import { Skeleton, TransactionSkeleton, StatCardSkeleton } from '../components/Skeleton';
+import { TransactionsEmptyState } from '../components/EmptyState';
+import { Plus, TrendingDown, Edit2, Trash2, Tag, Calendar, ChevronRight, BarChart3, PieChart } from 'lucide-react';
 import { isTelegramWebApp } from '../utils/telegram';
 import TelegramExpenses from './telegram/TelegramExpenses';
 
@@ -17,31 +28,48 @@ export default function Expenses() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<any[]>([]);
+  const [groupedTransactions, setGroupedTransactions] = useState<Record<string, any[]>>({});
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
   
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<'all' | 'week' | 'month' | 'year'>('month');
-  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<TransactionFilters>({
+    search: '',
+    startDate: null,
+    endDate: null,
+    categoryIds: [],
+    type: 'expense',
+    minAmount: null,
+    maxAmount: null
+  });
   
   const [transactionForm, setTransactionForm] = useState({
     amount: '',
     description: '',
     category_id: '',
-    transaction_date: new Date().toISOString().split('T')[0]
+    transaction_date: new Date().toISOString().split('T')[0],
+    type: 'expense'
   });
   
   const [categoryForm, setCategoryForm] = useState({
     name: '',
-    icon: 'ShoppingCart'
+    icon: 'ShoppingCart',
+    type: 'expense'
+  });
+
+  // Real-time синхронизация
+  useRealtimeSync({
+    onTransactionCreated: () => loadData(),
+    onTransactionUpdated: () => loadData(),
+    onTransactionDeleted: () => loadData(),
+    onCategoryCreated: () => loadData(),
+    onCategoryUpdated: () => loadData(),
+    onCategoryDeleted: () => loadData()
   });
 
   useEffect(() => {
@@ -49,8 +77,18 @@ export default function Expenses() {
   }, []);
 
   useEffect(() => {
-    filterTransactions();
-  }, [transactions, searchQuery, selectedCategory, dateRange, sortBy, sortOrder]);
+    // Применяем фильтры
+    const filtered = filterTransactions(transactions, filters);
+    const sorted = sortTransactionsByDate(filtered, 'desc');
+    const grouped = groupTransactionsByDate(sorted);
+    
+    setFilteredTransactions(sorted);
+    setGroupedTransactions(grouped);
+    
+    // Вычисляем статистику
+    const transactionStats = calculateTransactionStats(filtered);
+    setStats(transactionStats);
+  }, [transactions, filters]);
 
   const loadData = async () => {
     try {
