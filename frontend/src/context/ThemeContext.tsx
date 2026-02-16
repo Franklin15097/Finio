@@ -1,39 +1,52 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Theme, themes, getTheme } from '../styles/themes';
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  themeName: string;
+  setTheme: (name: string) => void;
+  availableThemes: typeof themes;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
-  toggleTheme: () => {},
-});
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('finio-theme') as Theme) || 'dark';
-    }
-    return 'dark';
+  const [themeName, setThemeName] = useState<string>(() => {
+    return localStorage.getItem('theme') || 'ocean';
   });
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    localStorage.setItem('finio-theme', theme);
-  }, [theme]);
+  const theme = getTheme(themeName);
 
-  const toggleTheme = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'));
+  useEffect(() => {
+    localStorage.setItem('theme', themeName);
+    
+    // Применяем CSS переменные
+    const root = document.documentElement;
+    Object.entries(theme.colors).forEach(([key, value]) => {
+      root.style.setProperty(`--color-${key}`, value);
+    });
+    Object.entries(theme.effects).forEach(([key, value]) => {
+      root.style.setProperty(`--effect-${key}`, value);
+    });
+  }, [theme, themeName]);
+
+  const setTheme = (name: string) => {
+    if (themes[name]) {
+      setThemeName(name);
+    }
+  };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, themeName, setTheme, availableThemes: themes }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
-export const useTheme = () => useContext(ThemeContext);
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider');
+  }
+  return context;
+}
