@@ -225,4 +225,32 @@ export const api = {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   },
+
+  exportExcel: async (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    const res = await fetch(`${API_URL}/analytics/export/excel?${query}`, { headers: headers() });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${Date.now()}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
+
+  exportPDF: async (params?: { startDate?: string; endDate?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    const res = await fetch(`${API_URL}/analytics/export/pdf?${query}`, { headers: headers() });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${Date.now()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
 };

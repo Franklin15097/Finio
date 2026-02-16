@@ -9,7 +9,8 @@ import {
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
-  Sparkles
+  Sparkles,
+  Activity
 } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -20,7 +21,9 @@ export default function TelegramAnalytics() {
   const [forecast, setForecast] = useState<any>(null);
   const [trends, setTrends] = useState<any[]>([]);
   const [comparison, setComparison] = useState<any>(null);
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month');
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   useEffect(() => {
     loadAnalytics();
@@ -46,15 +49,17 @@ export default function TelegramAnalytics() {
         endDate: now.toISOString().split('T')[0]
       };
 
-      const [expensesData, forecastData, trendsData] = await Promise.all([
+      const [expensesData, forecastData, trendsData, heatmap] = await Promise.all([
         api.getTopExpenses({ ...params, limit: 5 }),
         api.getForecast(30),
-        api.getTrends(selectedPeriod === 'week' ? 'day' : selectedPeriod === 'month' ? 'week' : 'month')
+        api.getTrends(selectedPeriod === 'week' ? 'day' : selectedPeriod === 'month' ? 'week' : 'month'),
+        api.getHeatmapData(params)
       ]);
 
       setTopExpenses(expensesData);
       setForecast(forecastData);
       setTrends(trendsData);
+      setHeatmapData(heatmap);
 
       // Сравнение с предыдущим периодом
       const prevStartDate = new Date(startDate);
@@ -84,16 +89,26 @@ export default function TelegramAnalytics() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
     try {
       const now = new Date();
       const startDate = new Date(now);
       startDate.setDate(now.getDate() - 90); // Последние 3 месяца
       
-      await api.exportCSV({
+      const params = {
         startDate: startDate.toISOString().split('T')[0],
         endDate: now.toISOString().split('T')[0]
-      });
+      };
+
+      if (format === 'csv') {
+        await api.exportCSV(params);
+      } else if (format === 'excel') {
+        await api.exportExcel(params);
+      } else {
+        await api.exportPDF(params);
+      }
+      
+      setShowExportMenu(false);
     } catch (error) {
       console.error('Failed to export:', error);
       alert('Ошибка при экспорте данных');
@@ -129,13 +144,38 @@ export default function TelegramAnalytics() {
           <h1 className="text-2xl font-bold text-white">Аналитика</h1>
           <p className="text-white/60 text-sm">Детальный анализ финансов</p>
         </div>
-        <button
-          onClick={handleExport}
-          className="px-4 py-2 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl text-white font-semibold text-sm flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Экспорт
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-fuchsia-600 rounded-xl text-white font-semibold text-sm flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Экспорт
+          </button>
+          
+          {showExportMenu && (
+            <div className="absolute right-0 mt-2 w-48 glass-card rounded-xl border border-border/30 shadow-xl z-50 overflow-hidden">
+              <button
+                onClick={() => handleExport('csv')}
+                className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors text-sm"
+              >
+                📄 Экспорт в CSV
+              </button>
+              <button
+                onClick={() => handleExport('excel')}
+                className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors text-sm border-t border-white/10"
+              >
+                📊 Экспорт в Excel
+              </button>
+              <button
+                onClick={() => handleExport('pdf')}
+                className="w-full px-4 py-3 text-left text-white hover:bg-white/10 transition-colors text-sm border-t border-white/10"
+              >
+                📑 Экспорт в PDF
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Period Selector */}
@@ -321,6 +361,60 @@ export default function TelegramAnalytics() {
               <Bar dataKey="expense" fill="#ef4444" name="Расходы" />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Heatmap */}
+      {heatmapData.length > 0 && (
+        <div className="glass-card rounded-2xl p-4 border border-border/30">
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="w-5 h-5 text-purple-400" />
+            <h2 className="text-sm font-bold text-white">Тепловая карта расходов</h2>
+          </div>
+          
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5, 6, 7].map((dayOfWeek) => {
+              const dayName = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][dayOfWeek - 1];
+              const dayData = heatmapData.filter(d => d.day_of_week === dayOfWeek);
+              const maxAmount = Math.max(...heatmapData.map(d => parseFloat(d.total_amount)));
+              
+              return (
+                <div key={dayOfWeek} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 w-8">{dayName}</span>
+                  <div className="flex-1 flex gap-1">
+                    {Array.from({ length: 24 }, (_, hour) => {
+                      const hourData = dayData.find(d => d.hour_of_day === hour);
+                      const amount = hourData ? parseFloat(hourData.total_amount) : 0;
+                      const intensity = amount > 0 ? (amount / maxAmount) : 0;
+                      
+                      return (
+                        <div
+                          key={hour}
+                          className="flex-1 h-6 rounded-sm transition-all hover:scale-110 cursor-pointer"
+                          style={{
+                            backgroundColor: intensity > 0 
+                              ? `rgba(239, 68, 68, ${0.2 + intensity * 0.8})` 
+                              : 'rgba(255, 255, 255, 0.05)'
+                          }}
+                          title={`${dayName} ${hour}:00 - ${amount.toFixed(0)} ₽`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+            <span className="text-xs text-gray-400">0:00</span>
+            <span className="text-xs text-gray-400">12:00</span>
+            <span className="text-xs text-gray-400">23:00</span>
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-2">
+            Чем ярче цвет, тем больше расходов в это время
+          </p>
         </div>
       )}
 

@@ -8,6 +8,7 @@ import Income from './pages/Income';
 import Expenses from './pages/Expenses';
 import Accounts from './pages/Accounts';
 import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 import TelegramCategories from './pages/telegram/TelegramCategories';
 import TelegramAnalytics from './pages/telegram/TelegramAnalytics';
 import './App.css';
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
         <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
         <Route path="/telegram/categories" element={<PrivateRoute><TelegramCategories /></PrivateRoute>} />
         <Route path="/telegram/analytics" element={<PrivateRoute><TelegramAnalytics /></PrivateRoute>} />
       </Routes>

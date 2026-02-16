@@ -9,7 +9,8 @@ import {
   LogOut,
   User,
   Sun,
-  Moon
+  Moon,
+  BarChart3
 } from 'lucide-react';
 import TelegramLayout from './TelegramLayout';
 import { isTelegramWebApp } from '../utils/telegram';
@@ -31,9 +32,10 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { path: '/', icon: Wallet, label: 'Баланс', gradient: 'from-purple-500 to-purple-600' },
-    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-purple-600 to-purple-700' },
-    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-purple-700 to-purple-800' },
-    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-purple-500 to-fuchsia-600' },
+    { path: '/income', icon: TrendingUp, label: 'Доходы', gradient: 'from-green-500 to-emerald-600' },
+    { path: '/expenses', icon: TrendingDown, label: 'Расходы', gradient: 'from-red-500 to-pink-600' },
+    { path: '/accounts', icon: Wallet, label: 'Счета', gradient: 'from-blue-500 to-indigo-600' },
+    { path: '/analytics', icon: BarChart3, label: 'Аналитика', gradient: 'from-purple-500 to-fuchsia-600' },
   ];
 
   return (

@@ -286,6 +286,143 @@ router.get('/export/csv', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// Экспорт данных в Excel
+router.get('/export/excel', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const XLSX = await import('xlsx');
+    const { startDate, endDate } = req.query;
+    
+    let query = `
+      SELECT 
+        DATE_FORMAT(t.transaction_date, '%d.%m.%Y') as 'Дата',
+        COALESCE(c.name, 'Без категории') as 'Категория',
+        CASE WHEN c.type = 'income' THEN 'Доход' ELSE 'Расход' END as 'Тип',
+        t.amount as 'Сумма',
+        t.description as 'Описание'
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = ?
+    `;
+    
+    const params: any[] = [req.userId];
+    
+    if (startDate && endDate) {
+      query += ` AND t.transaction_date BETWEEN ? AND ?`;
+      params.push(startDate, endDate);
+    }
+    
+    query += ` ORDER BY t.transaction_date DESC`;
+    
+    const [rows]: any = await pool.query(query, params);
+    
+    // Создаем workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(rows);
+    
+    // Настраиваем ширину колонок
+    ws['!cols'] = [
+      { wch: 12 }, // Дата
+      { wch: 20 }, // Категория
+      { wch: 10 }, // Тип
+      { wch: 12 }, // Сумма
+      { wch: 40 }  // Описание
+    ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, 'Транзакции');
+    
+    // Генерируем буфер
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="transactions_${Date.now()}.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Failed to export Excel:', error);
+    res.status(500).json({ error: 'Failed to export Excel' });
+  }
+});
+
+// Экспорт данных в PDF
+router.get('/export/pdf', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const PDFDocument = (await import('pdfkit')).default;
+    const { startDate, endDate } = req.query;
+    
+    let query = `
+      SELECT 
+        DATE_FORMAT(t.transaction_date, '%d.%m.%Y') as date,
+        COALESCE(c.name, 'Без категории') as category,
+        c.type as type,
+        t.amount as amount,
+        t.description as description
+      FROM transactions t
+      LEFT JOIN categories c ON t.category_id = c.id
+      WHERE t.user_id = ?
+    `;
+    
+    const params: any[] = [req.userId];
+    
+    if (startDate && endDate) {
+      query += ` AND t.transaction_date BETWEEN ? AND ?`;
+      params.push(startDate, endDate);
+    }
+    
+    query += ` ORDER BY t.transaction_date DESC LIMIT 100`;
+    
+    const [rows]: any = await pool.query(query, params);
+    
+    // Создаем PDF
+    const doc = new PDFDocument({ margin: 50 });
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="transactions_${Date.now()}.pdf"`);
+    
+    doc.pipe(res);
+    
+    // Заголовок
+    doc.fontSize(20).text('Отчет по транзакциям', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(10).text(`Период: ${startDate || 'все время'} - ${endDate || 'сегодня'}`, { align: 'center' });
+    doc.moveDown(2);
+    
+    // Таблица
+    doc.fontSize(8);
+    const tableTop = 150;
+    const rowHeight = 20;
+    
+    // Заголовки
+    doc.text('Дата', 50, tableTop);
+    doc.text('Категория', 120, tableTop);
+    doc.text('Тип', 220, tableTop);
+    doc.text('Сумма', 280, tableTop);
+    doc.text('Описание', 350, tableTop);
+    
+    // Линия под заголовками
+    doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+    
+    // Данные
+    rows.forEach((row: any, i: number) => {
+      const y = tableTop + 20 + (i * rowHeight);
+      
+      if (y > 700) {
+        doc.addPage();
+        return;
+      }
+      
+      doc.text(row.date || '', 50, y);
+      doc.text(row.category || '', 120, y, { width: 90 });
+      doc.text(row.type === 'income' ? 'Доход' : 'Расход', 220, y);
+      doc.text(`${row.amount} ₽`, 280, y);
+      doc.text(row.description || '', 350, y, { width: 180 });
+    });
+    
+    doc.end();
+  } catch (error) {
+    console.error('Failed to export PDF:', error);
+    res.status(500).json({ error: 'Failed to export PDF' });
+  }
+});
+
 // Анализ трендов
 router.get('/trends', authenticate, async (req: AuthRequest, res) => {
   try {
