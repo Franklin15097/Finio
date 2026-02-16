@@ -39,6 +39,9 @@ const PORT = process.env.PORT || 5000;
 // Создаем HTTP сервер для WebSocket
 const server = createServer(app);
 
+// Trust proxy for rate limiting behind nginx
+app.set('trust proxy', 1);
+
 // Настраиваем WebSocket
 const io = setupSocket(server);
 
