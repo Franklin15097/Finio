@@ -566,7 +566,7 @@ async function handleUpdate(update: TelegramUpdate) {
     
     let categoriesStats = '';
     if (categoriesResponse.ok) {
-      const categoriesData = await categoriesResponse.json();
+      const categoriesData: any = await categoriesResponse.json();
       if (categoriesData.length > 0) {
         const topCategories = categoriesData.slice(0, 3);
         categoriesStats = `\n<b>Топ категории:</b>\n`;
