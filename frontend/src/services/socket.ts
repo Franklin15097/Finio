@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || window.location.origin;
+const SOCKET_URL = (import.meta as any).env?.VITE_API_URL || window.location.origin;
 
 class SocketService {
   private socket: Socket | null = null;
