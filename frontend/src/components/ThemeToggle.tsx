@@ -27,7 +27,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
       localStorage.setItem('finio-theme', systemTheme);
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(systemTheme);
-    } else {
+    } else if (toggleTheme) {
       toggleTheme();
     }
   };

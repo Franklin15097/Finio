@@ -47,12 +47,11 @@ export default function BottomNavigation() {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className="relative -mt-8 transition-transform active:scale-95"
+                className="relative -mt-8 transition-transform active:scale-95 w-16 h-16 rounded-full flex items-center justify-center"
                 style={{
                   background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.accent})`,
                   boxShadow: `0 8px 30px ${theme.colors.primary}60`,
                 }}
-                className="w-16 h-16 rounded-full flex items-center justify-center"
               >
                 <Icon size={28} color="#FFFFFF" />
               </button>
