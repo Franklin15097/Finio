@@ -1,38 +1,93 @@
 #!/bin/bash
+
+# ============================================================================
+# Finio - Быстрое обновление на сервере
+# ============================================================================
+# Этот скрипт выполняет быстрое обновление приложения на сервере:
+# - Получает последние изменения из GitHub
+# - Обновляет зависимости
+# - Пересобирает frontend и backend
+# - Перезапускает сервисы
+# ============================================================================
+
 set -e
 
-echo "=== Finio Quick Update Script ==="
-echo "Updating studiofinance.ru..."
-echo ""
+# Цвета для вывода
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
 
+# Конфигурация
 PROJECT_DIR="/var/www/studiofinance"
 
-echo "Step 1: Pull latest changes from GitHub..."
-cd $PROJECT_DIR
+print_header() {
+    echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${NC} ${CYAN}$1${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}\n"
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_info() {
+    echo -e "${CYAN}→${NC} $1"
+}
+
+print_header "🚀 Finio - Быстрое обновление"
+
+# Проверка директории
+if [ ! -d "$PROJECT_DIR" ]; then
+    echo -e "${RED}✗${NC} Директория проекта не найдена: $PROJECT_DIR"
+    exit 1
+fi
+
+cd "$PROJECT_DIR"
+
+# Шаг 1: Получение изменений
+print_info "Получение последних изменений из GitHub..."
 git pull origin main
+print_success "Изменения получены"
 
-echo "Step 2: Update and build frontend..."
+# Шаг 2: Обновление Frontend
+print_info "Обновление Frontend..."
 cd frontend
-npm install
+npm install --production
 npm run build
 cd ..
+print_success "Frontend обновлен"
 
-echo "Step 3: Update and build backend..."
+# Шаг 3: Обновление Backend
+print_info "Обновление Backend..."
 cd backend
-npm install
+npm install --production
 npm run build
 cd ..
+print_success "Backend обновлен"
 
-echo "Step 4: Restart backend service..."
+# Шаг 4: Перезапуск сервисов
+print_info "Перезапуск сервисов..."
 pm2 restart finio-backend
+pm2 restart finio-bot
+print_success "Сервисы перезапущены"
 
-echo "Step 5: Check service status..."
+# Шаг 5: Проверка статуса
+print_info "Проверка статуса сервисов..."
+sleep 2
 pm2 status
 
+print_header "✅ Обновление завершено!"
+
+echo -e "${CYAN}📍 URLs:${NC}"
+echo -e "   ${YELLOW}Frontend:${NC}     https://studiofinance.ru"
+echo -e "   ${YELLOW}Backend API:${NC}  https://api.studiofinance.ru"
+echo -e "   ${YELLOW}Telegram Bot:${NC} @FinanceStudio_bot"
 echo ""
-echo "=== Update Complete! ==="
-echo ""
-echo "Site: https://studiofinance.ru"
-echo ""
-echo "View logs: pm2 logs finio-backend"
+echo -e "${CYAN}📝 Полезные команды:${NC}"
+echo -e "   ${YELLOW}Логи:${NC}         pm2 logs"
+echo -e "   ${YELLOW}Мониторинг:${NC}   pm2 monit"
+echo -e "   ${YELLOW}Статус:${NC}       pm2 status"
 echo ""
