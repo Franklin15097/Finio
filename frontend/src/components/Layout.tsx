@@ -94,35 +94,14 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           </button>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
-            {navItems.slice(0, 4).map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    isActive
-                      ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg`
-                      : 'glass-card hover:bg-card/90 text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
           {/* Header Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ThemeToggle variant="icon" />
-            <div className="hidden md:block text-sm text-foreground font-semibold">
-              {user?.name}
+            <div className="hidden md:flex items-center gap-2 px-3 py-2 glass-card rounded-xl">
+              <div className="w-8 h-8 gradient-primary rounded-full flex items-center justify-center text-white font-bold text-xs">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm text-foreground font-semibold">{user?.name}</span>
             </div>
           </div>
         </div>
