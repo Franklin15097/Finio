@@ -11,6 +11,11 @@ import Settings from './pages/Settings';
 import Analytics from './pages/Analytics';
 import TelegramCategories from './pages/telegram/TelegramCategories';
 import TelegramAnalytics from './pages/telegram/TelegramAnalytics';
+import TelegramIncome from './pages/telegram/TelegramIncome';
+import TelegramExpenses from './pages/telegram/TelegramExpenses';
+import TelegramAccounts from './pages/telegram/TelegramAccounts';
+import TelegramBalance from './pages/telegram/TelegramBalance';
+import TelegramSettings from './pages/telegram/TelegramSettings';
 import { Component, ReactNode } from 'react';
 import './App.css';
 
@@ -95,6 +100,11 @@ function AppRoutes() {
       <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
       <Route path="/telegram/categories" element={<PrivateRoute><TelegramCategories /></PrivateRoute>} />
       <Route path="/telegram/analytics" element={<PrivateRoute><TelegramAnalytics /></PrivateRoute>} />
+      <Route path="/telegram/income" element={<PrivateRoute><TelegramIncome /></PrivateRoute>} />
+      <Route path="/telegram/expenses" element={<PrivateRoute><TelegramExpenses /></PrivateRoute>} />
+      <Route path="/telegram/accounts" element={<PrivateRoute><TelegramAccounts /></PrivateRoute>} />
+      <Route path="/telegram/balance" element={<PrivateRoute><TelegramBalance /></PrivateRoute>} />
+      <Route path="/telegram/settings" element={<PrivateRoute><TelegramSettings /></PrivateRoute>} />
     </Routes>
   );
 }

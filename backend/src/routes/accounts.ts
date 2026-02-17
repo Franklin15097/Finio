@@ -7,12 +7,12 @@ const router = Router();
 // Get all accounts for user with calculated planned balance
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
-    // Get total income
+    // Get total income (including transactions without categories)
     const [incomeResult]: any = await pool.query(
       `SELECT COALESCE(SUM(t.amount), 0) as total_income 
        FROM transactions t 
-       JOIN categories c ON t.category_id = c.id 
-       WHERE t.user_id = ? AND c.type = 'income'`,
+       LEFT JOIN categories c ON t.category_id = c.id 
+       WHERE t.user_id = ? AND (c.type = 'income' OR (c.type IS NULL AND t.amount > 0))`,
       [req.userId]
     );
     

@@ -10,11 +10,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { icon: Home, label: 'Главная', path: '/dashboard' },
-  { icon: BarChart3, label: 'Аналитика', path: '/analytics' },
+  { icon: Home, label: 'Главная', path: '/' },
+  { icon: BarChart3, label: 'Аналитика', path: '/telegram/analytics' },
   { icon: Plus, label: 'Добавить', path: '/add', isCenter: true },
-  { icon: CreditCard, label: 'Счета', path: '/accounts' },
-  { icon: Settings, label: 'Настройки', path: '/settings' },
+  { icon: CreditCard, label: 'Счета', path: '/telegram/accounts' },
+  { icon: Settings, label: 'Настройки', path: '/telegram/settings' },
 ];
 
 export default function BottomNavigation() {

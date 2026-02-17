@@ -17,11 +17,11 @@ export default function TelegramLayout({ children }: TelegramLayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', icon: Wallet, label: 'Баланс' },
-    { path: '/income', icon: TrendingUp, label: 'Доходы' },
-    { path: '/expenses', icon: TrendingDown, label: 'Расходы' },
-    { path: '/accounts', icon: LayoutDashboard, label: 'Счета' },
-    { path: '/settings', icon: Settings, label: 'Ещё' },
+    { path: '/telegram/balance', icon: Wallet, label: 'Баланс' },
+    { path: '/telegram/income', icon: TrendingUp, label: 'Доходы' },
+    { path: '/telegram/expenses', icon: TrendingDown, label: 'Расходы' },
+    { path: '/telegram/accounts', icon: LayoutDashboard, label: 'Счета' },
+    { path: '/telegram/settings', icon: Settings, label: 'Ещё' },
   ];
 
   return (
