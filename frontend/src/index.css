@@ -28,26 +28,26 @@
   }
 
   .light {
-    --background: 220 20% 98%;
-    --foreground: 220 30% 12%;
+    --background: 240 20% 99%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 220 30% 12%;
-    --primary: 258 90% 58%;
+    --card-foreground: 222 47% 11%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 94%;
-    --secondary-foreground: 220 30% 20%;
-    --muted: 220 14% 92%;
-    --muted-foreground: 220 15% 40%;
-    --accent: 258 50% 95%;
-    --accent-foreground: 258 90% 50%;
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 258 90% 58%;
+    --secondary: 240 10% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 240 10% 95%;
+    --muted-foreground: 240 5% 35%;
+    --accent: 262 50% 96%;
+    --accent-foreground: 262 83% 40%;
+    --border: 240 10% 90%;
+    --input: 240 10% 95%;
+    --ring: 262 83% 58%;
 
-    --income: 160 84% 35%;
-    --expense: 350 89% 55%;
-    --info: 210 100% 50%;
-    --warning: 36 100% 52%;
+    --income: 142 76% 36%;
+    --expense: 0 84% 60%;
+    --info: 199 89% 48%;
+    --warning: 38 92% 50%;
   }
 
   .dark {
@@ -125,7 +125,11 @@ code {
 @layer utilities {
   /* Glass card effect */
   .glass-card {
-    @apply bg-card/50 backdrop-blur-xl border border-border/40 shadow-sm transition-colors duration-300;
+    @apply bg-card/80 backdrop-blur-xl border border-border shadow-sm transition-colors duration-300;
+  }
+
+  .glass-card:hover {
+    @apply bg-card/90 border-border/60;
   }
 
   /* Gradient utilities */
@@ -151,6 +155,65 @@ code {
   }
   .bg-expense {
     background-color: hsl(var(--expense));
+  }
+
+  /* Light theme specific utilities */
+  .light .text-white {
+    color: hsl(var(--foreground));
+  }
+  
+  .light .text-white\/60,
+  .light .text-white\/80,
+  .light .text-white\/90 {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .light .bg-white\/5,
+  .light .bg-white\/10,
+  .light .bg-white\/15 {
+    background-color: hsl(var(--muted));
+  }
+
+  .light .border-white\/10,
+  .light .border-white\/20 {
+    border-color: hsl(var(--border));
+  }
+
+  /* Dark theme keeps original colors */
+  .dark .text-white {
+    color: #ffffff;
+  }
+  
+  .dark .text-white\/60 {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .dark .text-white\/80 {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .dark .text-white\/90 {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .dark .bg-white\/5 {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .dark .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .dark .bg-white\/15 {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .dark .border-white\/10 {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .dark .border-white\/20 {
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   @keyframes blob {

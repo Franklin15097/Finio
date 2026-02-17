@@ -103,8 +103,8 @@ export default function DashboardV3() {
             <Wallet className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Главная</h1>
-            <p className="text-white/60 text-sm">
+            <h1 className="text-2xl font-bold text-foreground">Главная</h1>
+            <p className="text-muted-foreground text-sm">
               {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
             </p>
           </div>

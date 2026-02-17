@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import Auth from './pages/Auth';
-import DashboardV3 from './pages/DashboardV3';
+import DashboardImproved from './pages/DashboardImproved';
 import Income from './pages/Income';
 import Expenses from './pages/Expenses';
 import Accounts from './pages/Accounts';
@@ -35,7 +35,7 @@ function AppRoutes() {
     <div key={location.pathname} className="animate-fade-in">
       <Routes location={location}>
         <Route path="/auth" element={user ? <Navigate to="/" /> : <Auth />} />
-        <Route path="/" element={<PrivateRoute><DashboardV3 /></PrivateRoute>} />
+        <Route path="/" element={<PrivateRoute><DashboardImproved /></PrivateRoute>} />
         <Route path="/income" element={<PrivateRoute><Income /></PrivateRoute>} />
         <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
         <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />

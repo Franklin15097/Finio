@@ -67,12 +67,12 @@ export default function Layout({ children }: LayoutProps) {
       <WebSocketStatus position="top-right" autoHide={true} />
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-black/95 border-b border-border/50 shadow-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-card/95 border-b border-border shadow-lg">
         <div className="h-16 px-4 md:px-6 flex items-center justify-between">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="md:hidden p-2 rounded-lg glass-card hover:bg-card/90 text-foreground transition-colors"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -106,7 +106,7 @@ export default function Layout({ children }: LayoutProps) {
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     isActive
                       ? `bg-gradient-to-r ${item.gradient} text-white shadow-lg`
-                      : 'bg-white/10 hover:bg-white/20 text-gray-300'
+                      : 'glass-card hover:bg-card/90 text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function Layout({ children }: LayoutProps) {
 
           {/* Header Actions */}
           <div className="flex items-center gap-2">
-            <ThemeToggle variant="icon" position="header" />
+            <ThemeToggle variant="icon" />
             <div className="hidden md:block text-sm text-foreground font-semibold">
               {user?.name}
             </div>
@@ -129,7 +129,7 @@ export default function Layout({ children }: LayoutProps) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 shadow-lg">
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-card/95 backdrop-blur-xl border-b border-border shadow-lg">
             <div className="p-4 space-y-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -144,7 +144,7 @@ export default function Layout({ children }: LayoutProps) {
                     className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${
                       isActive
                         ? `bg-gradient-to-r ${item.gradient} text-white`
-                        : 'bg-white/10 hover:bg-white/20 text-gray-300'
+                        : 'glass-card hover:bg-card/90 text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -157,14 +157,14 @@ export default function Layout({ children }: LayoutProps) {
               })}
               
               {/* User Info in Mobile Menu */}
-              <div className="pt-4 mt-4 border-t border-gray-800">
+              <div className="pt-4 mt-4 border-t border-border">
                 <div className="flex items-center gap-3 p-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-sm truncate">{user?.name}</p>
-                    <p className="text-gray-400 text-xs truncate">{user?.email}</p>
+                    <p className="text-foreground font-semibold text-sm truncate">{user?.name}</p>
+                    <p className="text-muted-foreground text-xs truncate">{user?.email}</p>
                   </div>
                 </div>
                 
@@ -173,7 +173,7 @@ export default function Layout({ children }: LayoutProps) {
                     logout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-center gap-2 p-3 mt-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-colors font-semibold text-sm"
+                  className="w-full flex items-center justify-center gap-2 p-3 mt-2 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-xl transition-colors font-semibold text-sm"
                 >
                   <LogOut className="w-4 h-4" />
                   Выйти
@@ -185,7 +185,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-64 backdrop-blur-xl bg-black/95 border-r border-border/50 p-4 flex flex-col shadow-xl">
+      <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-64 backdrop-blur-xl bg-card/95 border-r border-border p-4 flex flex-col shadow-xl">
         <nav className="space-y-2 flex-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -206,8 +206,8 @@ export default function Layout({ children }: LayoutProps) {
                 )}
                 <div className={`relative flex items-center gap-3 px-4 py-3.5 ${
                   isActive 
-                    ? 'text-primary-foreground' 
-                    : 'text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary'
+                    ? 'text-white' 
+                    : 'text-muted-foreground hover:text-foreground glass-card hover:bg-card/90'
                 }`}>
                   <Icon className="w-5 h-5" />
                   <span className="font-semibold text-sm">{item.label}</span>
@@ -221,7 +221,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="mt-auto space-y-2 pt-4 border-t border-border">
           <div className="relative overflow-hidden flex items-center gap-3 px-4 py-3 bg-primary/10 rounded-xl border border-primary/20 backdrop-blur-sm">
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="relative w-10 h-10 gradient-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm shadow-lg">
+            <div className="relative w-10 h-10 gradient-primary rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
             <div className="relative flex-1 min-w-0">
@@ -231,10 +231,10 @@ export default function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="grid grid-cols-2 gap-2">
-            <ThemeToggle variant="button" position="sidebar" showLabel={false} />
+            <ThemeToggle variant="button" showLabel={false} />
             <button
               onClick={logout}
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive hover:text-destructive-foreground rounded-xl transition-all duration-300 font-semibold text-sm border border-destructive/20 backdrop-blur-sm hover:scale-105"
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 rounded-xl transition-all duration-300 font-semibold text-sm border border-red-500/20 backdrop-blur-sm hover:scale-105"
             >
               <LogOut className="w-4 h-4" />
               Выйти
@@ -251,7 +251,7 @@ export default function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="md:ml-64 relative z-0 backdrop-blur-xl bg-black/95 border-t border-border/50 shadow-lg">
+      <footer className="md:ml-64 relative z-0 backdrop-blur-xl bg-card/95 border-t border-border shadow-lg">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -270,9 +270,9 @@ export default function Layout({ children }: LayoutProps) {
               <a href="/terms.html" target="_blank" className="hover:text-foreground transition-colors">Соглашение</a>
               <a href="/privacy.html" target="_blank" className="hover:text-foreground transition-colors">Конфиденциальность</a>
               <a href="mailto:support@studiofinance.ru" className="hover:text-foreground transition-colors">Поддержка</a>
-              <span className="text-gray-600">•</span>
-              <span className="text-green-400 flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-muted-foreground/50">•</span>
+              <span className="text-green-600 dark:text-green-400 flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-600 dark:bg-green-400 rounded-full animate-pulse" />
                 Real-time sync
               </span>
             </div>
