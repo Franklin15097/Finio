@@ -15,16 +15,23 @@ import './App.css';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  return user ? <Layout>{children}</Layout> : <Navigate to="/auth" />;
+  return user ? (
+    <Layout>
+      <div key={location.pathname} className="animate-fade-in">
+        {children}
+      </div>
+    </Layout>
+  ) : <Navigate to="/auth" />;
 }
 
 function AppRoutes() {
@@ -32,19 +39,17 @@ function AppRoutes() {
   const location = useLocation();
 
   return (
-    <div key={location.pathname} className="animate-fade-in">
-      <Routes location={location}>
-        <Route path="/auth" element={user ? <Navigate to="/" /> : <Auth />} />
-        <Route path="/" element={<PrivateRoute><DashboardImproved /></PrivateRoute>} />
-        <Route path="/income" element={<PrivateRoute><Income /></PrivateRoute>} />
-        <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
-        <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />
-        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-        <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
-        <Route path="/telegram/categories" element={<PrivateRoute><TelegramCategories /></PrivateRoute>} />
-        <Route path="/telegram/analytics" element={<PrivateRoute><TelegramAnalytics /></PrivateRoute>} />
-      </Routes>
-    </div>
+    <Routes location={location}>
+      <Route path="/auth" element={user ? <Navigate to="/" /> : <Auth />} />
+      <Route path="/" element={<PrivateRoute><DashboardImproved /></PrivateRoute>} />
+      <Route path="/income" element={<PrivateRoute><Income /></PrivateRoute>} />
+      <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
+      <Route path="/accounts" element={<PrivateRoute><Accounts /></PrivateRoute>} />
+      <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+      <Route path="/telegram/categories" element={<PrivateRoute><TelegramCategories /></PrivateRoute>} />
+      <Route path="/telegram/analytics" element={<PrivateRoute><TelegramAnalytics /></PrivateRoute>} />
+    </Routes>
   );
 }
 
