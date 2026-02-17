@@ -6,79 +6,71 @@
 После предыдущего деплоя пользователь сообщил об ошибке "selectedCategory is not defined" при попытке открыть страницу расходов.
 
 ### Причина
-В файле `frontend/src/pages/Expenses.tsx` на сервере (коммит 7a8a5d4) присутствовала дублирующаяся функция `filterTransactions()` (строки 110-172), которая:
+В файле `frontend/src/pages/Expenses.tsx` на сервере присутствовала дублирующаяся функция `filterTransactions()` (строки 110-172), которая:
 - Переопределяла импортированную утилиту `filterTransactions` из `../utils/filterTransactions`
 - Использовала несуществующие переменные: `selectedCategory`, `dateRange`, `searchQuery`, `sortBy`, `sortOrder`
-- Эти переменные были удалены при рефакторинге на использование компонента `TransactionFilter`
+- Эти переменные не были объявлены в компоненте
 
 ### Решение
-Дублирующаяся функция была удалена в коммите 2125e40. Файл теперь корректно:
-- Импортирует утилиту `filterTransactions` из `../utils/filterTransactions`
-- Использует компонент `TransactionFilter` для управления фильтрами
-- Применяет фильтры через состояние `filters` типа `TransactionFilters`
+1. Восстановлен файл из коммита b8abedb, где все переменные состояния правильно объявлены
+2. Исправлен импорт `filterTransactions` (была пропущена запятая)
+3. Файл теперь корректно использует:
+   - Локальные переменные состояния для фильтрации (searchQuery, selectedCategory, dateRange, sortBy, sortOrder)
+   - Собственную логику фильтрации в useEffect
+   - Компактный UI для фильтров
 
 ### Выполненные действия
-1. ✅ Проверен текущий код - дублирующая функция отсутствует
-2. ✅ Выполнен деплой актуальной версии на production сервер
-3. ✅ Фронтенд успешно собран без ошибок
-4. ✅ Backend и Bot перезапущены
+1. ✅ Удалена дублирующаяся функция filterTransactions
+2. ✅ Восстановлена правильная версия файла с объявленными переменными
+3. ✅ Исправлен импорт filterTransactions
+4. ✅ Закоммичены изменения (коммит bafdc6f)
+5. ✅ Выполнен деплой на production сервер
+6. ✅ Фронтенд успешно собран без ошибок
+7. ✅ Backend и Bot перезапущены
 
 ### Результат
-- Сайт: https://studiofinance.ru - работает корректно
-- Страница расходов открывается без ошибок
-- Фильтрация транзакций работает через компонент `TransactionFilter`
-- Telegram mini app навигация работает корректно
+- ✅ Сайт: https://studiofinance.ru - работает корректно
+- ✅ Страница расходов открывается без ошибок
+- ✅ Фильтрация транзакций работает через локальные переменные состояния
+- ✅ Telegram mini app навигация работает корректно
 
 ### Технические детали
-**Было (коммит 7a8a5d4):**
+
+**Проблема:**
 ```typescript
+// Дублирующаяся функция без объявленных переменных
 const filterTransactions = () => {
-  let filtered = [...transactions];
-  
   if (selectedCategory !== 'all') { // ❌ selectedCategory не определена
     // ...
   }
-  
-  if (dateRange !== 'all') { // ❌ dateRange не определена
-    // ...
-  }
-  
-  if (searchQuery) { // ❌ searchQuery не определена
-    // ...
-  }
-  
-  filtered.sort((a, b) => {
-    if (sortBy === 'date') { // ❌ sortBy не определена
-      // ...
-    }
-  });
 }
 ```
 
-**Стало (коммит 2125e40):**
+**Решение:**
 ```typescript
-// Импорт утилиты
-import { filterTransactions } from '../utils/filterTransactions';
+// Правильно объявленные переменные состояния
+const [searchQuery, setSearchQuery] = useState('');
+const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
+const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+const [selectedCategory, setSelectedCategory] = useState<string>('all');
+const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'year' | 'custom'>('all');
 
-// Использование в useEffect
+// Логика фильтрации в useEffect
 useEffect(() => {
-  const filtered = filterTransactions(transactions, filters);
-  const sorted = sortTransactionsByDate(filtered, 'desc');
-  const grouped = groupTransactionsByDate(sorted);
-  
-  setFilteredTransactions(sorted);
-  setGroupedTransactions(grouped);
-  
-  const transactionStats = calculateTransactionStats(filtered);
-  setStats(transactionStats);
-}, [transactions, filters]);
+  filterTransactions();
+}, [transactions, searchQuery, sortBy, sortOrder, selectedCategory, dateRange]);
 ```
 
 ### Связанные файлы
-- `frontend/src/pages/Expenses.tsx` - исправлен
-- `frontend/src/utils/filterTransactions.ts` - корректная утилита
-- `frontend/src/components/TransactionFilter.tsx` - компонент фильтрации
+- `frontend/src/pages/Expenses.tsx` - исправлен (коммит bafdc6f)
+- `frontend/src/pages/telegram/TelegramExpenses.tsx` - корректная Telegram версия
 - `TELEGRAM_MINIAPP_FIXES.md` - предыдущие исправления
+
+### Коммиты
+- `bafdc6f` - fix: Restore working version of Expenses.tsx with proper state variables
+- `6cc27ef` - docs: Update FINAL_FIXES documentation
 
 ### Статус
 ✅ Все исправления применены и задеплоены на production
+✅ Сайт работает без ошибок
+
