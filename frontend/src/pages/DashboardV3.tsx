@@ -48,15 +48,15 @@ export default function DashboardV3() {
     try {
       const [statsRes, transactionsRes, budgetsRes, categoriesRes] = await Promise.all([
         api.getDashboardStats(),
-        api.getTransactions({ limit: 10 }),
+        api.getTransactions(),
         api.getBudgets(),
         api.getCategories(),
       ]);
 
       setStats(statsRes);
-      setTransactions(transactionsRes);
-      setBudgets(budgetsRes);
-      setCategories(categoriesRes);
+      setTransactions(Array.isArray(transactionsRes) ? transactionsRes.slice(0, 10) : []);
+      setBudgets(Array.isArray(budgetsRes) ? budgetsRes : []);
+      setCategories(Array.isArray(categoriesRes) ? categoriesRes : []);
 
       // Генерация истории баланса (последние 7 дней)
       const history = Array.from({ length: 7 }, (_, i) => {

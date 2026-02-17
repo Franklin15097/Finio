@@ -5,6 +5,7 @@ interface ThemeContextType {
   theme: Theme;
   themeName: string;
   setTheme: (name: string) => void;
+  toggleTheme?: () => void;
   availableThemes: typeof themes;
 }
 

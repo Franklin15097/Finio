@@ -80,7 +80,6 @@ export default function TelegramBalance() {
               max={(stats?.totalIncome || 0) + (stats?.totalExpense || 0)}
               size={90}
               strokeWidth={6}
-              color="#10b981"
               label="Доходы"
             />
           </div>
@@ -90,7 +89,6 @@ export default function TelegramBalance() {
               max={(stats?.totalIncome || 0) + (stats?.totalExpense || 0)}
               size={90}
               strokeWidth={6}
-              color={balance >= 0 ? '#8b5cf6' : '#ef4444'}
               label="Баланс"
             />
           </div>
@@ -100,7 +98,6 @@ export default function TelegramBalance() {
               max={totalPlanned > 0 ? totalPlanned : totalActual}
               size={90}
               strokeWidth={6}
-              color="#3b82f6"
               label="Счета"
             />
           </div>

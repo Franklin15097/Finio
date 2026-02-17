@@ -2,7 +2,7 @@ import { ReactNode, ButtonHTMLAttributes } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
+  children?: ReactNode;
   variant?: 'primary' | 'secondary' | 'ghost' | 'icon';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
